@@ -1,0 +1,8 @@
+* Notes 13 Jan 2026
+- focus on SLMs
+- tinyML
+- VLAs
+- deep reinforcement learning?
+- blackjack
+- supermario? flappy bird?
+- pytorch
