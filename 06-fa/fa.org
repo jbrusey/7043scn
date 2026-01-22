@@ -1,0 +1,66 @@
+#+title: Reinforcement Learning
+#+subtitle: Function approximation
+#+author: Prof. James Brusey
+#+options: toc:nil h:2
+#+startup: beamer
+
+* Function approximation
+** Function approximation
++ What if we don't have a finite (or at least small) number of states?
++ We've also noticed that nearby states often have close values
+#+beamer: \pause
++ We could make a fine mesh over possible states
++ We could linearly interpolate
++ We could use a generic function approximator
+** Function approximator
++ For some set of weights $\vec{w} \in \mathbb{R}^d$, we write
+  $$
+  \hat{v}(s, \vec{w}) \approx v_\pi (s)
+  $$
++ Our objective is to minimise the error
+  $$
+  \overline{\mathrm{VE}}(\vec{w}) \doteq \sum_{s \in \mathcal{S}} \mu(s) \left[v_\pi(s) - \hat{v}(s,\vec{w})\right]^2
+  $$
++ Note that this is a weighted mean with weights $\mu(s)$
+** Stochastic Gradient Descent
++ SGD moves the weight a small amount in the direction of the negative of the gradient
+  $$
+  \vec{w}_{t+1} \doteq \vec{w}_t - \frac{1}{2}\alpha \nabla \left[ v_\pi (S_t) - \hat{v}(S_t, \vec{w}_t)\right]^2
+  $$
+  $$
+  = \vec{w}_t + \alpha \left[ v_\pi (S_t) - \hat{v} (S_t, \vec{w}_t)\right] \nabla \hat{v} (S_t, \vec{w}_t)
+  $$
++ Note that $\nabla f(\vec{w})$ means the vector of partial derivatives
+  $$
+  \nabla f(\vec{w}) \doteq \left( \frac{ \partial f(\vec{w})}{\partial w_1},\frac{ \partial f(\vec{w})}{\partial w_2},\cdots,\frac{ \partial f(\vec{w})}{\partial w_d}  \right)^\top
+  $$
+** Linear Function Approximator
++ One simple approximator is
+  $$
+  \hat{v}(s,\vec{w}) \doteq \vec{w}^\top \vec{x}(s),
+  $$
+  where $\vec{x}(s)$ is $s$ expressed as a feature vector
++ The gradient is then simply
+  $$
+  \nabla \hat{v}(s, \vec{w}) = \vec{x}(s).
+  $$
++ When we use a linear function approximator, we refer to the algorithm as /linear/
+  + e.g., Linear Sarsa, Linear TD
+** The problem of discontinuities
++ Consider the game of chess
++ Two positions may be very similar (e.g., only one piece different)
++ However, one position may be leading to checkmate (win) whereas the other may be a loss
++ This is a /sharp discontinuity/
++ For this reason, we want a /complex/ function approximator
+** The problem of sparseness
++ In principle, we can converge on the value of a state action if our search is guaranteed to visit that state-action an infinite number of times
++ However, as the state-action space grows, it becomes hard to visit every instance
++ Thus we need a /smooth/ and /simple/ function approximator
+
+** Non-linear function approximators
++ Linear approximators are simple and convergence proofs are possible
++ Non-linear might seem better, especially when there is difficulty designing $\vec{x}(s)$
++ Artificial Neural Networks might be used
++ Problem is that samples are not independent from prior samples
++ Solution is to use Experience Replay (used by Deep Q-Network (DQN))
+  
