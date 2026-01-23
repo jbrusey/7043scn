@@ -278,11 +278,16 @@ $$
   - \(\mathcal{R}^a_s = \mathbb{E}[R_{t+1} \mid S_t=s, A_t=a]\)
 
 ** Maze Example (Start)
-- Goal
-- Rewards: -1 per time-step
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+#+attr_html: :height 400px
+[[file:maze1.svg]]
+
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+- Rewards: $-1$ per time-step
 - Actions: N, E, S, W
 - States: agent’s location
-- (Maze diagram on page 30)
+
+#+REVEAL_HTML: </div></div>
 
 ** Maze Example (Policy)
 - Arrows represent policy \(\pi(s)\) for each state \(s\)
