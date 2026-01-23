@@ -22,8 +22,8 @@
 <h1 class="title">Lecture 1: Introduction to Reinforcement Learning</h1><h2 class="author">James Brusey</h2>
 </section>
 <section>
-<section id="slide-org6adec1e">
-<h2 id="org6adec1e">Outline</h2>
+<section id="slide-orgd5b6278">
+<h2 id="orgd5b6278">Outline</h2>
 <ol>
 <li>Admin</li>
 <li>About Reinforcement Learning</li>
@@ -35,8 +35,8 @@
 </section>
 </section>
 <section>
-<section id="slide-orga70fae5">
-<h2 id="orga70fae5">Admin: Textbooks</h2>
+<section id="slide-orgb4aeaaf">
+<h2 id="orgb4aeaaf">Admin: Textbooks</h2>
 <ul>
 <li><b>An Introduction to Reinforcement Learning</b>, Sutton and Barto, 2018
 <ul>
@@ -53,29 +53,29 @@
 </section>
 </section>
 <section>
-<section id="slide-orgb9ee0cc">
-<h2 id="orgb9ee0cc">About RL</h2>
-<div class="outline-text-2" id="text-orgb9ee0cc">
+<section id="slide-org76c923e">
+<h2 id="org76c923e">About RL</h2>
+<div class="outline-text-2" id="text-org76c923e">
 </div>
 </section>
-<section id="slide-orgb69371d">
-<h3 id="orgb69371d">Many Faces of Reinforcement Learning</h3>
+<section id="slide-orge2450ed">
+<h3 id="orge2450ed">Many Faces of Reinforcement Learning</h3>
 
-<div id="org1cf8922" class="figure">
+<div id="org3b346ac" class="figure">
 <p><img src="rl-to-discipline.svg" alt="rl-to-discipline.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-org768963c">
-<h3 id="org768963c">Branches of Machine Learning</h3>
+<section id="slide-org738ca22">
+<h3 id="org738ca22">Branches of Machine Learning</h3>
 
-<div id="org1ca3abc" class="figure">
+<div id="org2528638" class="figure">
 <p><img src="ml-types.svg" alt="ml-types.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-org7214e46">
-<h3 id="org7214e46">Characteristics of Reinforcement Learning</h3>
+<section id="slide-org542a95c">
+<h3 id="org542a95c">Characteristics of Reinforcement Learning</h3>
 <p>
 What makes reinforcement learning different from other machine
 learning paradigms?
@@ -88,8 +88,8 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-org3a06033">
-<h3 id="org3a06033">Examples (from 10 years ago)</h3>
+<section id="slide-orgecafe37">
+<h3 id="orgecafe37">Examples (from 10 years ago)</h3>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter</li>
 <li>Defeat the world champion at Backgammon</li>
@@ -100,11 +100,11 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-orgf9961ce">
-<h3 id="orgf9961ce">Tesauro's TD Gammon (1992)</h3>
+<section id="slide-org5070505">
+<h3 id="org5070505">Tesauro's TD Gammon (1992)</h3>
 
-<div id="org716a6a7" class="figure">
-<p><img src="figures/td-gammon.png" alt="td-gammon.png" />
+<div id="orged57fb3" class="figure">
+<p><img src="td-gammon.png" alt="td-gammon.png" />
 </p>
 </div>
 <aside class="notes">
@@ -119,8 +119,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-orgc061299">
-<h3 id="orgc061299">Fly stunt manoeuvres in a helicopter (2006)</h3>
+<section id="slide-org17b55e0">
+<h3 id="org17b55e0">Fly stunt manoeuvres in a helicopter (2006)</h3>
 <video controls muted data-autoplay src="Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
 <aside class="notes">
 <ul>
@@ -130,8 +130,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-orgbe954aa">
-<h3 id="orgbe954aa">Atari DQN (Google DeepMind 2016) - Start of DeepRL</h3>
+<section id="slide-orga30cf63">
+<h3 id="orga30cf63">Atari DQN (Google DeepMind 2016) - Start of DeepRL</h3>
 <video data-autoplay src="../2023-02-rl/figures/DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
 <aside class="notes">
 <ul>
@@ -144,8 +144,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-org534949c">
-<h3 id="org534949c">Examples (more recently)</h3>
+<section id="slide-org872aa53">
+<h3 id="org872aa53">Examples (more recently)</h3>
 <ul>
 <li>AlphaGo - defeat world champion at Go</li>
 <li>Control cooling for a data centre</li>
@@ -158,8 +158,8 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-orgc7d3eb2">
-<h3 id="orgc7d3eb2">Quick exercise</h3>
+<section id="slide-org369aafb">
+<h3 id="org369aafb">Quick exercise (5 mins)</h3>
 <ul>
 <li>Go and find web pages, videos, or research papers for as many of the examples as you can</li>
 <li>If you don't have a laptop, use your phone</li>
@@ -169,8 +169,13 @@ learning paradigms?
 </section>
 </section>
 <section>
-<section id="slide-org1acc23c">
-<h2 id="org1acc23c">The RL Problem: Reward</h2>
+<section id="slide-org5cc5c4c">
+<h2 id="org5cc5c4c">The RL Problem</h2>
+<div class="outline-text-2" id="text-org5cc5c4c">
+</div>
+</section>
+<section id="slide-orgc4d830d">
+<h3 id="orgc4d830d">Reward</h3>
 <ul>
 <li>A reward \(R_t\) is a scalar feedback signal
 <ul>
@@ -179,19 +184,20 @@ learning paradigms?
 </ul></li>
 <li>The agent’s job is to maximise cumulative reward</li>
 <li>Reinforcement learning is based on the <b>reward hypothesis</b></li>
-<li>Definition (Reward Hypothesis)
-<ul>
-<li>All goals can be described by the maximisation of expected cumulative reward</li>
-
-</ul></li>
-<li>Question: Do you agree with this statement?</li>
 
 </ul>
+<div class="definition" id="org976708d">
+<p>
+All goals can be described by the maximisation of expected cumulative reward
+</p>
+
+</div>
+<p>
+Do you agree?
+</p>
 </section>
-</section>
-<section>
-<section id="slide-org33db75f">
-<h2 id="org33db75f">The RL Problem: Examples of Rewards</h2>
+<section id="slide-orgc232a79">
+<h3 id="orgc232a79">Examples of Rewards</h3>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter
 <ul>
@@ -229,12 +235,10 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgbd6ae23">
-<h2 id="orgbd6ae23">The RL Problem: Sequential Decision Making</h2>
+<section id="slide-org956f590">
+<h3 id="org956f590">Sequential Decision Making</h3>
 <ul>
-<li>Goal: select actions to maximise total future reward</li>
+<li>Goal: <i>select actions to maximise total future reward</i></li>
 <li>Actions may have long term consequences</li>
 <li>Reward may be delayed</li>
 <li>It may be better to sacrifice immediate reward to gain more long-term reward</li>
@@ -248,19 +252,26 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orga7f2319">
-<h2 id="orga7f2319">The RL Problem: Environments (Agent and Environment)</h2>
-<ul>
-<li>(Diagram on page 16: agent/environment with observation \(O_t\), action \(A_t\), reward \(R_t\))</li>
+<section id="slide-org214cf48">
+<h3 id="org214cf48">Environments (Agent and Environment)</h3>
 
-</ul>
+<div id="orga29f385" class="figure">
+<p><img src="agent-env.svg" alt="agent-env.svg" class="org-svg" height="400px" />
+</p>
+</div>
 </section>
-</section>
-<section>
-<section id="slide-org105f502">
-<h2 id="org105f502">The RL Problem: Environments (Agent and Environment)</h2>
+<section id="slide-orge01a752">
+<h3 id="orge01a752">Environments (Agent and Environment)</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+
+<div id="org7a57c46" class="figure">
+<p><img src="real-agent-env.svg" alt="real-agent-env.svg" class="org-svg" height="400px" />
+</p>
+</div>
+
+
+</div><div style="flex: 1; padding: 0px; ">
 <ul>
 <li>At each step \(t\) the agent:
 <ul>
@@ -277,14 +288,13 @@ learning paradigms?
 
 </ul></li>
 <li>\(t\) increments at environment step</li>
-<li>(Same diagram, with bullets; page 17)</li>
 
 </ul>
+
+</div></div>
 </section>
-</section>
-<section>
-<section id="slide-orgdb0434d">
-<h2 id="orgdb0434d">The RL Problem: State (History and State)</h2>
+<section id="slide-orgd49bc14">
+<h3 id="orgd49bc14">State (History and State)</h3>
 <ul>
 <li>History is the sequence of observations, actions, rewards:
 <ul>
@@ -308,10 +318,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgf28626b">
-<h2 id="orgf28626b">The RL Problem: State (Environment State)</h2>
+<section id="slide-org0f19f49">
+<h3 id="org0f19f49">State (Environment State)</h3>
 <ul>
 <li>The environment state \(S^e_t\) is the environment’s private representation
 <ul>
@@ -324,10 +332,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org56e9d2b">
-<h2 id="org56e9d2b">The RL Problem: State (Agent State)</h2>
+<section id="slide-org544db52">
+<h3 id="org544db52">State (Agent State)</h3>
 <ul>
 <li>The agent state \(S^a_t\) is the agent’s internal representation
 <ul>
@@ -344,22 +350,26 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org9cb1f76">
-<h2 id="org9cb1f76">The RL Problem: State (Information / Markov State)</h2>
+<section id="slide-org864e9af">
+<h3 id="org864e9af">State (Information / Markov State)</h3>
 <ul>
 <li>An information state (a.k.a. Markov state) contains all useful information from history.</li>
-<li>Definition: a state \(S_t\) is Markov iff
-<ul>
-<li>\(P[S_{t+1}\mid S_t] = P[S_{t+1}\mid S_1,\ldots,S_t]\)</li>
 
-</ul></li>
+</ul>
+<div class="definition" id="org056b95a">
+<p>
+a state \(S_t\) is Markov iff
+\[
+   \mathbb{P}[S_{t+1}\mid S_t] = \mathbb{P}[S_{t+1}\mid S_1,\ldots,S_t]
+\]
+</p>
+
+</div>
+<ul>
 <li>“The future is independent of the past given the present”
-<ul>
-<li>\(H_{1:t} \rightarrow S_t \rightarrow H_{t+1:\infty}\)</li>
-
-</ul></li>
+\[
+  H_{1:t} \rightarrow S_t \rightarrow H_{t+1:\infty}
+  \]</li>
 <li>Once the state is known, the history may be thrown away
 <ul>
 <li>i.e. state is a sufficient statistic of the future</li>
@@ -370,44 +380,93 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgb51120b">
-<h2 id="orgb51120b">The RL Problem: State (Rat Example)</h2>
+<section id="slide-org569c126">
+<h3 id="org569c126">State (Rat Example)</h3>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">💡</td>
+<td class="org-left">💡</td>
+<td class="org-left">🕹️️</td>
+<td class="org-left">🔔</td>
+<td class="org-left">&nbsp;</td>
+<td class="org-left">⚡</td>
+</tr>
+
+<tr>
+<td class="org-left">🔔</td>
+<td class="org-left">💡</td>
+<td class="org-left">🕹️</td>
+<td class="org-left">🕹️</td>
+<td class="org-left">&nbsp;</td>
+<td class="org-left">🧀</td>
+</tr>
+
+<tr>
+<td class="org-left">🕹️</td>
+<td class="org-left">💡</td>
+<td class="org-left">🕹️</td>
+<td class="org-left">🔔</td>
+<td class="org-left">&nbsp;</td>
+<td class="org-left">?</td>
+</tr>
+</tbody>
+</table>
+
 <ul>
 <li>What if agent state = last 3 items in sequence?</li>
 <li>What if agent state = counts for lights, bells and levers?</li>
 <li>What if agent state = complete sequence?</li>
-<li>(Illustration on page 22)</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgfccb5b8">
-<h2 id="orgfccb5b8">The RL Problem: State (Fully Observable Environments)</h2>
-<ul>
-<li>Full observability: agent directly observes environment state
-<ul>
-<li>\(O_t = S^a_t = S^e_t\)</li>
+<section id="slide-orgcf49fab">
+<h3 id="orgcf49fab">State (Fully Observable Environments)</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
-</ul></li>
+
+<div id="org72b3ac6" class="figure">
+<p><img src="real-agent-env.svg" alt="real-agent-env.svg" class="org-svg" height="400px" />
+</p>
+</div>
+
+
+</div><div style="flex: 1; padding: 0px; ">
+<ul>
+<li><b>Full observability</b>: agent <b>directly</b> observes environment state
+\[
+  O_t = S^a_t = S^e_t
+  \]</li>
 <li>Agent state = environment state = information state</li>
-<li>Formally: Markov decision process (MDP)
+<li>Formally: <b>Markov decision process (MDP)</b>
 <ul>
 <li>(Next lecture and the majority of this course)</li>
 
 </ul></li>
-<li>(Diagram on page 23)</li>
 
 </ul>
+
+</div></div>
 </section>
-</section>
-<section>
-<section id="slide-org71a4943">
-<h2 id="org71a4943">The RL Problem: State (Partially Observable Environments)</h2>
+<section id="slide-org1f849d8">
+<h3 id="org1f849d8">State (Partially Observable Environments)</h3>
 <ul>
-<li>Partial observability: agent indirectly observes environment:
+<li><b>Partial observability</b>: agent <b>indirectly</b> observes environment:
 <ul>
 <li>robot with camera vision isn’t told absolute location</li>
 <li>trading agent only observes current prices</li>
@@ -415,13 +474,13 @@ learning paradigms?
 
 </ul></li>
 <li>Now agent state \(\neq\) environment state</li>
-<li>Formally: partially observable Markov decision process (POMDP)</li>
+<li>Formally: <b>partially observable Markov decision process</b> (POMDP)</li>
 <li>Agent must construct its own state representation \(S^a_t\), e.g.
 <ul>
 <li>Complete history: \(S^a_t = H_t\)</li>
 <li>Beliefs of environment state:
 <ul>
-<li>\(S^a_t = (P[S^e_t=s_1], \ldots, P[S^e_t=s_n])\)</li>
+<li>\(S^a_t = (\mathbb{P}[S^e_t=s_1], \ldots, \mathbb{P}[S^e_t=s_n])\)</li>
 
 </ul></li>
 <li>Recurrent neural network:
@@ -436,8 +495,13 @@ learning paradigms?
 </section>
 </section>
 <section>
-<section id="slide-org27804ea">
-<h2 id="org27804ea">Inside An RL Agent: Major Components</h2>
+<section id="slide-org8a04cd6">
+<h2 id="org8a04cd6">Inside An RL Agent</h2>
+<div class="outline-text-2" id="text-org8a04cd6">
+</div>
+</section>
+<section id="slide-org4764f35">
+<h3 id="org4764f35">Major Components</h3>
 <ul>
 <li>An RL agent may include one or more of:
 <ul>
@@ -449,25 +513,21 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org89c7e2c">
-<h2 id="org89c7e2c">Inside An RL Agent: Policy</h2>
+<section id="slide-org4b625bb">
+<h3 id="org4b625bb">Policy</h3>
 <ul>
 <li>A policy is the agent’s behaviour</li>
 <li>Map from state to action, e.g.
 <ul>
 <li>Deterministic policy: \(a = \pi(s)\)</li>
-<li>Stochastic policy: \(\pi(a\mid s)=P[A_t=a\mid S_t=s]\)</li>
+<li>Stochastic policy: \(\pi(a\mid s)=\mathbb{P}[A_t=a\mid S_t=s]\)</li>
 
 </ul></li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org24d22d7">
-<h2 id="org24d22d7">Inside An RL Agent: Value Function</h2>
+<section id="slide-org482ff7b">
+<h3 id="org482ff7b">Value Function</h3>
 <ul>
 <li>Value function is a prediction of future reward</li>
 <li>Used to evaluate goodness/badness of states</li>
@@ -479,19 +539,15 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org48ce50c">
-<h2 id="org48ce50c">Inside An RL Agent: Example (Value Function in Atari)</h2>
+<section id="slide-org57138ed">
+<h3 id="org57138ed">Example (Value Function in Atari)</h3>
 <ul>
 <li>(Image-only slide; see page 28)</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org134c988">
-<h2 id="org134c988">Inside An RL Agent: Model</h2>
+<section id="slide-org4b5e351">
+<h3 id="org4b5e351">Model</h3>
 <ul>
 <li>A model predicts what the environment will do next
 <ul>
@@ -501,17 +557,15 @@ learning paradigms?
 </ul></li>
 <li>Example:
 <ul>
-<li>\(P^a_{ss'} = P[S_{t+1}=s' \mid S_t=s, A_t=a]\)</li>
-<li>\(R^a_s = \mathbb{E}[R_{t+1} \mid S_t=s, A_t=a]\)</li>
+<li>\(\mathcal{P}^a_{ss'} = \mathbb{P}[S_{t+1}=s' \mid S_t=s, A_t=a]\)</li>
+<li>\(\mathcal{R}^a_s = \mathbb{E}[R_{t+1} \mid S_t=s, A_t=a]\)</li>
 
 </ul></li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgd645930">
-<h2 id="orgd645930">Inside An RL Agent: Maze Example (Start)</h2>
+<section id="slide-org596f1fe">
+<h3 id="org596f1fe">Maze Example (Start)</h3>
 <ul>
 <li>Goal</li>
 <li>Rewards: -1 per time-step</li>
@@ -521,30 +575,24 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org3373cb0">
-<h2 id="org3373cb0">Inside An RL Agent: Maze Example (Policy)</h2>
+<section id="slide-org50f71e2">
+<h3 id="org50f71e2">Maze Example (Policy)</h3>
 <ul>
 <li>Arrows represent policy \(\pi(s)\) for each state \(s\)</li>
 <li>(Diagram on page 31)</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org8eea3d9">
-<h2 id="org8eea3d9">Inside An RL Agent: Maze Example (Value Function)</h2>
+<section id="slide-org009a82c">
+<h3 id="org009a82c">Maze Example (Value Function)</h3>
 <ul>
 <li>Numbers represent value \(v_\pi(s)\) of each state \(s\)</li>
 <li>(Diagram on page 32)</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org0ace0d3">
-<h2 id="org0ace0d3">Inside An RL Agent: Maze Example (Model)</h2>
+<section id="slide-org5180ef4">
+<h3 id="org5180ef4">Maze Example (Model)</h3>
 <ul>
 <li>Agent may have an internal model of the environment
 <ul>
@@ -559,10 +607,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org1eab8f0">
-<h2 id="org1eab8f0">Inside An RL Agent: Categorizing RL agents (1)</h2>
+<section id="slide-org1ecf826">
+<h3 id="org1ecf826">Categorizing RL agents (1)</h3>
 <ul>
 <li>Value-Based
 <ul>
@@ -585,10 +631,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org96f1db8">
-<h2 id="org96f1db8">Inside An RL Agent: Categorizing RL agents (2)</h2>
+<section id="slide-org8d58149">
+<h3 id="org8d58149">Categorizing RL agents (2)</h3>
 <ul>
 <li>Model-Free
 <ul>
@@ -605,10 +649,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org56d4ff5">
-<h2 id="org56d4ff5">Inside An RL Agent: RL Agent Taxonomy</h2>
+<section id="slide-orga884610">
+<h3 id="orga884610">RL Agent Taxonomy</h3>
 <ul>
 <li>(Diagram on page 36: Model / Value Function / Policy overlap; value-based vs policy-based; model-free vs model-based; actor-critic in intersection)</li>
 
@@ -616,8 +658,13 @@ learning paradigms?
 </section>
 </section>
 <section>
-<section id="slide-orgbf1301c">
-<h2 id="orgbf1301c">Problems within RL: Learning and Planning</h2>
+<section id="slide-org9f8161c">
+<h2 id="org9f8161c">Problems within RL</h2>
+<div class="outline-text-2" id="text-org9f8161c">
+</div>
+</section>
+<section id="slide-org9f0c54f">
+<h3 id="org9f0c54f">Learning and Planning</h3>
 <ul>
 <li>Two fundamental problems in sequential decision making</li>
 <li>Reinforcement Learning:
@@ -638,10 +685,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org652eb65">
-<h2 id="org652eb65">Problems within RL: Atari Example (Reinforcement Learning)</h2>
+<section id="slide-org51f58d5">
+<h3 id="org51f58d5">Atari Example (Reinforcement Learning)</h3>
 <ul>
 <li>Rules of the game are unknown</li>
 <li>Learn directly from interactive gameplay</li>
@@ -650,10 +695,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org547fb97">
-<h2 id="org547fb97">Problems within RL: Atari Example (Planning)</h2>
+<section id="slide-org7135004">
+<h3 id="org7135004">Atari Example (Planning)</h3>
 <ul>
 <li>Rules of the game are known</li>
 <li>Can query emulator
@@ -676,10 +719,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgf81024c">
-<h2 id="orgf81024c">Problems within RL: Exploration and Exploitation (1)</h2>
+<section id="slide-orgb0a09f5">
+<h3 id="orgb0a09f5">Exploration and Exploitation (1)</h3>
 <ul>
 <li>RL is like trial-and-error learning</li>
 <li>Agent should discover a good policy
@@ -691,10 +732,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org2e8c113">
-<h2 id="org2e8c113">Problems within RL: Exploration and Exploitation (2)</h2>
+<section id="slide-orgd426631">
+<h3 id="orgd426631">Exploration and Exploitation (2)</h3>
 <ul>
 <li>Exploration finds more information about the environment</li>
 <li>Exploitation exploits known information to maximise reward</li>
@@ -702,10 +741,8 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgc8af770">
-<h2 id="orgc8af770">Problems within RL: Examples (Explore/Exploit)</h2>
+<section id="slide-orgc61c05b">
+<h3 id="orgc61c05b">Examples (Explore/Exploit)</h3>
 <ul>
 <li>Restaurant selection
 <ul>
@@ -734,30 +771,24 @@ learning paradigms?
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-orgae56faa">
-<h2 id="orgae56faa">Problems within RL: Prediction and Control</h2>
+<section id="slide-org5b43003">
+<h3 id="org5b43003">Prediction and Control</h3>
 <ul>
 <li>Prediction: evaluate the future (given a policy)</li>
 <li>Control: optimise the future (find the best policy)</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org384c084">
-<h2 id="org384c084">Problems within RL: Gridworld Example (Prediction)</h2>
+<section id="slide-orgc631b78">
+<h3 id="orgc631b78">Gridworld Example (Prediction)</h3>
 <ul>
 <li>(Gridworld table + question on page 44)</li>
 <li>Question: What is the value function for the uniform random policy?</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org58b3b81">
-<h2 id="org58b3b81">Problems within RL: Gridworld Example (Control)</h2>
+<section id="slide-org843ba93">
+<h3 id="org843ba93">Gridworld Example (Control)</h3>
 <ul>
 <li>(Figure on page 45: gridworld + \(V^*\) + \(\pi^*\))</li>
 <li>Questions:
@@ -771,8 +802,8 @@ learning paradigms?
 </section>
 </section>
 <section>
-<section id="slide-orgd4950b9">
-<h2 id="orgd4950b9">Course Outline</h2>
+<section id="slide-orged9225e">
+<h2 id="orged9225e">Course Outline</h2>
 <ul>
 <li>Part I: Elementary Reinforcement Learning
 <ol>

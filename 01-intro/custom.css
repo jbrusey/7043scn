@@ -21,3 +21,10 @@
   padding: 0.5em;
   border-radius: 5px;
 }
+.reveal .definition {
+  border-left: 6px solid #4caf50;
+  background: #f3fff3;
+  padding: 0.8em 1em;
+  margin: 1em 0;
+  font-style: normal;
+}
