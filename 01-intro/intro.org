@@ -290,21 +290,33 @@ $$
 #+REVEAL_HTML: </div></div>
 
 ** Maze Example (Policy)
+#+attr_html: :height 400px
+[[file:maze2.svg]]
+
 - Arrows represent policy \(\pi(s)\) for each state \(s\)
-- (Diagram on page 31)
+
 
 ** Maze Example (Value Function)
-- Numbers represent value \(v_\pi(s)\) of each state \(s\)
-- (Diagram on page 32)
+#+attr_html: :height 400px
+[[file:maze3.svg]]
 
+- Numbers represent value \(v_\pi(s)\) of each state \(s\)
+- What is the value for the square marked ?
 ** Maze Example (Model)
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+#+attr_html: :height 400px
+[[file:maze4.svg]]
+
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Agent may have an internal model of the environment
   - Dynamics: how actions change the state
   - Rewards: how much reward from each state
 - The model may be imperfect
-- Grid layout represents transition model \(P^a_{ss'}\)
-- Numbers represent immediate reward \(R^a_s\) from each state \(s\) (same for all \(a\))
-- (Diagram on page 33)
+
+#+REVEAL_HTML: </div></div>
+- Grid layout represents transition model \(\mathcal{P}^a_{ss'}\)
+- Numbers represent immediate reward \(\mathcal{R}^a_s\) from each state \(s\) (same for all \(a\))
+
 
 ** Categorizing RL agents (1)
 - Value-Based

@@ -22,8 +22,8 @@
 <h1 class="title">Lecture 1: Introduction to Reinforcement Learning</h1><h2 class="author">James Brusey</h2>
 </section>
 <section>
-<section id="slide-org2edbaf2">
-<h2 id="org2edbaf2">Outline</h2>
+<section id="slide-org1fd36a0">
+<h2 id="org1fd36a0">Outline</h2>
 <ol>
 <li>Admin</li>
 <li>About Reinforcement Learning</li>
@@ -35,8 +35,8 @@
 </section>
 </section>
 <section>
-<section id="slide-orgcefb5cd">
-<h2 id="orgcefb5cd">Admin: Textbooks</h2>
+<section id="slide-org0028efd">
+<h2 id="org0028efd">Admin: Textbooks</h2>
 <ul>
 <li><b>An Introduction to Reinforcement Learning</b>, Sutton and Barto, 2018
 <ul>
@@ -53,29 +53,29 @@
 </section>
 </section>
 <section>
-<section id="slide-orgd850cc6">
-<h2 id="orgd850cc6">About RL</h2>
-<div class="outline-text-2" id="text-orgd850cc6">
+<section id="slide-org8673b32">
+<h2 id="org8673b32">About RL</h2>
+<div class="outline-text-2" id="text-org8673b32">
 </div>
 </section>
-<section id="slide-org16dcbbd">
-<h3 id="org16dcbbd">Many Faces of Reinforcement Learning</h3>
+<section id="slide-org7259f52">
+<h3 id="org7259f52">Many Faces of Reinforcement Learning</h3>
 
-<div id="orgab555ca" class="figure">
+<div id="orgcf4f751" class="figure">
 <p><img src="rl-to-discipline.svg" alt="rl-to-discipline.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-orgcd97f4f">
-<h3 id="orgcd97f4f">Branches of Machine Learning</h3>
+<section id="slide-org13bd9fd">
+<h3 id="org13bd9fd">Branches of Machine Learning</h3>
 
-<div id="orgc13beb7" class="figure">
+<div id="org4e25a3a" class="figure">
 <p><img src="ml-types.svg" alt="ml-types.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-org67684b9">
-<h3 id="org67684b9">Characteristics of Reinforcement Learning</h3>
+<section id="slide-org9918fdd">
+<h3 id="org9918fdd">Characteristics of Reinforcement Learning</h3>
 <p>
 What makes reinforcement learning different from other machine
 learning paradigms?
@@ -88,8 +88,8 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-orga2981ef">
-<h3 id="orga2981ef">Examples (from 10 years ago)</h3>
+<section id="slide-orgf2913cf">
+<h3 id="orgf2913cf">Examples (from 10 years ago)</h3>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter</li>
 <li>Defeat the world champion at Backgammon</li>
@@ -100,10 +100,10 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-orge55f8e2">
-<h3 id="orge55f8e2">Tesauro's TD Gammon (1992)</h3>
+<section id="slide-org9d461ac">
+<h3 id="org9d461ac">Tesauro's TD Gammon (1992)</h3>
 
-<div id="org1a0fd69" class="figure">
+<div id="org30f9a42" class="figure">
 <p><img src="td-gammon.png" alt="td-gammon.png" />
 </p>
 </div>
@@ -119,8 +119,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-orge4cbea4">
-<h3 id="orge4cbea4">Fly stunt manoeuvres in a helicopter (2006)</h3>
+<section id="slide-orgd5bcc7d">
+<h3 id="orgd5bcc7d">Fly stunt manoeuvres in a helicopter (2006)</h3>
 <video controls muted data-autoplay src="Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
 <aside class="notes">
 <ul>
@@ -130,8 +130,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-org37caeb9">
-<h3 id="org37caeb9">Atari DQN (Google DeepMind 2016) - Start of DeepRL</h3>
+<section id="slide-org4936e73">
+<h3 id="org4936e73">Atari DQN (Google DeepMind 2016) - Start of DeepRL</h3>
 <video data-autoplay src="DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
 <aside class="notes">
 <ul>
@@ -144,8 +144,8 @@ learning paradigms?
 
 </aside>
 </section>
-<section id="slide-org9b4ef7a">
-<h3 id="org9b4ef7a">Examples (more recently)</h3>
+<section id="slide-orge04f1cc">
+<h3 id="orge04f1cc">Examples (more recently)</h3>
 <ul>
 <li>AlphaGo - defeat world champion at Go</li>
 <li>Control cooling for a data centre</li>
@@ -158,8 +158,8 @@ learning paradigms?
 
 </ul>
 </section>
-<section id="slide-org6304782">
-<h3 id="org6304782">Quick exercise (5 mins)</h3>
+<section id="slide-orgcdc7b5c">
+<h3 id="orgcdc7b5c">Quick exercise (5 mins)</h3>
 <ul>
 <li>Go and find web pages, videos, or research papers for as many of the examples as you can</li>
 <li>If you don't have a laptop, use your phone</li>
@@ -169,13 +169,13 @@ learning paradigms?
 </section>
 </section>
 <section>
-<section id="slide-orge7f93a1">
-<h2 id="orge7f93a1">The RL Problem</h2>
-<div class="outline-text-2" id="text-orge7f93a1">
+<section id="slide-orgaf9ae1c">
+<h2 id="orgaf9ae1c">The RL Problem</h2>
+<div class="outline-text-2" id="text-orgaf9ae1c">
 </div>
 </section>
-<section id="slide-orgf53e341">
-<h3 id="orgf53e341">Reward</h3>
+<section id="slide-org355f413">
+<h3 id="org355f413">Reward</h3>
 <ul>
 <li>A reward \(R_t\) is a scalar feedback signal
 <ul>
@@ -186,7 +186,7 @@ learning paradigms?
 <li>Reinforcement learning is based on the <b>reward hypothesis</b></li>
 
 </ul>
-<div class="definition" id="org5271004">
+<div class="definition" id="orgf913c65">
 <p>
 All goals can be described by the maximisation of expected cumulative reward
 </p>
@@ -196,8 +196,8 @@ All goals can be described by the maximisation of expected cumulative reward
 Do you agree?
 </p>
 </section>
-<section id="slide-org958d5aa">
-<h3 id="org958d5aa">Examples of Rewards</h3>
+<section id="slide-orgb3a1d78">
+<h3 id="orgb3a1d78">Examples of Rewards</h3>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter
 <ul>
@@ -235,8 +235,8 @@ Do you agree?
 
 </ul>
 </section>
-<section id="slide-org52b7a87">
-<h3 id="org52b7a87">Sequential Decision Making</h3>
+<section id="slide-org16976ae">
+<h3 id="org16976ae">Sequential Decision Making</h3>
 <ul>
 <li>Goal: <i>select actions to maximise total future reward</i></li>
 <li>Actions may have long term consequences</li>
@@ -252,20 +252,20 @@ Do you agree?
 
 </ul>
 </section>
-<section id="slide-org714f3bc">
-<h3 id="org714f3bc">Environments (Agent and Environment)</h3>
+<section id="slide-orgbeed85f">
+<h3 id="orgbeed85f">Environments (Agent and Environment)</h3>
 
-<div id="org5003d1a" class="figure">
+<div id="orga36d3ab" class="figure">
 <p><img src="agent-env.svg" alt="agent-env.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-orgf043878">
-<h3 id="orgf043878">Environments (Agent and Environment)</h3>
+<section id="slide-org183d8c0">
+<h3 id="org183d8c0">Environments (Agent and Environment)</h3>
 <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 
-<div id="orgd87c441" class="figure">
+<div id="orgfc9dd8a" class="figure">
 <p><img src="real-agent-env.svg" alt="real-agent-env.svg" class="org-svg" height="400px" />
 </p>
 </div>
@@ -293,8 +293,8 @@ Do you agree?
 
 </div></div>
 </section>
-<section id="slide-orgbda5677">
-<h3 id="orgbda5677">State (History and State)</h3>
+<section id="slide-orgc38f164">
+<h3 id="orgc38f164">State (History and State)</h3>
 <ul>
 <li>History is the sequence of observations, actions, rewards:
 <ul>
@@ -318,8 +318,8 @@ Do you agree?
 
 </ul>
 </section>
-<section id="slide-orgcb33439">
-<h3 id="orgcb33439">State (Environment State)</h3>
+<section id="slide-org8e97c1f">
+<h3 id="org8e97c1f">State (Environment State)</h3>
 <ul>
 <li>The environment state \(S^e_t\) is the environment’s private representation
 <ul>
@@ -332,8 +332,8 @@ Do you agree?
 
 </ul>
 </section>
-<section id="slide-orgd6e5819">
-<h3 id="orgd6e5819">State (Agent State)</h3>
+<section id="slide-org4e06a5d">
+<h3 id="org4e06a5d">State (Agent State)</h3>
 <ul>
 <li>The agent state \(S^a_t\) is the agent’s internal representation
 <ul>
@@ -350,13 +350,13 @@ Do you agree?
 
 </ul>
 </section>
-<section id="slide-org52db4cb">
-<h3 id="org52db4cb">State (Information / Markov State)</h3>
+<section id="slide-org4d5cf0b">
+<h3 id="org4d5cf0b">State (Information / Markov State)</h3>
 <ul>
 <li>An information state (a.k.a. Markov state) contains all useful information from history.</li>
 
 </ul>
-<div class="definition" id="org63d968f">
+<div class="definition" id="org42af091">
 <p>
 a state \(S_t\) is Markov iff
 \[
@@ -380,8 +380,8 @@ a state \(S_t\) is Markov iff
 
 </ul>
 </section>
-<section id="slide-org1d4ec26">
-<h3 id="org1d4ec26">State (Rat Example)</h3>
+<section id="slide-orgb4dfaaa">
+<h3 id="orgb4dfaaa">State (Rat Example)</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -435,12 +435,12 @@ a state \(S_t\) is Markov iff
 
 </ul>
 </section>
-<section id="slide-orgbff5bf2">
-<h3 id="orgbff5bf2">State (Fully Observable Environments)</h3>
+<section id="slide-org8251c28">
+<h3 id="org8251c28">State (Fully Observable Environments)</h3>
 <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 
-<div id="org8f92f3e" class="figure">
+<div id="org52a4029" class="figure">
 <p><img src="real-agent-env.svg" alt="real-agent-env.svg" class="org-svg" height="400px" />
 </p>
 </div>
@@ -463,8 +463,8 @@ a state \(S_t\) is Markov iff
 
 </div></div>
 </section>
-<section id="slide-orgbe8710f">
-<h3 id="orgbe8710f">State (Partially Observable Environments)</h3>
+<section id="slide-org8423364">
+<h3 id="org8423364">State (Partially Observable Environments)</h3>
 <ul>
 <li><b>Partial observability</b>: agent <b>indirectly</b> observes environment:
 <ul>
@@ -495,13 +495,13 @@ a state \(S_t\) is Markov iff
 </section>
 </section>
 <section>
-<section id="slide-org95ff3d1">
-<h2 id="org95ff3d1">Inside An RL Agent</h2>
-<div class="outline-text-2" id="text-org95ff3d1">
+<section id="slide-org95458d8">
+<h2 id="org95458d8">Inside An RL Agent</h2>
+<div class="outline-text-2" id="text-org95458d8">
 </div>
 </section>
-<section id="slide-org79d24b6">
-<h3 id="org79d24b6">Major Components</h3>
+<section id="slide-orgf27f6fc">
+<h3 id="orgf27f6fc">Major Components</h3>
 <ul>
 <li>An RL agent may include one or more of:
 <ul>
@@ -513,8 +513,8 @@ a state \(S_t\) is Markov iff
 
 </ul>
 </section>
-<section id="slide-orga6df73c">
-<h3 id="orga6df73c">Policy</h3>
+<section id="slide-orgf0b96c5">
+<h3 id="orgf0b96c5">Policy</h3>
 <ul>
 <li>A policy is the agent’s behaviour</li>
 <li>Map from state to action, e.g.
@@ -526,8 +526,8 @@ a state \(S_t\) is Markov iff
 
 </ul>
 </section>
-<section id="slide-org83ad1cd">
-<h3 id="org83ad1cd">Value Function</h3>
+<section id="slide-orgb2af170">
+<h3 id="orgb2af170">Value Function</h3>
 <ul>
 <li>Value function is a prediction of future reward</li>
 <li>Used to evaluate goodness/badness of states</li>
@@ -539,15 +539,15 @@ a state \(S_t\) is Markov iff
 
 </ul>
 </section>
-<section id="slide-org8fc213b">
-<h3 id="org8fc213b">Example (Value Function in Atari)</h3>
+<section id="slide-orgc0d7102">
+<h3 id="orgc0d7102">Example (Value Function in Atari)</h3>
 <ul>
 <li>(Image-only slide; see page 28)</li>
 
 </ul>
 </section>
-<section id="slide-orgaea937e">
-<h3 id="orgaea937e">Model</h3>
+<section id="slide-orgafca83e">
+<h3 id="orgafca83e">Model</h3>
 <ul>
 <li>A model predicts what the environment will do next
 <ul>
@@ -561,11 +561,11 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-org76d6f94">
-<h3 id="org76d6f94">Maze Example (Start)</h3>
+<section id="slide-org215db4b">
+<h3 id="org215db4b">Maze Example (Start)</h3>
 <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
-<div id="org518c8a3" class="figure">
+<div id="orgcb04d1f" class="figure">
 <p><img src="maze1.svg" alt="maze1.svg" class="org-svg" height="400px" />
 </p>
 </div>
@@ -579,30 +579,44 @@ $$</li>
 </ul>
 
 </div></div>
-
-<ul>
-<li>(Maze diagram on page 30)</li>
-
-</ul>
 </section>
-<section id="slide-orgac9938e">
-<h3 id="orgac9938e">Maze Example (Policy)</h3>
+<section id="slide-orgffb7961">
+<h3 id="orgffb7961">Maze Example (Policy)</h3>
+
+<div id="org63a1844" class="figure">
+<p><img src="maze2.svg" alt="maze2.svg" class="org-svg" height="400px" />
+</p>
+</div>
+
 <ul>
 <li>Arrows represent policy \(\pi(s)\) for each state \(s\)</li>
-<li>(Diagram on page 31)</li>
 
 </ul>
 </section>
-<section id="slide-org4cdddf1">
-<h3 id="org4cdddf1">Maze Example (Value Function)</h3>
+<section id="slide-orgc133eb9">
+<h3 id="orgc133eb9">Maze Example (Value Function)</h3>
+
+<div id="org3c07ec2" class="figure">
+<p><img src="maze3.svg" alt="maze3.svg" class="org-svg" height="400px" />
+</p>
+</div>
+
 <ul>
 <li>Numbers represent value \(v_\pi(s)\) of each state \(s\)</li>
-<li>(Diagram on page 32)</li>
+<li>What is the value for the square marked ?</li>
 
 </ul>
 </section>
-<section id="slide-org78da94f">
-<h3 id="org78da94f">Maze Example (Model)</h3>
+<section id="slide-org8db39a9">
+<h3 id="org8db39a9">Maze Example (Model)</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+<div id="orgd4a1694" class="figure">
+<p><img src="maze4.svg" alt="maze4.svg" class="org-svg" height="400px" />
+</p>
+</div>
+
+</div><div style="flex: 1; padding: 0px; ">
 <ul>
 <li>Agent may have an internal model of the environment
 <ul>
@@ -611,14 +625,18 @@ $$</li>
 
 </ul></li>
 <li>The model may be imperfect</li>
-<li>Grid layout represents transition model \(P^a_{ss'}\)</li>
-<li>Numbers represent immediate reward \(R^a_s\) from each state \(s\) (same for all \(a\))</li>
-<li>(Diagram on page 33)</li>
+
+</ul>
+
+</div></div>
+<ul>
+<li>Grid layout represents transition model \(\mathcal{P}^a_{ss'}\)</li>
+<li>Numbers represent immediate reward \(\mathcal{R}^a_s\) from each state \(s\) (same for all \(a\))</li>
 
 </ul>
 </section>
-<section id="slide-orgdd678b7">
-<h3 id="orgdd678b7">Categorizing RL agents (1)</h3>
+<section id="slide-org4da724f">
+<h3 id="org4da724f">Categorizing RL agents (1)</h3>
 <ul>
 <li>Value-Based
 <ul>
@@ -641,8 +659,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-orgdf2f0c0">
-<h3 id="orgdf2f0c0">Categorizing RL agents (2)</h3>
+<section id="slide-org8c0d1fa">
+<h3 id="org8c0d1fa">Categorizing RL agents (2)</h3>
 <ul>
 <li>Model-Free
 <ul>
@@ -659,8 +677,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-orga61766c">
-<h3 id="orga61766c">RL Agent Taxonomy</h3>
+<section id="slide-org2dd109f">
+<h3 id="org2dd109f">RL Agent Taxonomy</h3>
 <ul>
 <li>(Diagram on page 36: Model / Value Function / Policy overlap; value-based vs policy-based; model-free vs model-based; actor-critic in intersection)</li>
 
@@ -668,13 +686,13 @@ $$</li>
 </section>
 </section>
 <section>
-<section id="slide-org5acdfb3">
-<h2 id="org5acdfb3">Problems within RL</h2>
-<div class="outline-text-2" id="text-org5acdfb3">
+<section id="slide-org075d0cc">
+<h2 id="org075d0cc">Problems within RL</h2>
+<div class="outline-text-2" id="text-org075d0cc">
 </div>
 </section>
-<section id="slide-orgaa78fa6">
-<h3 id="orgaa78fa6">Learning and Planning</h3>
+<section id="slide-orgcebfa5c">
+<h3 id="orgcebfa5c">Learning and Planning</h3>
 <ul>
 <li>Two fundamental problems in sequential decision making</li>
 <li>Reinforcement Learning:
@@ -695,8 +713,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-org32a4317">
-<h3 id="org32a4317">Atari Example (Reinforcement Learning)</h3>
+<section id="slide-org2ebd4ca">
+<h3 id="org2ebd4ca">Atari Example (Reinforcement Learning)</h3>
 <ul>
 <li>Rules of the game are unknown</li>
 <li>Learn directly from interactive gameplay</li>
@@ -705,8 +723,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-org8c8052e">
-<h3 id="org8c8052e">Atari Example (Planning)</h3>
+<section id="slide-org2f66c53">
+<h3 id="org2f66c53">Atari Example (Planning)</h3>
 <ul>
 <li>Rules of the game are known</li>
 <li>Can query emulator
@@ -729,8 +747,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-orgffb9bc3">
-<h3 id="orgffb9bc3">Exploration and Exploitation (1)</h3>
+<section id="slide-org340b179">
+<h3 id="org340b179">Exploration and Exploitation (1)</h3>
 <ul>
 <li>RL is like trial-and-error learning</li>
 <li>Agent should discover a good policy
@@ -742,8 +760,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-orgdd88ee1">
-<h3 id="orgdd88ee1">Exploration and Exploitation (2)</h3>
+<section id="slide-org78a77f7">
+<h3 id="org78a77f7">Exploration and Exploitation (2)</h3>
 <ul>
 <li>Exploration finds more information about the environment</li>
 <li>Exploitation exploits known information to maximise reward</li>
@@ -751,8 +769,8 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-org2df6572">
-<h3 id="org2df6572">Examples (Explore/Exploit)</h3>
+<section id="slide-orgf6a6a7c">
+<h3 id="orgf6a6a7c">Examples (Explore/Exploit)</h3>
 <ul>
 <li>Restaurant selection
 <ul>
@@ -781,24 +799,24 @@ $$</li>
 
 </ul>
 </section>
-<section id="slide-org50557a3">
-<h3 id="org50557a3">Prediction and Control</h3>
+<section id="slide-orgd08d4fa">
+<h3 id="orgd08d4fa">Prediction and Control</h3>
 <ul>
 <li>Prediction: evaluate the future (given a policy)</li>
 <li>Control: optimise the future (find the best policy)</li>
 
 </ul>
 </section>
-<section id="slide-org04b3e9c">
-<h3 id="org04b3e9c">Gridworld Example (Prediction)</h3>
+<section id="slide-orgfcc1bc6">
+<h3 id="orgfcc1bc6">Gridworld Example (Prediction)</h3>
 <ul>
 <li>(Gridworld table + question on page 44)</li>
 <li>Question: What is the value function for the uniform random policy?</li>
 
 </ul>
 </section>
-<section id="slide-orgdf77826">
-<h3 id="orgdf77826">Gridworld Example (Control)</h3>
+<section id="slide-org7c4b4aa">
+<h3 id="org7c4b4aa">Gridworld Example (Control)</h3>
 <ul>
 <li>(Figure on page 45: gridworld + \(V^*\) + \(\pi^*\))</li>
 <li>Questions:
@@ -812,8 +830,8 @@ $$</li>
 </section>
 </section>
 <section>
-<section id="slide-orgdb59e02">
-<h2 id="orgdb59e02">Course Outline</h2>
+<section id="slide-orgd7c1676">
+<h2 id="orgd7c1676">Course Outline</h2>
 <ul>
 <li>Part I: Elementary Reinforcement Learning
 <ol>
