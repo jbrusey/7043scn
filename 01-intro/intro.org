@@ -31,41 +31,70 @@
 - *Algorithms for Reinforcement Learning*, Szepesvari, 2010
   - Available free online: http://www.ualberta.ca/~szepesva/papers/RLAlgsInMDPs.pdf
 
-* About RL: Many Faces of Reinforcement Learning
-- Fields / influences:
-  - Computer Science, Economics, Mathematics, Engineering, Neuroscience, Psychology
-  - Machine Learning, Classical/Operant Conditioning, Optimal Control, Reward System,
-    Operations Research, Bounded Rationality, Reinforcement Learning
-- (Figure on page 6: Venn-style “Many Faces …”)
+* About RL    
+** Many Faces of Reinforcement Learning
+#+attr_html: :height 400px
+[[file:rl-to-discipline.svg]]
 
-* About RL: Branches of Machine Learning
-- Supervised Learning
-- Unsupervised Learning
-- Reinforcement Learning
-- (Figure on page 7: ML branches Venn diagram)
 
-* About RL: Characteristics of Reinforcement Learning
-- No supervisor, only a reward signal
+** Branches of Machine Learning
+#+attr_html: :height 400px
+[[file:ml-types.svg]]
+
+** Characteristics of Reinforcement Learning
+What makes reinforcement learning different from other machine
+learning paradigms?
+- No supervisor, only a /reward/ signal
 - Feedback is delayed, not instantaneous
-- Time matters (sequential, non i.i.d. data)
+- Time really matters (sequential, non i.i.d. data)
 - Agent’s actions affect subsequent data it receives
 
-* About RL: Examples
+** Examples (from 10 years ago)
 - Fly stunt manoeuvres in a helicopter
 - Defeat the world champion at Backgammon
 - Manage an investment portfolio
 - Control a power station
 - Make a humanoid robot walk
 - Play many different Atari games better than humans
+** Tesauro's TD Gammon (1992)
+[[file:figures/td-gammon.png]]
+#+BEGIN_NOTES
+- first superhuman game play by RL
 
-* About RL: Helicopter Manoeuvres
-- (Image-only slide; see page 10)
+- Backgammon is a game of chance but involves some decision making
 
-* About RL: Bipedal Robots
-- (Image-only slide; see page 11)
+- TD Gammon is now reference for best move to make
+#+END_NOTES
+** Fly stunt manoeuvres in a helicopter (2006)
+#+REVEAL_HTML: <video controls muted data-autoplay src="Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
+#+BEGIN_NOTES
++ How would you control a helicopter to perform this stunt?
+#+END_NOTES
+** Atari DQN (Google DeepMind 2016) - Start of DeepRL
+#+REVEAL_HTML: <video data-autoplay src="../2023-02-rl/figures/DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
+#+BEGIN_NOTES
++ prior to this - full access to internal state
++ this RL agent just sees pixel values
++ makes use of deep learning via experience replay
++ achieves superhuman performance
 
-* About RL: Atari
-- (Image-only slide; see page 12)
+#+END_NOTES
+
+
+** Examples (more recently)
+- AlphaGo - defeat world champion at Go
+- Control cooling for a data centre
+- Find faster matrix multiplication algorithms
+- Learn to walk (robot dog) in 1 hour
+- Play StarCraft 2 better than humans
+- Drive Gran Turismo better than humans
+- Race drones faster than humans
+- Teach LLMs how to behave (RLHF)
+
+** Quick exercise
+- Go and find web pages, videos, or research papers for as many of the examples as you can
+- If you don't have a laptop, use your phone
+- If you don't have anything, help a neighbour
 
 * The RL Problem: Reward
 - A reward \(R_t\) is a scalar feedback signal

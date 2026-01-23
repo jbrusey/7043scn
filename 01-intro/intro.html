@@ -22,8 +22,8 @@
 <h1 class="title">Lecture 1: Introduction to Reinforcement Learning</h1><h2 class="author">James Brusey</h2>
 </section>
 <section>
-<section id="slide-org4344ff1">
-<h2 id="org4344ff1">Outline</h2>
+<section id="slide-org6adec1e">
+<h2 id="org6adec1e">Outline</h2>
 <ol>
 <li>Admin</li>
 <li>About Reinforcement Learning</li>
@@ -35,8 +35,8 @@
 </section>
 </section>
 <section>
-<section id="slide-org1cf5d55">
-<h2 id="org1cf5d55">Admin: Textbooks</h2>
+<section id="slide-orga70fae5">
+<h2 id="orga70fae5">Admin: Textbooks</h2>
 <ul>
 <li><b>An Introduction to Reinforcement Learning</b>, Sutton and Barto, 2018
 <ul>
@@ -53,48 +53,43 @@
 </section>
 </section>
 <section>
-<section id="slide-org184764e">
-<h2 id="org184764e">About RL: Many Faces of Reinforcement Learning</h2>
-<ul>
-<li>Fields / influences:
-<ul>
-<li>Computer Science, Economics, Mathematics, Engineering, Neuroscience, Psychology</li>
-<li>Machine Learning, Classical/Operant Conditioning, Optimal Control, Reward System,
-Operations Research, Bounded Rationality, Reinforcement Learning</li>
+<section id="slide-orgb9ee0cc">
+<h2 id="orgb9ee0cc">About RL</h2>
+<div class="outline-text-2" id="text-orgb9ee0cc">
+</div>
+</section>
+<section id="slide-orgb69371d">
+<h3 id="orgb69371d">Many Faces of Reinforcement Learning</h3>
 
-</ul></li>
-<li>(Figure on page 6: Venn-style “Many Faces …”)</li>
+<div id="org1cf8922" class="figure">
+<p><img src="rl-to-discipline.svg" alt="rl-to-discipline.svg" class="org-svg" height="400px" />
+</p>
+</div>
+</section>
+<section id="slide-org768963c">
+<h3 id="org768963c">Branches of Machine Learning</h3>
 
-</ul>
+<div id="org1ca3abc" class="figure">
+<p><img src="ml-types.svg" alt="ml-types.svg" class="org-svg" height="400px" />
+</p>
+</div>
 </section>
-</section>
-<section>
-<section id="slide-org7450341">
-<h2 id="org7450341">About RL: Branches of Machine Learning</h2>
+<section id="slide-org7214e46">
+<h3 id="org7214e46">Characteristics of Reinforcement Learning</h3>
+<p>
+What makes reinforcement learning different from other machine
+learning paradigms?
+</p>
 <ul>
-<li>Supervised Learning</li>
-<li>Unsupervised Learning</li>
-<li>Reinforcement Learning</li>
-<li>(Figure on page 7: ML branches Venn diagram)</li>
-
-</ul>
-</section>
-</section>
-<section>
-<section id="slide-org744912e">
-<h2 id="org744912e">About RL: Characteristics of Reinforcement Learning</h2>
-<ul>
-<li>No supervisor, only a reward signal</li>
+<li>No supervisor, only a <i>reward</i> signal</li>
 <li>Feedback is delayed, not instantaneous</li>
-<li>Time matters (sequential, non i.i.d. data)</li>
+<li>Time really matters (sequential, non i.i.d. data)</li>
 <li>Agent’s actions affect subsequent data it receives</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org7ffb468">
-<h2 id="org7ffb468">About RL: Examples</h2>
+<section id="slide-org3a06033">
+<h3 id="org3a06033">Examples (from 10 years ago)</h3>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter</li>
 <li>Defeat the world champion at Backgammon</li>
@@ -105,37 +100,77 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 
 </ul>
 </section>
-</section>
-<section>
-<section id="slide-org349568b">
-<h2 id="org349568b">About RL: Helicopter Manoeuvres</h2>
+<section id="slide-orgf9961ce">
+<h3 id="orgf9961ce">Tesauro's TD Gammon (1992)</h3>
+
+<div id="org716a6a7" class="figure">
+<p><img src="figures/td-gammon.png" alt="td-gammon.png" />
+</p>
+</div>
+<aside class="notes">
 <ul>
-<li>(Image-only slide; see page 10)</li>
+<li>first superhuman game play by RL</li>
+
+<li>Backgammon is a game of chance but involves some decision making</li>
+
+<li>TD Gammon is now reference for best move to make</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-orgc061299">
+<h3 id="orgc061299">Fly stunt manoeuvres in a helicopter (2006)</h3>
+<video controls muted data-autoplay src="Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
+<aside class="notes">
+<ul>
+<li>How would you control a helicopter to perform this stunt?</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-orgbe954aa">
+<h3 id="orgbe954aa">Atari DQN (Google DeepMind 2016) - Start of DeepRL</h3>
+<video data-autoplay src="../2023-02-rl/figures/DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
+<aside class="notes">
+<ul>
+<li>prior to this - full access to internal state</li>
+<li>this RL agent just sees pixel values</li>
+<li>makes use of deep learning via experience replay</li>
+<li>achieves superhuman performance</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-org534949c">
+<h3 id="org534949c">Examples (more recently)</h3>
+<ul>
+<li>AlphaGo - defeat world champion at Go</li>
+<li>Control cooling for a data centre</li>
+<li>Find faster matrix multiplication algorithms</li>
+<li>Learn to walk (robot dog) in 1 hour</li>
+<li>Play StarCraft 2 better than humans</li>
+<li>Drive Gran Turismo better than humans</li>
+<li>Race drones faster than humans</li>
+<li>Teach LLMs how to behave (RLHF)</li>
+
+</ul>
+</section>
+<section id="slide-orgc7d3eb2">
+<h3 id="orgc7d3eb2">Quick exercise</h3>
+<ul>
+<li>Go and find web pages, videos, or research papers for as many of the examples as you can</li>
+<li>If you don't have a laptop, use your phone</li>
+<li>If you don't have anything, help a neighbour</li>
 
 </ul>
 </section>
 </section>
 <section>
-<section id="slide-orgce78ccd">
-<h2 id="orgce78ccd">About RL: Bipedal Robots</h2>
-<ul>
-<li>(Image-only slide; see page 11)</li>
-
-</ul>
-</section>
-</section>
-<section>
-<section id="slide-orgd0bf48a">
-<h2 id="orgd0bf48a">About RL: Atari</h2>
-<ul>
-<li>(Image-only slide; see page 12)</li>
-
-</ul>
-</section>
-</section>
-<section>
-<section id="slide-orgec64281">
-<h2 id="orgec64281">The RL Problem: Reward</h2>
+<section id="slide-org1acc23c">
+<h2 id="org1acc23c">The RL Problem: Reward</h2>
 <ul>
 <li>A reward \(R_t\) is a scalar feedback signal
 <ul>
@@ -155,8 +190,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org56edbae">
-<h2 id="org56edbae">The RL Problem: Examples of Rewards</h2>
+<section id="slide-org33db75f">
+<h2 id="org33db75f">The RL Problem: Examples of Rewards</h2>
 <ul>
 <li>Fly stunt manoeuvres in a helicopter
 <ul>
@@ -196,8 +231,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org6ae19be">
-<h2 id="org6ae19be">The RL Problem: Sequential Decision Making</h2>
+<section id="slide-orgbd6ae23">
+<h2 id="orgbd6ae23">The RL Problem: Sequential Decision Making</h2>
 <ul>
 <li>Goal: select actions to maximise total future reward</li>
 <li>Actions may have long term consequences</li>
@@ -215,8 +250,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org4bf4cf6">
-<h2 id="org4bf4cf6">The RL Problem: Environments (Agent and Environment)</h2>
+<section id="slide-orga7f2319">
+<h2 id="orga7f2319">The RL Problem: Environments (Agent and Environment)</h2>
 <ul>
 <li>(Diagram on page 16: agent/environment with observation \(O_t\), action \(A_t\), reward \(R_t\))</li>
 
@@ -224,8 +259,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org8ec20b1">
-<h2 id="org8ec20b1">The RL Problem: Environments (Agent and Environment)</h2>
+<section id="slide-org105f502">
+<h2 id="org105f502">The RL Problem: Environments (Agent and Environment)</h2>
 <ul>
 <li>At each step \(t\) the agent:
 <ul>
@@ -248,8 +283,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org95f04b6">
-<h2 id="org95f04b6">The RL Problem: State (History and State)</h2>
+<section id="slide-orgdb0434d">
+<h2 id="orgdb0434d">The RL Problem: State (History and State)</h2>
 <ul>
 <li>History is the sequence of observations, actions, rewards:
 <ul>
@@ -275,8 +310,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org19a5641">
-<h2 id="org19a5641">The RL Problem: State (Environment State)</h2>
+<section id="slide-orgf28626b">
+<h2 id="orgf28626b">The RL Problem: State (Environment State)</h2>
 <ul>
 <li>The environment state \(S^e_t\) is the environment’s private representation
 <ul>
@@ -291,8 +326,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org4aae7f3">
-<h2 id="org4aae7f3">The RL Problem: State (Agent State)</h2>
+<section id="slide-org56e9d2b">
+<h2 id="org56e9d2b">The RL Problem: State (Agent State)</h2>
 <ul>
 <li>The agent state \(S^a_t\) is the agent’s internal representation
 <ul>
@@ -311,8 +346,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org7b499b5">
-<h2 id="org7b499b5">The RL Problem: State (Information / Markov State)</h2>
+<section id="slide-org9cb1f76">
+<h2 id="org9cb1f76">The RL Problem: State (Information / Markov State)</h2>
 <ul>
 <li>An information state (a.k.a. Markov state) contains all useful information from history.</li>
 <li>Definition: a state \(S_t\) is Markov iff
@@ -337,8 +372,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org6f9c3b6">
-<h2 id="org6f9c3b6">The RL Problem: State (Rat Example)</h2>
+<section id="slide-orgb51120b">
+<h2 id="orgb51120b">The RL Problem: State (Rat Example)</h2>
 <ul>
 <li>What if agent state = last 3 items in sequence?</li>
 <li>What if agent state = counts for lights, bells and levers?</li>
@@ -349,8 +384,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-orgeb128b6">
-<h2 id="orgeb128b6">The RL Problem: State (Fully Observable Environments)</h2>
+<section id="slide-orgfccb5b8">
+<h2 id="orgfccb5b8">The RL Problem: State (Fully Observable Environments)</h2>
 <ul>
 <li>Full observability: agent directly observes environment state
 <ul>
@@ -369,8 +404,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-orgc2b6834">
-<h2 id="orgc2b6834">The RL Problem: State (Partially Observable Environments)</h2>
+<section id="slide-org71a4943">
+<h2 id="org71a4943">The RL Problem: State (Partially Observable Environments)</h2>
 <ul>
 <li>Partial observability: agent indirectly observes environment:
 <ul>
@@ -401,8 +436,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org45b6c62">
-<h2 id="org45b6c62">Inside An RL Agent: Major Components</h2>
+<section id="slide-org27804ea">
+<h2 id="org27804ea">Inside An RL Agent: Major Components</h2>
 <ul>
 <li>An RL agent may include one or more of:
 <ul>
@@ -416,8 +451,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org9d1c25a">
-<h2 id="org9d1c25a">Inside An RL Agent: Policy</h2>
+<section id="slide-org89c7e2c">
+<h2 id="org89c7e2c">Inside An RL Agent: Policy</h2>
 <ul>
 <li>A policy is the agent’s behaviour</li>
 <li>Map from state to action, e.g.
@@ -431,8 +466,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org60ed970">
-<h2 id="org60ed970">Inside An RL Agent: Value Function</h2>
+<section id="slide-org24d22d7">
+<h2 id="org24d22d7">Inside An RL Agent: Value Function</h2>
 <ul>
 <li>Value function is a prediction of future reward</li>
 <li>Used to evaluate goodness/badness of states</li>
@@ -446,8 +481,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org8259b87">
-<h2 id="org8259b87">Inside An RL Agent: Example (Value Function in Atari)</h2>
+<section id="slide-org48ce50c">
+<h2 id="org48ce50c">Inside An RL Agent: Example (Value Function in Atari)</h2>
 <ul>
 <li>(Image-only slide; see page 28)</li>
 
@@ -455,8 +490,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org8b39827">
-<h2 id="org8b39827">Inside An RL Agent: Model</h2>
+<section id="slide-org134c988">
+<h2 id="org134c988">Inside An RL Agent: Model</h2>
 <ul>
 <li>A model predicts what the environment will do next
 <ul>
@@ -475,8 +510,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org4a77455">
-<h2 id="org4a77455">Inside An RL Agent: Maze Example (Start)</h2>
+<section id="slide-orgd645930">
+<h2 id="orgd645930">Inside An RL Agent: Maze Example (Start)</h2>
 <ul>
 <li>Goal</li>
 <li>Rewards: -1 per time-step</li>
@@ -488,8 +523,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org891d505">
-<h2 id="org891d505">Inside An RL Agent: Maze Example (Policy)</h2>
+<section id="slide-org3373cb0">
+<h2 id="org3373cb0">Inside An RL Agent: Maze Example (Policy)</h2>
 <ul>
 <li>Arrows represent policy \(\pi(s)\) for each state \(s\)</li>
 <li>(Diagram on page 31)</li>
@@ -498,8 +533,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org38de81c">
-<h2 id="org38de81c">Inside An RL Agent: Maze Example (Value Function)</h2>
+<section id="slide-org8eea3d9">
+<h2 id="org8eea3d9">Inside An RL Agent: Maze Example (Value Function)</h2>
 <ul>
 <li>Numbers represent value \(v_\pi(s)\) of each state \(s\)</li>
 <li>(Diagram on page 32)</li>
@@ -508,8 +543,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org2afcb0e">
-<h2 id="org2afcb0e">Inside An RL Agent: Maze Example (Model)</h2>
+<section id="slide-org0ace0d3">
+<h2 id="org0ace0d3">Inside An RL Agent: Maze Example (Model)</h2>
 <ul>
 <li>Agent may have an internal model of the environment
 <ul>
@@ -526,8 +561,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org3944e2c">
-<h2 id="org3944e2c">Inside An RL Agent: Categorizing RL agents (1)</h2>
+<section id="slide-org1eab8f0">
+<h2 id="org1eab8f0">Inside An RL Agent: Categorizing RL agents (1)</h2>
 <ul>
 <li>Value-Based
 <ul>
@@ -552,8 +587,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org2dd0a40">
-<h2 id="org2dd0a40">Inside An RL Agent: Categorizing RL agents (2)</h2>
+<section id="slide-org96f1db8">
+<h2 id="org96f1db8">Inside An RL Agent: Categorizing RL agents (2)</h2>
 <ul>
 <li>Model-Free
 <ul>
@@ -572,8 +607,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org74b9973">
-<h2 id="org74b9973">Inside An RL Agent: RL Agent Taxonomy</h2>
+<section id="slide-org56d4ff5">
+<h2 id="org56d4ff5">Inside An RL Agent: RL Agent Taxonomy</h2>
 <ul>
 <li>(Diagram on page 36: Model / Value Function / Policy overlap; value-based vs policy-based; model-free vs model-based; actor-critic in intersection)</li>
 
@@ -581,8 +616,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org8c5e9d5">
-<h2 id="org8c5e9d5">Problems within RL: Learning and Planning</h2>
+<section id="slide-orgbf1301c">
+<h2 id="orgbf1301c">Problems within RL: Learning and Planning</h2>
 <ul>
 <li>Two fundamental problems in sequential decision making</li>
 <li>Reinforcement Learning:
@@ -605,8 +640,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org5d13be9">
-<h2 id="org5d13be9">Problems within RL: Atari Example (Reinforcement Learning)</h2>
+<section id="slide-org652eb65">
+<h2 id="org652eb65">Problems within RL: Atari Example (Reinforcement Learning)</h2>
 <ul>
 <li>Rules of the game are unknown</li>
 <li>Learn directly from interactive gameplay</li>
@@ -617,8 +652,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org8d3a7a4">
-<h2 id="org8d3a7a4">Problems within RL: Atari Example (Planning)</h2>
+<section id="slide-org547fb97">
+<h2 id="org547fb97">Problems within RL: Atari Example (Planning)</h2>
 <ul>
 <li>Rules of the game are known</li>
 <li>Can query emulator
@@ -643,8 +678,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org25d5a23">
-<h2 id="org25d5a23">Problems within RL: Exploration and Exploitation (1)</h2>
+<section id="slide-orgf81024c">
+<h2 id="orgf81024c">Problems within RL: Exploration and Exploitation (1)</h2>
 <ul>
 <li>RL is like trial-and-error learning</li>
 <li>Agent should discover a good policy
@@ -658,8 +693,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org9434af9">
-<h2 id="org9434af9">Problems within RL: Exploration and Exploitation (2)</h2>
+<section id="slide-org2e8c113">
+<h2 id="org2e8c113">Problems within RL: Exploration and Exploitation (2)</h2>
 <ul>
 <li>Exploration finds more information about the environment</li>
 <li>Exploitation exploits known information to maximise reward</li>
@@ -669,8 +704,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org41c586e">
-<h2 id="org41c586e">Problems within RL: Examples (Explore/Exploit)</h2>
+<section id="slide-orgc8af770">
+<h2 id="orgc8af770">Problems within RL: Examples (Explore/Exploit)</h2>
 <ul>
 <li>Restaurant selection
 <ul>
@@ -701,8 +736,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org4f32934">
-<h2 id="org4f32934">Problems within RL: Prediction and Control</h2>
+<section id="slide-orgae56faa">
+<h2 id="orgae56faa">Problems within RL: Prediction and Control</h2>
 <ul>
 <li>Prediction: evaluate the future (given a policy)</li>
 <li>Control: optimise the future (find the best policy)</li>
@@ -711,8 +746,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org62f1f1b">
-<h2 id="org62f1f1b">Problems within RL: Gridworld Example (Prediction)</h2>
+<section id="slide-org384c084">
+<h2 id="org384c084">Problems within RL: Gridworld Example (Prediction)</h2>
 <ul>
 <li>(Gridworld table + question on page 44)</li>
 <li>Question: What is the value function for the uniform random policy?</li>
@@ -721,8 +756,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-org1363ccf">
-<h2 id="org1363ccf">Problems within RL: Gridworld Example (Control)</h2>
+<section id="slide-org58b3b81">
+<h2 id="org58b3b81">Problems within RL: Gridworld Example (Control)</h2>
 <ul>
 <li>(Figure on page 45: gridworld + \(V^*\) + \(\pi^*\))</li>
 <li>Questions:
@@ -736,8 +771,8 @@ Operations Research, Bounded Rationality, Reinforcement Learning</li>
 </section>
 </section>
 <section>
-<section id="slide-orgab831d0">
-<h2 id="orgab831d0">Course Outline</h2>
+<section id="slide-orgd4950b9">
+<h2 id="orgd4950b9">Course Outline</h2>
 <ul>
 <li>Part I: Elementary Reinforcement Learning
 <ol>
