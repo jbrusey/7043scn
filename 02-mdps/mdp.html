@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Finite Markov Decision Processes</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<meta name="description" content="J Brusey - ">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Finite Markov Decision Processes</h1><h2 class="author">James Brusey</h2><h2 class="date">23/1/2026</h2>
+</section>
+<section>
+<section id="slide-org79db469">
+<h2 id="org79db469">Agent-Environment Interface</h2>
+<div class="outline-text-2" id="text-org79db469">
+</div>
+</section>
+<section id="slide-orge27a5f7">
+<h3 id="orge27a5f7">Agent-Environment Interface</h3>
+<p>
+<a href="figures/agent-env.pdf">figures/agent-env.pdf</a>
+</p>
+
+<p>
+\[
+S_0, A_0, R_1, S_1, A_1, R_2, S_2, A_2, R_3, \ldots
+\]
+</p>
+</section>
+<section id="slide-orgf005568">
+<h3 id="orgf005568">Backup diagram</h3>
+<p>
+<a href="figures/vpi-backup.pdf">figures/vpi-backup.pdf</a>
+</p>
+</section>
+<section id="slide-org81cf465">
+<h3 id="org81cf465">Some terms</h3>
+<ul>
+<li>Each MDP comprises the tuple \(\langle \mathcal{S}, \mathcal{A}, \mathcal{R}, \mathcal{P}, \gamma \rangle\)</li>
+<li>\(\mathcal{S}\) is the set of states</li>
+<li>\(\mathcal{A}\) is the set of actions</li>
+<li>\(\mathcal{R}\) is the set of rewards</li>
+<li>\(\mathcal{P}\) is the transition model</li>
+<li>\(\gamma\) is a discount factor</li>
+
+</ul>
+</section>
+<section id="slide-org6034bc4">
+<h3 id="org6034bc4">What is a state?</h3>
+<ul>
+<li>You might represent a state with a single number or a vector of numbers</li>
+<li>There are a finite number and so they can be enumerated</li>
+<li>State is a <i>compact</i> representation of all history</li>
+<li>If you could do better knowing the history, then the state does not have the <i>Markov property</i></li>
+<li>We will later come to infinite or continuous states</li>
+
+</ul>
+</section>
+<section id="slide-org41f8551">
+<h3 id="org41f8551">What is an action?</h3>
+<ul>
+<li>There are finite actions (infinite or continuous actions later)</li>
+<li>At each time step, some action must be taken but that can be a no-op</li>
+<li>The effect of the action is determined by the transition model</li>
+
+</ul>
+</section>
+<section id="slide-org193d74a">
+<h3 id="org193d74a">What is a transition model?</h3>
+<ul>
+<li>A transition model is a (stochastic) mapping between states, actions,  subsequent states, and rewards,
+\[
+  p(s', r | s, a)
+  \]</li>
+<li>It represents how the environment "works"</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org4f118fd">
+<h2 id="org4f118fd">Goals and Rewards</h2>
+<div class="outline-text-2" id="text-org4f118fd">
+</div>
+</section>
+<section id="slide-orgf1064e8">
+<h3 id="orgf1064e8">The reward hypothesis</h3>
+<blockquote>
+<p>
+That all of what we mean by goals and purposes can be well thought of as a maximisation of the expected value of the cumulative sum of a received scalar signal (called reward).
+&mdash;Michael Littman (S&amp;B)
+</p>
+</blockquote>
+</section>
+</section>
+<section>
+<section id="slide-org7e00ed0">
+<h2 id="org7e00ed0">Rewards and Episodes</h2>
+<div class="outline-text-2" id="text-org7e00ed0">
+</div>
+</section>
+<section id="slide-orgc1f5abc">
+<h3 id="orgc1f5abc">Long term reward and Episodes</h3>
+<p>
+We aim to maximise our expected reward \(G_t\), which is the sum of all future rewards,
+\[
+G_t \doteq R_{t+1} + R_{t+2} + R_{t+3} + \cdots + R_{T}
+\]
+ending in the final reward at time \(T\).
+</p>
+
+<p>
+An <b>episode</b> is everything up to a final time step \(T\).
+</p>
+
+<p>
+Note that if \(T\) were infinite, we would have the potential for infinite long-term reward. 
+</p>
+</section>
+<section id="slide-org1580b22">
+<h3 id="org1580b22">Discounted reward</h3>
+<p>
+It is often natural to think of a gain in some distant future as being not so valuable as a gain right now.
+\[
+G_t \doteq R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots 
+\]
+for \(\gamma<1\).
+</p>
+
+<p>
+\[
+G_t \doteq \sum_{0\leq k < \infty} \gamma^k R_{t + k + 1}
+\]
+</p>
+
+<p>
+Note that it is now not necessary to place a finite limit on the episode length. 
+</p>
+</section>
+</section>
+<section>
+<section id="slide-org3e6bc4b">
+<h2 id="org3e6bc4b">Unified notation for episodic and continuing tasks</h2>
+<div class="outline-text-2" id="text-org3e6bc4b">
+</div>
+</section>
+<section id="slide-org6dfa2bd">
+<h3 id="org6dfa2bd">Unified notation for episodic and continuing tasks</h3>
+<ul>
+<li>We can deal with the difference between episodic and continuing tasks using the concept of <i>absorbing</i> states</li>
+<li>Absorbing states yield zero reward and always transition to the same state</li>
+
+</ul>
+
+<p>
+\[
+G_t \doteq \sum_{t+1\leq k \leq T} \gamma^{k-t-1} R_{k}
+\]
+</p>
+
+<p>
+where \(T=\infty\) or \(\gamma = 1\) (but not both). 
+</p>
+</section>
+</section>
+<section>
+<section id="slide-org942be72">
+<h2 id="org942be72">Policies and value functions</h2>
+<div class="outline-text-2" id="text-org942be72">
+</div>
+</section>
+<section id="slide-org8dc6b34">
+<h3 id="org8dc6b34">Policies</h3>
+<ul>
+<li>A policy represents how to act in each possible state</li>
+
+<li>Policies are a distribution over actions
+\[
+  \pi(a | s) \rightarrow [0, 1]
+  \]
+For all \(s\in \mathcal{S}\),
+\[
+  \sum_a \pi(a | s)   = 1
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-orge1a38c3">
+<h3 id="orge1a38c3">Value functions</h3>
+<ul>
+<li>A state value function \(v_\pi(s, a)\) is the long term value of being in state \(s\) assuming that you follow policy \(\pi\)
+\[
+  v_\pi(s) \doteq \mathbb{E}_\pi [G_t | S_t = s]
+  \]</li>
+<li>A state action value function \(q_\pi(s,a)\) is the long term value of being in state \(s\), taking action \(a\), and then following \(\pi\) from then on.
+\[
+  q_\pi(s,a) \doteq \mathbb{E}_\pi [G_t | S_t = s, A_t=a]
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-org6cd9b41">
+<h3 id="org6cd9b41">How do we select an action?</h3>
+<p>
+<a href="figures/backup-s-a.pdf">figures/backup-s-a.pdf</a>
+</p>
+</section>
+<section id="slide-org285a626">
+<h3 id="org285a626">What is the consequence of taking that action?</h3>
+<p>
+<a href="figures/backup-a-s.pdf">figures/backup-a-s.pdf</a>
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgbaf3570">
+<h2 id="orgbaf3570">Optimal policies and optimal value functions</h2>
+<div class="outline-text-2" id="text-orgbaf3570">
+</div>
+</section>
+<section id="slide-org0f2ecd7">
+<h3 id="org0f2ecd7">Optimal policies and value functions</h3>
+<ul>
+<li>Given some MDP, what is the best value we can achieve?
+\[
+  v_*(s) = \max_\pi v_\pi (s),
+  \]
+for all \(s \in \mathcal{S}\)</li>
+<li>What is the best state action value achievable?
+\[
+  q_*(s, a) = \max_\pi q_\pi (s, a),
+  \]
+for all \(s \in \mathcal{S}, a \in \mathcal{A}(s)\)</li>
+
+</ul>
+</section>
+<section id="slide-orgecead43">
+<h3 id="orgecead43">Exercise</h3>
+<ul>
+<li>Develop a recursive expression for \(v_*(s)\) and \(q_*(s,a)\) from what we know so far</li>
+<li>Feel free to look at the book for help</li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

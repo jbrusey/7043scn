@@ -1,0 +1,19 @@
+\documentclass[tikz,border=10pt]{standalone}
+\usetikzlibrary{positioning,shapes,arrows}
+
+\begin{document}
+\begin{tikzpicture}[
+    agent/.style={rectangle, draw, rounded corners, inner sep=10pt},
+    environment/.style={rectangle, draw, rounded corners, inner sep=10pt},
+    auto, node distance=1cm,>=latex'
+    thickarrow/.style={->, line width=0.8mm, shorten >=3pt, shorten <=3pt, line cap=round},
+    thinarrow/.style={->, line width=0.4mm, shorten >=3pt, shorten <=3pt, line cap=round}
+]
+\node[agent] (a) {Agent};
+\node[environment, below =of a] (e) {Environment};
+
+\draw [thickarrow] (a) -- node[midway,right] {$A_t$} (e);
+\draw [->, line width=0.8mm] (e.east) to [bend right=45] node[midway,above right] {$S_{t+1}$} (a.east);
+\draw [->, line width=0.4mm] (e.west) to [bend left=45] node[midway,above left] {$R_{t+1}$} (a.west);
+\end{tikzpicture}
+\end{document}
