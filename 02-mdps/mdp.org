@@ -138,3 +138,5 @@ where $T=\infty$ or $\gamma = 1$ (but not both).
 ** Exercise
 + Develop a recursive expression for $v_*(s)$ and $q_*(s,a)$ from what we know so far
 + Feel free to look at the book for help
+* Example
+

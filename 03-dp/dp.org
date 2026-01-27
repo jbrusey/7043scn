@@ -1,8 +1,104 @@
-#+title: Reinforcement Learning
-#+subtitle: Dynamic Programming
-#+author: Prof. James Brusey
-#+options: toc:nil h:2
-#+startup: beamer
+#+title: Dynamic Programming
+#+Author: James Brusey
+#+Date: 26 January 2026
+#+Email: james.brusey@coventry.ac.uk
+#+Options: toc:nil num:nil timestamp:nil tex:mathjax
+#+REVEAL_WIDTH: 1200
+#+REVEAL_HEIGHT: 800
+#+REVEAL_MARGIN: 0.1
+#+REVEAL_MIN_SCALE: 0.1
+#+REVEAL_MAX_SCALE: 2.5
+#+REVEAL_TRANSITION: slide
+#+REVEAL_SLIDE_NUMBER: t
+#+REVEAL_THEME: serif
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="J Brusey - ">
+#+REVEAL_MATHJAX_URL: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js
+#+REVEAL_EXTRA_CSS: custom.css
+#+REVEAL_HLEVEL: 1
+
+* Dynamic Programming
+
+** Motivation: problems with overlapping structure
+- Many problems ask for the best way to transform, align, or optimise
+- Naive recursion repeats the same subproblems many times
+- We need a systematic way to reuse partial results
+
+** What is dynamic programming?
+- A method for solving problems with:
+  - Optimal substructure
+  - Overlapping subproblems
+- Solve each subproblem once
+- Store and reuse its solution
+
+** Running example: Edit distance
+- Given two strings $x$ and $y$
+- Allowed operations:
+  - Insert
+  - Delete
+  - Substitute
+- Goal: minimum number of operations to transform $x$ into $y$
+
+** Why naive recursion is inefficient
+- Many ways to transform prefixes of the strings
+- Same prefix pairs are recomputed again and again
+- Exponential blow-up
+
+** Subproblem definition
+- Let $D(i, j) =$ edit distance between
+  - first $i$ characters of $x$
+  - first $j$ characters of $y$
+- We want $D(|x|, |y|)$
+
+** Base cases
+- $D(0, j) = j$   ($j$ insertions)
+- $D(i, 0) = i$   ($i$ deletions)
+
+** Recurrence relation
+- If $x[i] = y[j]$:
+  $$
+   D(i, j) = D(i-1, j-1)
+  $$
+- Else:
+  $$
+  D(i,j) = 1 + \min\big(D(i-1,j), D(i,j-1), D(i-1,j-1)\big)
+  $$
+
+** Dynamic programming table
+- Create a 2D table of size (|x|+1) × (|y|+1)
+- Rows = prefixes of x
+- Columns = prefixes of y
+
+** Filling the table
+- Start from base cases
+- Fill row by row or column by column
+- Each cell uses only already-computed neighbours
+
+** Example table (kitten → sitting)
+- Show small table
+- Highlight how each cell is computed from neighbours
+- Final answer is bottom-right cell
+
+** Why this is dynamic programming
+- Each subproblem D(i, j) solved once
+- Results stored in the table
+- Global optimum built from optimal sub-solutions
+
+** Time and space complexity
+- Table has |x| × |y| cells
+- Each cell computed in constant time
+- Total time: O(|x|·|y|)
+
+** From recursion to DP
+- Recursion defines the structure
+- DP adds memoisation or tabulation
+- Same mathematical recurrence, but efficient
+
+** Key takeaways
+- Identify subproblems over prefixes
+- Write a recurrence
+- Use a table to avoid recomputation
+- Edit distance is a canonical DP example
+
 * Policy evaluation (prediction)
 ** Why study Dynamic Programming?
 + DP assumes perfect model and is computationally expensive

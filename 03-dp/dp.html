@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Dynamic Programming</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<meta name="description" content="J Brusey - ">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Dynamic Programming</h1><h2 class="author">James Brusey</h2><h2 class="date">26 January 2026</h2>
+</section>
+<section>
+<section id="slide-org5a87354">
+<h2 id="org5a87354">Dynamic Programming</h2>
+<div class="outline-text-2" id="text-org5a87354">
+</div>
+</section>
+<section id="slide-orgb7cf3bb">
+<h3 id="orgb7cf3bb">Motivation: problems with overlapping structure</h3>
+<ul>
+<li>Many problems ask for the best way to transform, align, or optimise</li>
+<li>Naive recursion repeats the same subproblems many times</li>
+<li>We need a systematic way to reuse partial results</li>
+
+</ul>
+</section>
+<section id="slide-org9a003db">
+<h3 id="org9a003db">What is dynamic programming?</h3>
+<ul>
+<li>A method for solving problems with:
+<ul>
+<li>Optimal substructure</li>
+<li>Overlapping subproblems</li>
+
+</ul></li>
+<li>Solve each subproblem once</li>
+<li>Store and reuse its solution</li>
+
+</ul>
+</section>
+<section id="slide-org3c88f8c">
+<h3 id="org3c88f8c">Running example: Edit distance</h3>
+<ul>
+<li>Given two strings \(x\) and \(y\)</li>
+<li>Allowed operations:
+<ul>
+<li>Insert</li>
+<li>Delete</li>
+<li>Substitute</li>
+
+</ul></li>
+<li>Goal: minimum number of operations to transform \(x\) into \(y\)</li>
+
+</ul>
+</section>
+<section id="slide-org28057f3">
+<h3 id="org28057f3">Why naive recursion is inefficient</h3>
+<ul>
+<li>Many ways to transform prefixes of the strings</li>
+<li>Same prefix pairs are recomputed again and again</li>
+<li>Exponential blow-up</li>
+
+</ul>
+</section>
+<section id="slide-org31e92df">
+<h3 id="org31e92df">Subproblem definition</h3>
+<ul>
+<li>Let \(D(i, j) =\) edit distance between
+<ul>
+<li>first \(i\) characters of \(x\)</li>
+<li>first \(j\) characters of \(y\)</li>
+
+</ul></li>
+<li>We want \(D(|x|, |y|)\)</li>
+
+</ul>
+</section>
+<section id="slide-org2712887">
+<h3 id="org2712887">Base cases</h3>
+<ul>
+<li>\(D(0, j) = j\)   (\(j\) insertions)</li>
+<li>\(D(i, 0) = i\)   (\(i\) deletions)</li>
+
+</ul>
+</section>
+<section id="slide-orgc9340f8">
+<h3 id="orgc9340f8">Recurrence relation</h3>
+<ul>
+<li>If \(x[i] = y[j]\):
+\[
+   D(i, j) = D(i-1, j-1)
+  \]</li>
+<li>Else:
+\[
+  D(i,j) = 1 + \min\big(D(i-1,j), D(i,j-1), D(i-1,j-1)\big)
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-org253eb9e">
+<h3 id="org253eb9e">Dynamic programming table</h3>
+<ul>
+<li>Create a 2D table of size (|x|+1) × (|y|+1)</li>
+<li>Rows = prefixes of x</li>
+<li>Columns = prefixes of y</li>
+
+</ul>
+</section>
+<section id="slide-orge73a563">
+<h3 id="orge73a563">Filling the table</h3>
+<ul>
+<li>Start from base cases</li>
+<li>Fill row by row or column by column</li>
+<li>Each cell uses only already-computed neighbours</li>
+
+</ul>
+</section>
+<section id="slide-org15e2c20">
+<h3 id="org15e2c20">Example table (kitten → sitting)</h3>
+<ul>
+<li>Show small table</li>
+<li>Highlight how each cell is computed from neighbours</li>
+<li>Final answer is bottom-right cell</li>
+
+</ul>
+</section>
+<section id="slide-orgfbfb1bc">
+<h3 id="orgfbfb1bc">Why this is dynamic programming</h3>
+<ul>
+<li>Each subproblem D(i, j) solved once</li>
+<li>Results stored in the table</li>
+<li>Global optimum built from optimal sub-solutions</li>
+
+</ul>
+</section>
+<section id="slide-org1e5f557">
+<h3 id="org1e5f557">Time and space complexity</h3>
+<ul>
+<li>Table has |x| × |y| cells</li>
+<li>Each cell computed in constant time</li>
+<li>Total time: O(|x|·|y|)</li>
+
+</ul>
+</section>
+<section id="slide-org3762ab9">
+<h3 id="org3762ab9">From recursion to DP</h3>
+<ul>
+<li>Recursion defines the structure</li>
+<li>DP adds memoisation or tabulation</li>
+<li>Same mathematical recurrence, but efficient</li>
+
+</ul>
+</section>
+<section id="slide-org0c76d55">
+<h3 id="org0c76d55">Key takeaways</h3>
+<ul>
+<li>Identify subproblems over prefixes</li>
+<li>Write a recurrence</li>
+<li>Use a table to avoid recomputation</li>
+<li>Edit distance is a canonical DP example</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org39b48ad">
+<h2 id="org39b48ad">Policy evaluation (prediction)</h2>
+<div class="outline-text-2" id="text-org39b48ad">
+</div>
+</section>
+<section id="slide-orgd7c6c2f">
+<h3 id="orgd7c6c2f">Why study Dynamic Programming?</h3>
+<ul>
+<li>DP assumes perfect model and is computationally expensive</li>
+<li>Still important theoretically, though</li>
+<li>Basis for understanding</li>
+
+</ul>
+</section>
+<section id="slide-org52c0241">
+<h3 id="org52c0241">Expectation (reminder)</h3>
+<ul>
+<li>Expected value is the average outcome of a random event given a large number of trials</li>
+<li>Where all possible values are equally likely, this is simply the mean of possible values</li>
+<li>Where each \(x_i\) occurs with probability \(p(x_i)\), we have the sum
+\[
+  \mathbb{E}\left[ x \right] = \sum_{i}{p({x_i}) x_i}
+  \]</li>
+<li>Quick quiz: what's the expected value of a fair, 6-sized dice?</li>
+
+</ul>
+</section>
+<section id="slide-org85cad39">
+<h3 id="org85cad39">Expectation with a subscript?</h3>
+<ul>
+<li>When we have a subscript, that means according to that probability measure
+\[
+  \mathbb{E}_y[x] = \sum_i p_y(x_i)x_i
+  \]
+where \(p_y\) is a probability measure for \(x\) that might differ from the sampling probability.</li>
+
+</ul>
+</section>
+<section id="slide-orgc798226">
+<h3 id="orgc798226">Bellman optimality equation</h3>
+<ul>
+<li>Dynamic programming is based on solving Bellman's optimality equation</li>
+
+</ul>
+<p>
+\[
+v_*(s) = \max_a \mathbb{E}\left[ R_{t+1} + \gamma v_*(S_{t+1}) | S_t=s, A_t=a \right]
+\]
+</p>
+<ul>
+<li>why is this equation so important and what do the variables mean?</li>
+
+</ul>
+</section>
+<section id="slide-orgdbfb8be">
+<h3 id="orgdbfb8be">Policy evaluation (prediction)</h3>
+<p>
+Evaluation asks:
+</p>
+<ul>
+<li>Given a policy \(\pi\), what is the expected value \(v_\pi\) of each state \(s\)?
+\[
+  v_\pi(s)  \doteq  \mathbb{E}_\pi[G_t | S_t=s]
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-org5e2c923">
+<h3 id="org5e2c923">Policy evaluation (2)</h3>
+<ul>
+<li>We can substitute for the  \(G_t\) based on
+ \[
+  G_t \doteq R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots
+  \] 
+or more simply
+\[
+  G_t = R_{t+1} + \gamma G_{t+1} 
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-org5715317">
+<h3 id="org5715317">Policy evaluation (3)</h3>
+<p>
+We should get
+\[
+v_\pi(s) = \sum_a \pi(a|s) \sum_{s',r} p(s',r|s,a)\left[r+\gamma v_\pi(s')\right]
+\]
+where
+</p>
+<ul>
+<li>\(p(s',r|s,a)\) is the transition probability</li>
+<li>\(\pi(a|s)\) is the probability of taking action \(a\) when in state \(s\)</li>
+<li>\(r\) is the immediate reward</li>
+<li>\(\gamma\) is the discount factor</li>
+
+</ul>
+</section>
+<section id="slide-orgcbcd3bf">
+<h3 id="orgcbcd3bf">Policy evaluation (4)</h3>
+<p>
+For this simple recycle robot, write down the set of equations for \(v_\pi(s)\) assuming that \(\pi\) is a uniform distribution over actions. 
+</p>
+
+<p>
+<a href="figures/recycle-robot.pdf">figures/recycle-robot.pdf</a>
+</p>
+</section>
+<section id="slide-org26032a5">
+<h3 id="org26032a5">Policy evaluation (5)</h3>
+<p>
+Here is the equation for \(v_\pi(\mathrm{high})\):
+</p>
+<div>
+\begin{eqnarray*}
+v_\pi(\mathrm{high}) & = & \frac{1}{2}  (r_\mathrm{wait} + \gamma v_\pi (\mathrm{high})) + \\
+&& \frac{1}{2} \Big( \alpha (r_\mathrm{search} + \gamma v_\pi (\mathrm{high})) + \\
+&& (1-\alpha) (r_\mathrm{search}+ \gamma v_\pi (\mathrm{low}))\Big)
+\end{eqnarray*}
+
+</div>
+</section>
+<section id="slide-orgabf1e0c">
+<h3 id="orgabf1e0c">LP solution</h3>
+<p>
+Note that we have equations in the form:
+  \[
+  v(a) = k_1 v(a) + k_2 v(b) + k_3
+  \]
+  which can be converted into
+  \[
+  -k_3 = (k_1 - 1) v(a) + k_2 v(b)
+  \]
+  or
+  \[
+  \begin{pmatrix}
+  -k_3 \\
+  \vdots
+  \end{pmatrix} = \begin{bmatrix}
+  (k_1 - 1) & k_2 \\
+  \vdots & \vdots
+  \end{bmatrix} \mathbf{v}
+  \]
+</p>
+
+<p>
+Which can be solved by inverting the matrix.
+<i>Do try this at home!</i>
+</p>
+</section>
+<section id="slide-orga299536">
+<h3 id="orga299536">Iterative policy evaluation</h3>
+<p>
+<a href="figures/fig4.1a.pdf">figures/fig4.1a.pdf</a>
+</p>
+</section>
+<section id="slide-org9fef3a8">
+<h3 id="org9fef3a8">Iterative policy evaluation</h3>
+<p>
+<a href="figures/fig4.1b.pdf">figures/fig4.1b.pdf</a>
+</p>
+</section>
+<section id="slide-org42e2c6a">
+<h3 id="org42e2c6a">Approximate methods</h3>
+<ul>
+<li>It is also possible to find the solution <i>iteratively</i> by starting off with some guesses for \(v\) and updating according to the equations.</li>
+<li>This approach forms the basis of many other methods and for large MDPs we will never attempt using LP</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org3bd5797">
+<h2 id="org3bd5797">Policy improvement</h2>
+<div class="outline-text-2" id="text-org3bd5797">
+</div>
+</section>
+<section id="slide-orgf920f2b">
+<h3 id="orgf920f2b">Policy improvement</h3>
+<ul>
+<li>Given that we can evaluate any policy, we can therefore <i>improve</i> it by updating the policy so that it takes the action that maximises the resulting value</li>
+<li>We define the expected value of taking an action \(a\) and then following \(\pi\) from then on
+\[
+  q_\pi(s, a) \doteq \mathbb E [R_{t+1} + \gamma v_\pi(S_{t+1}) | S_t = s, A_t = a]
+  \]</li>
+<li>which expands to
+\[
+  = \sum_{s',r} p(s',r|s, a) [r + \gamma v_\pi(s')]
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-orge4d2891">
+<h3 id="orge4d2891">Policy improvement (2)</h3>
+<ul>
+<li>If we can find some \(a\) for which \(q_\pi (s, a) > v_\pi(s)\), then we can <i>improve</i> \(\pi\) by adjusting it to use \(a\)</li>
+<li>If we cannot find any improvement for all states then \(\pi\) must be optimal</li>
+<li>Discuss:
+<ul>
+<li>what aspects of MDPs are relied on to ensure this is true?</li>
+
+</ul></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org2825af7">
+<h2 id="org2825af7">Policy iteration</h2>
+<div class="outline-text-2" id="text-org2825af7">
+</div>
+</section>
+<section id="slide-org66fd5c6">
+<h3 id="org66fd5c6">Policy iteration algorithm</h3>
+<p>
+S1: Initialisation
+</p>
+
+<p>
+S2: Policy evaluation
+</p>
+<ul>
+<li>Loop:
+<ul>
+<li>\(\Delta \leftarrow 0\)</li>
+<li>Loop for each \(s\in S\):
+<ul>
+<li>\(v \leftarrow V(s)\)</li>
+<li>\(V(s) \leftarrow \sum_{s',r} p(s',r|s, \pi(s)) [r + \gamma V(s')]\)</li>
+<li>\(\Delta \leftarrow \max(\Delta, |v - V(s)|)\)</li>
+
+</ul></li>
+<li>until \(\Delta < \theta\)</li>
+
+</ul></li>
+
+</ul>
+
+<p>
+S3: Policy Improvement
+</p>
+<ul>
+<li>\(\textit{policy-stable} \leftarrow 1\)</li>
+<li>For each \(s\in S\):
+<ul>
+<li>\(\textit{old-action}\leftarrow \pi(s)\)</li>
+<li>\(\pi(s) \leftarrow \arg\max_a \sum_{s',r} p(s', r|s, a) [r + \gamma V(s')]\)</li>
+<li>If \(\textit{old-action}\neq \pi(s)\), then \(\textit{policy-stable} \leftarrow 0\)</li>
+
+</ul></li>
+<li>If \(\textit{policy-stable}\), then stop and return \(V\approx v_*\) and \(\pi \approx \pi_*\); else go to 2</li>
+
+</ul>
+</section>
+<section id="slide-orge7b9795">
+<h3 id="orge7b9795">Exercise: Policy iteration for action values</h3>
+<p>
+Revise the algorithm on the previous page to use action values \(q\) instead and thus find \(q_*\).
+</p>
+</section>
+</section>
+<section>
+<section id="slide-orgac7a539">
+<h2 id="orgac7a539">Value iteration</h2>
+<div class="outline-text-2" id="text-orgac7a539">
+</div>
+</section>
+<section id="slide-org5f966a0">
+<h3 id="org5f966a0">Value iteration</h3>
+<ul>
+<li>A problem with policy iteration is the need to perform policy evaluation to some accuracy before improving the policy.</li>
+
+<li>Value iteration skips finding the policy and just updates the value to the maximum value
+\[
+  v(s) \leftarrow \max_a \mathbb{E} [R_{t+1} + \gamma v(S_{t+1}) | S_t=s, A_t =a ]
+  \]</li>
+
+</ul>
+<ul>
+<li>The algorithm terminates when the size of the updates to any \(v(s)\) is smaller than some threshold</li>
+
+</ul>
+</section>
+<section id="slide-org355684a">
+<h3 id="org355684a">Phew!</h3>
+
+<div id="org58d6e4f" class="figure">
+<p><img src="figures/happy-homer.png" alt="happy-homer.png" />
+</p>
+</div>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>
