@@ -1,0 +1,18 @@
+#+title: 7043scn Reinforcement Learning Lectures
+#+options: num:nil
+* Preamble :noexport:
+Remember to export this prior to committing a new version
+[[elisp:(let ((org-twbs-postamble nil)) (org-twbs-export-to-html))]]
+* Lecture slides
+- [[./01-intro/intro.html][Lecture 01 - Introduction]]
+- [[./02-mdps/mdp.html][Lecture 02 - Markov Decision Processes]]
+- [[./03-dp/dp.html][Lecture 03 - Dynamic Programming]]
+- [[./04-prediction/prediction.html][Lecture 04 - Prediction]]
+- [[./05-control/control.html][Lecture 05 - Control]]
+- [[./06-fa/fa.html][Lecture 06 - Function Approximation]]
+- [[./07-pg/pg.html][Lecture 07 - Policy Gradient]]
+- [[./08-mcts/mcts.html][Lecture 08 - MCTS]]
+- [[./09-explore/explore.html][Lecture 09 - Exploration and Exploitation]]
+- [[./10-climate/climate.html][Lecture 10 - Example - Climate Control]]
+
+
