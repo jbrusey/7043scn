@@ -173,19 +173,33 @@ Do you agree?
   - \(S_t = f(H_t)\)
 
 ** State (Environment State)
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+#+attr_html: :height 400px
+[[file:real-agent-env.svg]]
+
+
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - The environment state \(S^e_t\) is the environment’s private representation
   - i.e. whatever data the environment uses to pick next observation/reward
 - Environment state is not usually visible to the agent
 - Even if \(S^e_t\) is visible, it may contain irrelevant information
-- (Diagram on page 19)
+#+REVEAL_HTML: </div></div>
 
 ** State (Agent State)
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+#+attr_html: :height 400px
+[[file:real-agent-env.svg]]
+
+
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - The agent state \(S^a_t\) is the agent’s internal representation
   - i.e. whatever information the agent uses to pick the next action
   - i.e. the information used by RL algorithms
 - It can be any function of history:
   - \(S^a_t = f(H_t)\)
-- (Diagram on page 20)
+#+REVEAL_HTML: </div></div>
 
 ** State (Information / Markov State)
 - An information state (a.k.a. Markov state) contains all useful information from history.
@@ -266,8 +280,7 @@ $$
 - Therefore to select between actions, e.g.
   - \(v^\pi(s) = \mathbb{E}_\pi[ R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots \mid S_t=s]\)
 
-** Example (Value Function in Atari)
-- (Image-only slide; see page 28)
+
 
 ** Model
 - A model predicts what the environment will do next
@@ -338,7 +351,9 @@ $$
   - Model
 
 ** RL Agent Taxonomy
-- (Diagram on page 36: Model / Value Function / Policy overlap; value-based vs policy-based; model-free vs model-based; actor-critic in intersection)
+#+attr_html: :height 400px
+[[file:rl-taxonomy.svg]]
+
 
 * Problems within RL  
 ** Learning and Planning
@@ -354,12 +369,20 @@ $$
   - a.k.a. deliberation, reasoning, introspection, pondering, thought, search
 
 ** Atari Example (Reinforcement Learning)
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+[[file:agent-env-atari.svg]]
+
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Rules of the game are unknown
 - Learn directly from interactive gameplay
 - Pick actions on joystick, see pixels and scores
-- (Diagram on page 38)
+
+#+REVEAL_HTML: </div></div>
 
 ** Atari Example (Planning)
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
 - Rules of the game are known
 - Can query emulator
   - perfect model inside agent’s brain
@@ -368,7 +391,10 @@ $$
   - what would the score be?
 - Plan ahead to find optimal policy
   - e.g. tree search
-- (Diagram on page 39)
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+[[file:seaquest.svg]]
+#+REVEAL_HTML: </div></div>
+
 
 ** Exploration and Exploitation (1)
 - RL is like trial-and-error learning
@@ -400,11 +426,15 @@ $$
 - Control: optimise the future (find the best policy)
 
 ** Gridworld Example (Prediction)
-- (Gridworld table + question on page 44)
+#+attr_html: :height 400px
+[[file:gridworld.svg]]
+
 - Question: What is the value function for the uniform random policy?
 
 ** Gridworld Example (Control)
-- (Figure on page 45: gridworld + \(V^*\) + \(\pi^*\))
+#+attr_html: :height 400px
+[[file:gridworld2.svg]]
+
 - Questions:
   - What is the optimal value function over all possible policies?
   - What is the optimal policy?
