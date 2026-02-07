@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="392" height="392" viewBox="0 0 392 392">
+<rect x="0" y="0" width="392" height="392" fill="white"/>
+<rect x="16" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="61.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">0.0</text>
+<rect x="106" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="151.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-6.1</text>
+<rect x="196" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="241.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="286" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="331.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-9.0</text>
+<rect x="16" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="61.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-6.1</text>
+<rect x="106" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="151.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-7.7</text>
+<rect x="196" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="241.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="286" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="331.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="16" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="61.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="106" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="151.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="196" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="241.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-7.7</text>
+<rect x="286" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="331.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-6.1</text>
+<rect x="16" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="61.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-9.0</text>
+<rect x="106" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="151.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-8.4</text>
+<rect x="196" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="241.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-6.1</text>
+<rect x="286" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<text x="331.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">0.0</text>
+</svg>

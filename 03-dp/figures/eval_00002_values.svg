@@ -3,33 +3,33 @@
 <rect x="16" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="61.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">0.0</text>
 <rect x="106" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="151.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.0</text>
+<text x="151.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.8</text>
 <rect x="196" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="241.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="286" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="331.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-3.0</text>
+<text x="331.0" y="61.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="16" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="61.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.0</text>
+<text x="61.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.8</text>
 <rect x="106" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="151.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="196" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="241.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-3.0</text>
+<text x="241.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="286" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="331.0" y="151.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="16" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="61.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="106" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="151.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-3.0</text>
+<text x="151.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="196" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="241.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="286" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="331.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.0</text>
+<text x="331.0" y="241.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.8</text>
 <rect x="16" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="61.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-3.0</text>
+<text x="61.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="106" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="151.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-2.0</text>
 <rect x="196" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
-<text x="241.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.0</text>
+<text x="241.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">-1.8</text>
 <rect x="286" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
 <text x="331.0" y="331.0" fill="#111" font-size="20" font-family="Helvetica, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">0.0</text>
 </svg>

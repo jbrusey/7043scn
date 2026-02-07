@@ -192,74 +192,41 @@ Note that we have equations in the form:
 
 Which can be solved by inverting the matrix.
 /This will be the subject of a lab exercise/
+** LP solution
+- To be precise
+  $$
+  (I - \gamma P^\pi) V^\pi = r^\pi
+  $$
+- With solution,
+  $$
+  V^\pi = (I - \gamma P^\pi)^{-1} r^\pi
+  $$
+** code for iterative policy eval                                  :noexport:
+#+begin_src emacs-lisp :results raw drawer replace :exports results 
+(concat
+ (mapconcat
+  (lambda (i)
+    (let ((xx (format "%05d" i)))
+      (format "** Iterative policy evaluation\n[[file:figures/eval_%s_values.svg]] [[file:figures/eval_%s_policy.svg]] \n\n- $k = %s$\n"
+              xx xx xx)))
+   '(0 1 2 3 10 10000)
+;  (number-sequence 0 10)
+  "\n"))
+#+end_src
+
 
 ** code                                                            :noexport:
-#+begin_src emacs-lisp :results raw :exports results :noeval
+#+begin_src emacs-lisp :results raw drawer :exports results 
 (concat
  (mapconcat
   (lambda (i)
     (let ((xx (format "%02d" i)))
-      (format "** Iterative policy evaluation\n[[file:figures/iter_%s_values.svg]] [[file:figures/iter_%s_policy.svg]] \n\n- $k = %s$\n"
+      (format "** Iterative policy improvement\n[[file:figures/iter_%s_values.svg]] [[file:figures/iter_%s_policy.svg]] \n\n- $k = %s$\n"
               xx xx xx)))
   (number-sequence 0 10)
   "\n"))
 #+end_src
 
-#+RESULTS:
-** Iterative policy evaluation
-[[file:figures/iter_00_values.svg]] [[file:figures/iter_00_policy.svg]] 
-
-- $k = 00$
-
-** Iterative policy evaluation
-[[file:figures/iter_01_values.svg]] [[file:figures/iter_01_policy.svg]] 
-
-- $k = 01$
-
-** Iterative policy evaluation
-[[file:figures/iter_02_values.svg]] [[file:figures/iter_02_policy.svg]] 
-
-- $k = 02$
-
-** Iterative policy evaluation
-[[file:figures/iter_03_values.svg]] [[file:figures/iter_03_policy.svg]] 
-
-- $k = 03$
-
-** Iterative policy evaluation
-[[file:figures/iter_04_values.svg]] [[file:figures/iter_04_policy.svg]] 
-
-- $k = 04$
-
-** Iterative policy evaluation
-[[file:figures/iter_05_values.svg]] [[file:figures/iter_05_policy.svg]] 
-
-- $k = 05$
-
-** Iterative policy evaluation
-[[file:figures/iter_06_values.svg]] [[file:figures/iter_06_policy.svg]] 
-
-- $k = 06$
-
-** Iterative policy evaluation
-[[file:figures/iter_07_values.svg]] [[file:figures/iter_07_policy.svg]] 
-
-- $k = 07$
-
-** Iterative policy evaluation
-[[file:figures/iter_08_values.svg]] [[file:figures/iter_08_policy.svg]] 
-
-- $k = 08$
-
-** Iterative policy evaluation
-[[file:figures/iter_09_values.svg]] [[file:figures/iter_09_policy.svg]] 
-
-- $k = 09$
-
-** Iterative policy evaluation
-[[file:figures/iter_10_values.svg]] [[file:figures/iter_10_policy.svg]] 
-
-- $k = 10$
 
 ** Approximate methods
 + It is also possible to find the solution /iteratively/ by starting off with some guesses for $v$ and updating according to the equations.

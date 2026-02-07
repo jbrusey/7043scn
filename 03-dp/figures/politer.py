@@ -283,5 +283,5 @@ def policy_iteration_with_svgs(gamma: float = 1.0, max_iters: int = 50, out_dir:
     return pi_probs, V
 
 if __name__ == "__main__":
-    pi, V = policy_iteration_with_svgs(gamma=1.0, max_iters=10, eval_max_sweeps=1, out_dir=".", eval_tol=0, tie_tol=0)
+    pi, V = policy_iteration_with_svgs(gamma=1.0, max_iters=10, eval_max_sweeps=10_000, out_dir=".")
     print("Wrote iter_XX_values.svg and iter_XX_policy.svg for each iteration.")
