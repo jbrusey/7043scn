@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="392" height="392" viewBox="0 0 392 392">
+
+    <defs>
+      <marker id="arrowhead" markerWidth="6" markerHeight="4"
+        refX="5.5" refY="2" orient="auto">
+        <polygon points="0 0, 6 2, 0 4" fill="#111"/>
+      </marker>
+    </defs>
+    
+<rect x="0" y="0" width="392" height="392" fill="white"/>
+<rect x="16" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<rect x="106" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="151.0" y1="61.0" x2="119.5" y2="61.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="196" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="241.0" y1="61.0" x2="209.5" y2="61.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="286" y="16" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="331.0" y1="61.0" x2="331.0" y2="92.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="331.0" y1="61.0" x2="299.5" y2="61.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="16" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="61.0" y1="151.0" x2="61.0" y2="119.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="106" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="151.0" y1="151.0" x2="151.0" y2="119.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="151.0" y1="151.0" x2="119.5" y2="151.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="196" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="241.0" y1="151.0" x2="241.0" y2="119.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="241.0" y1="151.0" x2="241.0" y2="182.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="241.0" y1="151.0" x2="209.5" y2="151.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="241.0" y1="151.0" x2="272.5" y2="151.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="286" y="106" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="331.0" y1="151.0" x2="331.0" y2="182.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="16" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="61.0" y1="241.0" x2="61.0" y2="209.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="106" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="151.0" y1="241.0" x2="151.0" y2="209.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="151.0" y1="241.0" x2="151.0" y2="272.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="151.0" y1="241.0" x2="119.5" y2="241.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="151.0" y1="241.0" x2="182.5" y2="241.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="196" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="241.0" y1="241.0" x2="241.0" y2="272.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="241.0" y1="241.0" x2="272.5" y2="241.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="286" y="196" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="331.0" y1="241.0" x2="331.0" y2="272.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="16" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="61.0" y1="331.0" x2="61.0" y2="299.5" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<line x1="61.0" y1="331.0" x2="92.5" y2="331.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="106" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="151.0" y1="331.0" x2="182.5" y2="331.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="196" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+<line x1="241.0" y1="331.0" x2="272.5" y2="331.0" stroke="#111" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+<rect x="286" y="286" width="90" height="90" fill="white" stroke="#111" stroke-width="1"/>
+</svg>
