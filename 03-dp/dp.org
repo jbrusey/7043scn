@@ -154,7 +154,7 @@ where
 ** Policy evaluation (4)
 For this simple recycle robot, write down the set of equations for $v_\pi(s)$ assuming that $\pi$ is a uniform distribution over actions. 
 
-[[file:figures/recycle-robot.pdf]]
+[[file:figures/recycle-robot.png]]
 # #+begin_src dot :file recycle-robot.png
 # digraph {
 # 	wait [shape=point];
@@ -201,8 +201,11 @@ Which can be solved by inverting the matrix.
   $$
   V^\pi = (I - \gamma P^\pi)^{-1} r^\pi
   $$
+** Iterative policy evaluation
+[[file:figures/pol-eval-alg.png]]
+
 ** code for iterative policy eval                                  :noexport:
-#+begin_src emacs-lisp :results raw drawer replace :exports results 
+#+begin_src emacs-lisp :results raw replace :exports results 
 (concat
  (mapconcat
   (lambda (i)
@@ -216,7 +219,7 @@ Which can be solved by inverting the matrix.
 
 
 ** code                                                            :noexport:
-#+begin_src emacs-lisp :results raw drawer :exports results 
+#+begin_src emacs-lisp :results raw :exports results 
 (concat
  (mapconcat
   (lambda (i)

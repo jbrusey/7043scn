@@ -22,13 +22,13 @@
 <h1 class="title">Dynamic Programming</h1><h2 class="author">James Brusey</h2><h2 class="date">26 January 2026</h2>
 </section>
 <section>
-<section id="slide-org4a52abb">
-<h2 id="org4a52abb">Dynamic Programming</h2>
-<div class="outline-text-2" id="text-org4a52abb">
+<section id="slide-org3a4e195">
+<h2 id="org3a4e195">Dynamic Programming</h2>
+<div class="outline-text-2" id="text-org3a4e195">
 </div>
 </section>
-<section id="slide-org9dcb4b7">
-<h3 id="org9dcb4b7">Motivation: problems with overlapping structure</h3>
+<section id="slide-org74589fd">
+<h3 id="org74589fd">Motivation: problems with overlapping structure</h3>
 <ul>
 <li>Many problems ask for the best way to transform, align, or optimise</li>
 <li>Naive recursion repeats the same subproblems many times</li>
@@ -36,8 +36,8 @@
 
 </ul>
 </section>
-<section id="slide-orgdb3b7e9">
-<h3 id="orgdb3b7e9">What is dynamic programming?</h3>
+<section id="slide-org519bdfc">
+<h3 id="org519bdfc">What is dynamic programming?</h3>
 <ul>
 <li>A method for solving problems with:
 <ul>
@@ -50,8 +50,8 @@
 
 </ul>
 </section>
-<section id="slide-orge5c9a93">
-<h3 id="orge5c9a93">Running example: Edit distance</h3>
+<section id="slide-orgebe2b2b">
+<h3 id="orgebe2b2b">Running example: Edit distance</h3>
 <ul>
 <li>Given two strings \(x\) and \(y\)</li>
 <li>Allowed operations:
@@ -65,8 +65,8 @@
 
 </ul>
 </section>
-<section id="slide-org25f0294">
-<h3 id="org25f0294">Why naive recursion is inefficient</h3>
+<section id="slide-org8def37f">
+<h3 id="org8def37f">Why naive recursion is inefficient</h3>
 <ul>
 <li>Many ways to transform prefixes of the strings</li>
 <li>Same prefix pairs are recomputed again and again</li>
@@ -74,8 +74,8 @@
 
 </ul>
 </section>
-<section id="slide-org1419980">
-<h3 id="org1419980">Subproblem definition</h3>
+<section id="slide-orgdedef7c">
+<h3 id="orgdedef7c">Subproblem definition</h3>
 <ul>
 <li>Let \(D(i, j) =\) edit distance between
 <ul>
@@ -87,16 +87,16 @@
 
 </ul>
 </section>
-<section id="slide-org641bb38">
-<h3 id="org641bb38">Base cases</h3>
+<section id="slide-org5d0f746">
+<h3 id="org5d0f746">Base cases</h3>
 <ul>
 <li>\(D(0, j) = j\)   (\(j\) insertions)</li>
 <li>\(D(i, 0) = i\)   (\(i\) deletions)</li>
 
 </ul>
 </section>
-<section id="slide-org484ae3e">
-<h3 id="org484ae3e">Recurrence relation</h3>
+<section id="slide-org95f5736">
+<h3 id="org95f5736">Recurrence relation</h3>
 <ul>
 <li>If \(x[i] = y[j]\):
 \[
@@ -109,8 +109,8 @@
 
 </ul>
 </section>
-<section id="slide-org91e66fb">
-<h3 id="org91e66fb">Dynamic programming table</h3>
+<section id="slide-org6d898c1">
+<h3 id="org6d898c1">Dynamic programming table</h3>
 <ul>
 <li>Create a 2D table of size (|x|+1) × (|y|+1)</li>
 <li>Rows = prefixes of x</li>
@@ -118,8 +118,8 @@
 
 </ul>
 </section>
-<section id="slide-org5a9a36d">
-<h3 id="org5a9a36d">Filling the table</h3>
+<section id="slide-orga86267e">
+<h3 id="orga86267e">Filling the table</h3>
 <ul>
 <li>Start from base cases</li>
 <li>Fill row by row or column by column</li>
@@ -127,8 +127,8 @@
 
 </ul>
 </section>
-<section id="slide-orgc04b089">
-<h3 id="orgc04b089">Example table (kitten → sitting)</h3>
+<section id="slide-orga7e9ac7">
+<h3 id="orga7e9ac7">Example table (kitten → sitting)</h3>
 <ul>
 <li>Show small table</li>
 <li>Highlight how each cell is computed from neighbours</li>
@@ -136,8 +136,8 @@
 
 </ul>
 </section>
-<section id="slide-orge1c714d">
-<h3 id="orge1c714d">Why this is dynamic programming</h3>
+<section id="slide-org9138222">
+<h3 id="org9138222">Why this is dynamic programming</h3>
 <ul>
 <li>Each subproblem D(i, j) solved once</li>
 <li>Results stored in the table</li>
@@ -145,8 +145,8 @@
 
 </ul>
 </section>
-<section id="slide-org3ef16ce">
-<h3 id="org3ef16ce">Time and space complexity</h3>
+<section id="slide-orgf69c6b6">
+<h3 id="orgf69c6b6">Time and space complexity</h3>
 <ul>
 <li>Table has |x| × |y| cells</li>
 <li>Each cell computed in constant time</li>
@@ -154,8 +154,8 @@
 
 </ul>
 </section>
-<section id="slide-org67d8492">
-<h3 id="org67d8492">From recursion to DP</h3>
+<section id="slide-orgd067b0e">
+<h3 id="orgd067b0e">From recursion to DP</h3>
 <ul>
 <li>Recursion defines the structure</li>
 <li>DP adds memoisation or tabulation</li>
@@ -163,8 +163,8 @@
 
 </ul>
 </section>
-<section id="slide-orgd8cc10b">
-<h3 id="orgd8cc10b">Key takeaways</h3>
+<section id="slide-org3fc4ded">
+<h3 id="org3fc4ded">Key takeaways</h3>
 <ul>
 <li>Identify subproblems over prefixes</li>
 <li>Write a recurrence</li>
@@ -175,13 +175,13 @@
 </section>
 </section>
 <section>
-<section id="slide-org338af49">
-<h2 id="org338af49">Policy evaluation (prediction)</h2>
-<div class="outline-text-2" id="text-org338af49">
+<section id="slide-orga6b50eb">
+<h2 id="orga6b50eb">Policy evaluation (prediction)</h2>
+<div class="outline-text-2" id="text-orga6b50eb">
 </div>
 </section>
-<section id="slide-org650eb2d">
-<h3 id="org650eb2d">Why study Dynamic Programming?</h3>
+<section id="slide-org4e1a922">
+<h3 id="org4e1a922">Why study Dynamic Programming?</h3>
 <ul>
 <li>DP assumes perfect model and is computationally expensive</li>
 <li>Still important theoretically, though</li>
@@ -189,8 +189,8 @@
 
 </ul>
 </section>
-<section id="slide-orgfae8fd0">
-<h3 id="orgfae8fd0">Expectation (reminder)</h3>
+<section id="slide-org0d25210">
+<h3 id="org0d25210">Expectation (reminder)</h3>
 <ul>
 <li>Expected value is the average outcome of a random event given a large number of trials</li>
 <li>Where all possible values are equally likely, this is simply the mean of possible values</li>
@@ -202,8 +202,8 @@
 
 </ul>
 </section>
-<section id="slide-org1713b5e">
-<h3 id="org1713b5e">Expectation with a subscript?</h3>
+<section id="slide-org3e7351c">
+<h3 id="org3e7351c">Expectation with a subscript?</h3>
 <ul>
 <li>When we have a subscript, that means according to that probability measure
 \[
@@ -213,8 +213,8 @@ where \(p_y\) is a probability measure for \(x\) that might differ from the samp
 
 </ul>
 </section>
-<section id="slide-org6fdd6d8">
-<h3 id="org6fdd6d8">Bellman optimality equation</h3>
+<section id="slide-org104b085">
+<h3 id="org104b085">Bellman optimality equation</h3>
 <ul>
 <li>Dynamic programming is based on solving Bellman's optimality equation</li>
 
@@ -229,8 +229,8 @@ v_*(s) = \max_a \mathbb{E}\left[ R_{t+1} + \gamma v_*(S_{t+1}) | S_t=s, A_t=a \r
 
 </ul>
 </section>
-<section id="slide-org7e8aadd">
-<h3 id="org7e8aadd">Policy evaluation (prediction)</h3>
+<section id="slide-org47a02c3">
+<h3 id="org47a02c3">Policy evaluation (prediction)</h3>
 <p>
 Evaluation asks:
 </p>
@@ -242,8 +242,8 @@ Evaluation asks:
 
 </ul>
 </section>
-<section id="slide-org078d8bd">
-<h3 id="org078d8bd">Policy evaluation (2)</h3>
+<section id="slide-org8899014">
+<h3 id="org8899014">Policy evaluation (2)</h3>
 <ul>
 <li>We can substitute for the  \(G_t\) based on
  \[
@@ -256,8 +256,8 @@ or more simply
 
 </ul>
 </section>
-<section id="slide-org22760ff">
-<h3 id="org22760ff">Policy evaluation (3)</h3>
+<section id="slide-orgb0b95da">
+<h3 id="orgb0b95da">Policy evaluation (3)</h3>
 <p>
 We should get
 \[
@@ -273,18 +273,20 @@ where
 
 </ul>
 </section>
-<section id="slide-orgc20647f">
-<h3 id="orgc20647f">Policy evaluation (4)</h3>
+<section id="slide-org92999e1">
+<h3 id="org92999e1">Policy evaluation (4)</h3>
 <p>
 For this simple recycle robot, write down the set of equations for \(v_\pi(s)\) assuming that \(\pi\) is a uniform distribution over actions. 
 </p>
 
-<p>
-<a href="figures/recycle-robot.pdf">figures/recycle-robot.pdf</a>
+
+<div id="org8508aa8" class="figure">
+<p><img src="figures/recycle-robot.png" alt="recycle-robot.png" />
 </p>
+</div>
 </section>
-<section id="slide-orgc713d60">
-<h3 id="orgc713d60">Policy evaluation (5)</h3>
+<section id="slide-org6152560">
+<h3 id="org6152560">Policy evaluation (5)</h3>
 <p>
 Here is the equation for \(v_\pi(\mathrm{high})\):
 </p>
@@ -297,8 +299,8 @@ v_\pi(\mathrm{high}) & = & \frac{1}{2}  (r_\mathrm{wait} + \gamma v_\pi (\mathrm
 
 </div>
 </section>
-<section id="slide-org2510665">
-<h3 id="org2510665">LP solution</h3>
+<section id="slide-org4aa6d86">
+<h3 id="org4aa6d86">LP solution</h3>
 <p>
 Note that we have equations in the form:
   \[
@@ -325,8 +327,8 @@ Which can be solved by inverting the matrix.
 <i>This will be the subject of a lab exercise</i>
 </p>
 </section>
-<section id="slide-orgc45eac1">
-<h3 id="orgc45eac1">LP solution</h3>
+<section id="slide-org62cd6b7">
+<h3 id="org62cd6b7">LP solution</h3>
 <ul>
 <li>To be precise
 \[
@@ -339,8 +341,16 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org772e65a">
-<h3 id="org772e65a">Iterative policy evaluation</h3>
+<section id="slide-orgc9d3ba3">
+<h3 id="orgc9d3ba3">Iterative policy evaluation</h3>
+
+<div id="org8574a3a" class="figure">
+<p><img src="figures/pol-eval-alg.png" alt="pol-eval-alg.png" />
+</p>
+</div>
+</section>
+<section id="slide-org37404b2">
+<h3 id="org37404b2">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_00000_values.svg" alt="eval_00000_values.svg" class="org-svg" /> <img src="figures/eval_00000_policy.svg" alt="eval_00000_policy.svg" class="org-svg" /> 
 </p>
@@ -350,8 +360,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgd10f11b">
-<h3 id="orgd10f11b">Iterative policy evaluation</h3>
+<section id="slide-orga5bfa33">
+<h3 id="orga5bfa33">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_00001_values.svg" alt="eval_00001_values.svg" class="org-svg" /> <img src="figures/eval_00001_policy.svg" alt="eval_00001_policy.svg" class="org-svg" /> 
 </p>
@@ -361,8 +371,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgae62d82">
-<h3 id="orgae62d82">Iterative policy evaluation</h3>
+<section id="slide-org109d183">
+<h3 id="org109d183">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_00002_values.svg" alt="eval_00002_values.svg" class="org-svg" /> <img src="figures/eval_00002_policy.svg" alt="eval_00002_policy.svg" class="org-svg" /> 
 </p>
@@ -372,8 +382,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgf5c62fc">
-<h3 id="orgf5c62fc">Iterative policy evaluation</h3>
+<section id="slide-orgba246ef">
+<h3 id="orgba246ef">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_00003_values.svg" alt="eval_00003_values.svg" class="org-svg" /> <img src="figures/eval_00003_policy.svg" alt="eval_00003_policy.svg" class="org-svg" /> 
 </p>
@@ -383,8 +393,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org70853a1">
-<h3 id="org70853a1">Iterative policy evaluation</h3>
+<section id="slide-orgf4d0d5f">
+<h3 id="orgf4d0d5f">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_00010_values.svg" alt="eval_00010_values.svg" class="org-svg" /> <img src="figures/eval_00010_policy.svg" alt="eval_00010_policy.svg" class="org-svg" /> 
 </p>
@@ -394,8 +404,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org970be39">
-<h3 id="org970be39">Iterative policy evaluation</h3>
+<section id="slide-orgd036aac">
+<h3 id="orgd036aac">Iterative policy evaluation</h3>
 <p>
 <img src="figures/eval_10000_values.svg" alt="eval_10000_values.svg" class="org-svg" /> <img src="figures/eval_10000_policy.svg" alt="eval_10000_policy.svg" class="org-svg" /> 
 </p>
@@ -404,12 +414,9 @@ Which can be solved by inverting the matrix.
 <li>\(k = 10000\)</li>
 
 </ul>
-<p>
-:end:
-</p>
 </section>
-<section id="slide-org22f6a3f">
-<h3 id="org22f6a3f">Iterative policy improvement</h3>
+<section id="slide-orgacd8c74">
+<h3 id="orgacd8c74">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_00_values.svg" alt="iter_00_values.svg" class="org-svg" /> <img src="figures/iter_00_policy.svg" alt="iter_00_policy.svg" class="org-svg" /> 
 </p>
@@ -419,8 +426,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org42f55f5">
-<h3 id="org42f55f5">Iterative policy improvement</h3>
+<section id="slide-orgdba8889">
+<h3 id="orgdba8889">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_01_values.svg" alt="iter_01_values.svg" class="org-svg" /> <img src="figures/iter_01_policy.svg" alt="iter_01_policy.svg" class="org-svg" /> 
 </p>
@@ -430,8 +437,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgfc2ca16">
-<h3 id="orgfc2ca16">Iterative policy improvement</h3>
+<section id="slide-orgd479b3b">
+<h3 id="orgd479b3b">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_02_values.svg" alt="iter_02_values.svg" class="org-svg" /> <img src="figures/iter_02_policy.svg" alt="iter_02_policy.svg" class="org-svg" /> 
 </p>
@@ -441,8 +448,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org9143625">
-<h3 id="org9143625">Iterative policy improvement</h3>
+<section id="slide-orga781d81">
+<h3 id="orga781d81">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_03_values.svg" alt="iter_03_values.svg" class="org-svg" /> <img src="figures/iter_03_policy.svg" alt="iter_03_policy.svg" class="org-svg" /> 
 </p>
@@ -452,8 +459,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgfb83cfd">
-<h3 id="orgfb83cfd">Iterative policy improvement</h3>
+<section id="slide-org7f8a09b">
+<h3 id="org7f8a09b">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_04_values.svg" alt="iter_04_values.svg" class="org-svg" /> <img src="figures/iter_04_policy.svg" alt="iter_04_policy.svg" class="org-svg" /> 
 </p>
@@ -463,8 +470,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org6bb8b04">
-<h3 id="org6bb8b04">Iterative policy improvement</h3>
+<section id="slide-org99d6437">
+<h3 id="org99d6437">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_05_values.svg" alt="iter_05_values.svg" class="org-svg" /> <img src="figures/iter_05_policy.svg" alt="iter_05_policy.svg" class="org-svg" /> 
 </p>
@@ -474,8 +481,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org4789126">
-<h3 id="org4789126">Iterative policy improvement</h3>
+<section id="slide-org93d40e0">
+<h3 id="org93d40e0">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_06_values.svg" alt="iter_06_values.svg" class="org-svg" /> <img src="figures/iter_06_policy.svg" alt="iter_06_policy.svg" class="org-svg" /> 
 </p>
@@ -485,8 +492,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-org7a1568c">
-<h3 id="org7a1568c">Iterative policy improvement</h3>
+<section id="slide-orgdec4f09">
+<h3 id="orgdec4f09">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_07_values.svg" alt="iter_07_values.svg" class="org-svg" /> <img src="figures/iter_07_policy.svg" alt="iter_07_policy.svg" class="org-svg" /> 
 </p>
@@ -496,8 +503,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orged25546">
-<h3 id="orged25546">Iterative policy improvement</h3>
+<section id="slide-org263a858">
+<h3 id="org263a858">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_08_values.svg" alt="iter_08_values.svg" class="org-svg" /> <img src="figures/iter_08_policy.svg" alt="iter_08_policy.svg" class="org-svg" /> 
 </p>
@@ -507,8 +514,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orge338220">
-<h3 id="orge338220">Iterative policy improvement</h3>
+<section id="slide-orgb67b77e">
+<h3 id="orgb67b77e">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_09_values.svg" alt="iter_09_values.svg" class="org-svg" /> <img src="figures/iter_09_policy.svg" alt="iter_09_policy.svg" class="org-svg" /> 
 </p>
@@ -518,8 +525,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgb1c3bfd">
-<h3 id="orgb1c3bfd">Iterative policy improvement</h3>
+<section id="slide-orgbd636c1">
+<h3 id="orgbd636c1">Iterative policy improvement</h3>
 <p>
 <img src="figures/iter_10_values.svg" alt="iter_10_values.svg" class="org-svg" /> <img src="figures/iter_10_policy.svg" alt="iter_10_policy.svg" class="org-svg" /> 
 </p>
@@ -528,12 +535,9 @@ Which can be solved by inverting the matrix.
 <li>\(k = 10\)</li>
 
 </ul>
-<p>
-:end:
-</p>
 </section>
-<section id="slide-org6bbfc57">
-<h3 id="org6bbfc57">Approximate methods</h3>
+<section id="slide-orgf69caa8">
+<h3 id="orgf69caa8">Approximate methods</h3>
 <ul>
 <li>It is also possible to find the solution <i>iteratively</i> by starting off with some guesses for \(v\) and updating according to the equations.</li>
 <li>This approach forms the basis of many other methods and for large MDPs we will never attempt using LP</li>
@@ -542,13 +546,13 @@ Which can be solved by inverting the matrix.
 </section>
 </section>
 <section>
-<section id="slide-org4efc7ee">
-<h2 id="org4efc7ee">Policy improvement</h2>
-<div class="outline-text-2" id="text-org4efc7ee">
+<section id="slide-org7b1d8c7">
+<h2 id="org7b1d8c7">Policy improvement</h2>
+<div class="outline-text-2" id="text-org7b1d8c7">
 </div>
 </section>
-<section id="slide-orgeef29b9">
-<h3 id="orgeef29b9">Policy improvement</h3>
+<section id="slide-orgca2d7c3">
+<h3 id="orgca2d7c3">Policy improvement</h3>
 <ul>
 <li>Given that we can evaluate any policy, we can therefore <i>improve</i> it by updating the policy so that it takes the action that maximises the resulting value</li>
 <li>We define the expected value of taking an action \(a\) and then following \(\pi\) from then on
@@ -562,8 +566,8 @@ Which can be solved by inverting the matrix.
 
 </ul>
 </section>
-<section id="slide-orgdafd478">
-<h3 id="orgdafd478">Policy improvement (2)</h3>
+<section id="slide-org1607ef2">
+<h3 id="org1607ef2">Policy improvement (2)</h3>
 <ul>
 <li>If we can find some \(a\) for which \(q_\pi (s, a) > v_\pi(s)\), then we can <i>improve</i> \(\pi\) by adjusting it to use \(a\)</li>
 <li>If we cannot find any improvement for all states then \(\pi\) must be optimal</li>
@@ -577,13 +581,13 @@ Which can be solved by inverting the matrix.
 </section>
 </section>
 <section>
-<section id="slide-orge65c4be">
-<h2 id="orge65c4be">Policy iteration</h2>
-<div class="outline-text-2" id="text-orge65c4be">
+<section id="slide-orga13c0ab">
+<h2 id="orga13c0ab">Policy iteration</h2>
+<div class="outline-text-2" id="text-orga13c0ab">
 </div>
 </section>
-<section id="slide-org1956d16">
-<h3 id="org1956d16">Policy iteration algorithm</h3>
+<section id="slide-orge27e81a">
+<h3 id="orge27e81a">Policy iteration algorithm</h3>
 <p>
 S1: Initialisation
 </p>
@@ -624,21 +628,21 @@ S3: Policy Improvement
 
 </ul>
 </section>
-<section id="slide-orgceed6d6">
-<h3 id="orgceed6d6">Exercise: Policy iteration for action values</h3>
+<section id="slide-org7f7221c">
+<h3 id="org7f7221c">Exercise: Policy iteration for action values</h3>
 <p>
 Revise the algorithm on the previous page to use action values \(q\) instead and thus find \(q_*\).
 </p>
 </section>
 </section>
 <section>
-<section id="slide-org7a3b0f8">
-<h2 id="org7a3b0f8">Value iteration</h2>
-<div class="outline-text-2" id="text-org7a3b0f8">
+<section id="slide-org6987baa">
+<h2 id="org6987baa">Value iteration</h2>
+<div class="outline-text-2" id="text-org6987baa">
 </div>
 </section>
-<section id="slide-org2416ad3">
-<h3 id="org2416ad3">Value iteration</h3>
+<section id="slide-orgd954ddc">
+<h3 id="orgd954ddc">Value iteration</h3>
 <ul>
 <li>A problem with policy iteration is the need to perform policy evaluation to some accuracy before improving the policy.</li>
 
@@ -653,10 +657,10 @@ Revise the algorithm on the previous page to use action values \(q\) instead and
 
 </ul>
 </section>
-<section id="slide-orgd9457bb">
-<h3 id="orgd9457bb">Phew!</h3>
+<section id="slide-org13ad9d6">
+<h3 id="org13ad9d6">Phew!</h3>
 
-<div id="org9fa9b23" class="figure">
+<div id="orgaf41ab9" class="figure">
 <p><img src="figures/happy-homer.png" alt="happy-homer.png" />
 </p>
 </div>
