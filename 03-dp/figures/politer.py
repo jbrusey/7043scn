@@ -265,13 +265,6 @@ def policy_iteration_with_svgs(gamma: float = 1.0, max_iters: int = 50, out_dir:
         V = policy_evaluation_dp_probs(P, R, pi_probs, gamma, max_sweeps=eval_max_sweeps, tol=eval_tol, V_init=V)
 
         Q = R + gamma * np.einsum("sat,t->sa", P, V)
-        if k == 0:
-            print("V:", V.reshape(4,4))
-            for s in [1,4]:
-                print("state", s, "Q:", Q[s], "best:", np.max(Q[s]))
-            for a,name in enumerate(["U","D","L","R"]):
-                s2 = int(np.argmax(P[1,a]))
-                print("state 1", name, "->", s2, "V[next]=", V[s2])
         mask = greedy_action_mask(Q, tol=tie_tol)
         pi_probs = mask / mask.sum(axis=1, keepdims=True)  # uniform over max actions
         for s in ABSORB:
@@ -283,5 +276,5 @@ def policy_iteration_with_svgs(gamma: float = 1.0, max_iters: int = 50, out_dir:
     return pi_probs, V
 
 if __name__ == "__main__":
-    pi, V = policy_iteration_with_svgs(gamma=1.0, max_iters=10, eval_max_sweeps=10_000, out_dir=".")
+    pi, V = policy_iteration_with_svgs(gamma=1.0, out_dir=".")
     print("Wrote iter_XX_values.svg and iter_XX_policy.svg for each iteration.")

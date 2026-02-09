@@ -7,7 +7,7 @@ Remember to export this prior to committing a new version
 - [[./01-intro/intro.html][Lecture 01 - Introduction]]
 - [[./02-mdps/mdp.html][Lecture 02 - Markov Decision Processes]]
 - [[./03-dp/dp.html][Lecture 03 - Dynamic Programming]]
-- [[./04-prediction/prediction.html][Lecture 04 - Prediction]]
+- [[./04-prediction/mc-td.html][Lecture 04 - Prediction]]
 - [[./05-control/control.html][Lecture 05 - Control]]
 - [[./06-fa/fa.html][Lecture 06 - Function Approximation]]
 - [[./07-pg/pg.html][Lecture 07 - Policy Gradient]]

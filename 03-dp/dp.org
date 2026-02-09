@@ -8,7 +8,7 @@
 #+REVEAL_MARGIN: 0.1
 #+REVEAL_MIN_SCALE: 0.1
 #+REVEAL_MAX_SCALE: 2.5
-#+REVEAL_TRANSITION: slide
+#+REVEAL_TRANS: fade
 #+REVEAL_SLIDE_NUMBER: t
 #+REVEAL_THEME: serif
 #+REVEAL_HEAD_PREAMBLE: <meta name="description" content="J Brusey - ">
@@ -201,6 +201,16 @@ Which can be solved by inverting the matrix.
   $$
   V^\pi = (I - \gamma P^\pi)^{-1} r^\pi
   $$
+** Approximate methods
++ It is also possible to find the solution /iteratively/ by starting off with some guesses for $v$ and updating according to the equations.
++ This approach forms the basis of many other methods and for large MDPs we will never attempt using LP
+
+** Example - small gridworld
+- Undiscounted episodic MDP with $\gamma = 1$
+- 4 x 4 grid with top left and bottom right being terminal states
+- Reward is $-1$ until terminal state
+- We want to find the /value/ $V$ for a uniform random policy
+  - that is $\pi(a \mid \cdot) = \frac{1}{4}$ for all $a$ 
 ** Iterative policy evaluation
 [[file:figures/pol-eval-alg.png]]
 
@@ -209,31 +219,28 @@ Which can be solved by inverting the matrix.
 (concat
  (mapconcat
   (lambda (i)
-    (let ((xx (format "%05d" i)))
-      (format "** Iterative policy evaluation\n[[file:figures/eval_%s_values.svg]] [[file:figures/eval_%s_policy.svg]] \n\n- $k = %s$\n"
-              xx xx xx)))
-   '(0 1 2 3 10 10000)
-;  (number-sequence 0 10)
-  "\n"))
+    (let* ((xx (format "%05d" i))
+           (header "** Iterative policy evaluation\n")
+           (left (format
+                  "#+REVEAL_HTML: <div style=\"display: flex;\"><div style=\"flex: 1; padding: 0px;\">\n\
+Value $V^\\pi_k$ of random policy at step $k$\n\n\
+[[file:figures/eval_%s_values.svg]]\n\n\
+$k = %d$\n\
+#+REVEAL_HTML: </div><div style=\"flex: 1; padding: 0px; \">\n"
+                  xx i))
+           (right (format
+                   "Greedy policy based on this value\n\n\
+[[file:figures/eval_%s_policy.svg]]\n\
+#+REVEAL_HTML: </div></div>"
+                   xx)))
+      (concat header left right)))
+  '(0 1 2 3 10 10000)
+  "\n")))
 #+end_src
 
 
-** code                                                            :noexport:
-#+begin_src emacs-lisp :results raw :exports results 
-(concat
- (mapconcat
-  (lambda (i)
-    (let ((xx (format "%02d" i)))
-      (format "** Iterative policy improvement\n[[file:figures/iter_%s_values.svg]] [[file:figures/iter_%s_policy.svg]] \n\n- $k = %s$\n"
-              xx xx xx)))
-  (number-sequence 0 10)
-  "\n"))
-#+end_src
 
 
-** Approximate methods
-+ It is also possible to find the solution /iteratively/ by starting off with some guesses for $v$ and updating according to the equations.
-+ This approach forms the basis of many other methods and for large MDPs we will never attempt using LP
 * Policy improvement
 ** Policy improvement
 + Given that we can evaluate any policy, we can therefore /improve/ it by updating the policy so that it takes the action that maximises the resulting value
@@ -254,28 +261,9 @@ Which can be solved by inverting the matrix.
 * Policy iteration
 
 ** Policy iteration algorithm
-S1: Initialisation
 
-S2: Policy evaluation
-   + Loop:
-     + $\Delta \leftarrow 0$
-     + Loop for each $s\in S$:
-       + $v \leftarrow V(s)$
-       + $V(s) \leftarrow \sum_{s',r} p(s',r|s, \pi(s)) [r + \gamma V(s')]$
-       + $\Delta \leftarrow \max(\Delta, |v - V(s)|)$
-     + until $\Delta < \theta$
-
- S3: Policy Improvement
-   + $\textit{policy-stable} \leftarrow 1$
-   + For each $s\in S$:
-     + $\textit{old-action}\leftarrow \pi(s)$
-     + $\pi(s) \leftarrow \arg\max_a \sum_{s',r} p(s', r|s, a) [r + \gamma V(s')]$
-     + If $\textit{old-action}\neq \pi(s)$, then $\textit{policy-stable} \leftarrow 0$
-   + If $\textit{policy-stable}$, then stop and return $V\approx v_*$ and $\pi \approx \pi_*$; else go to 2
+[[file:figures/pol-iteration-alg.png]]
        
-** Exercise: Policy iteration for action values
-
-Revise the algorithm on the previous page to use action values $q$ instead and thus find $q_*$.
 
 
 * Value iteration
@@ -289,8 +277,4 @@ Revise the algorithm on the previous page to use action values $q$ instead and t
 #+beamer: \pause
 + The algorithm terminates when the size of the updates to any $v(s)$ is smaller than some threshold
        
-** Phew!
-
-[[file:figures/happy-homer.png]]
-
    
