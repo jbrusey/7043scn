@@ -8,7 +8,7 @@
 #+REVEAL_MARGIN: 0.1
 #+REVEAL_MIN_SCALE: 0.1
 #+REVEAL_MAX_SCALE: 2.5
-#+REVEAL_TRANSITION: slide
+#+REVEAL_TRANS: slide
 #+REVEAL_SLIDE_NUMBER: t
 #+REVEAL_THEME: serif
 #+REVEAL_HEAD_PREAMBLE: <meta name="description" content="J Brusey - ">
@@ -34,12 +34,12 @@
 * About RL    
 ** Many Faces of Reinforcement Learning
 #+attr_html: :height 400px
-[[file:rl-to-discipline.svg]]
+[[file:figures/rl-to-discipline.svg]]
 
 
 ** Branches of Machine Learning
 #+attr_html: :height 400px
-[[file:ml-types.svg]]
+[[file:figures/ml-types.svg]]
 
 ** Characteristics of Reinforcement Learning
 What makes reinforcement learning different from other machine
@@ -57,7 +57,7 @@ learning paradigms?
 - Make a humanoid robot walk
 - Play many different Atari games better than humans
 ** Tesauro's TD Gammon (1992)
-[[file:td-gammon.png]]
+[[file:figures/td-gammon.png]]
 #+BEGIN_NOTES
 - first superhuman game play by RL
 
@@ -66,12 +66,12 @@ learning paradigms?
 - TD Gammon is now reference for best move to make
 #+END_NOTES
 ** Fly stunt manoeuvres in a helicopter (2006)
-#+REVEAL_HTML: <video controls muted data-autoplay src="Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
+#+REVEAL_HTML: <video controls muted data-autoplay src="figures/Stanford Autonomous Helicopter - Chaos-kN6ifrqwIMY.mp4"> </video>
 #+BEGIN_NOTES
 + How would you control a helicopter to perform this stunt?
 #+END_NOTES
 ** Atari DQN (Google DeepMind 2016) - Start of DeepRL
-#+REVEAL_HTML: <video data-autoplay src="DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
+#+REVEAL_HTML: <video data-autoplay src="figures/DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
 #+BEGIN_NOTES
 + prior to this - full access to internal state
 + this RL agent just sees pixel values
@@ -137,13 +137,13 @@ Do you agree?
 
 ** Environments (Agent and Environment)
 #+attr_html: :height 400px
-[[file:agent-env.svg]]
+[[file:figures/agent-env.svg]]
 
 ** Environments (Agent and Environment)
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 #+attr_html: :height 400px
-[[file:real-agent-env.svg]]
+[[file:figures/real-agent-env.svg]]
 
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
@@ -176,7 +176,7 @@ Do you agree?
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 #+attr_html: :height 400px
-[[file:real-agent-env.svg]]
+[[file:figures/real-agent-env.svg]]
 
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
@@ -190,7 +190,7 @@ Do you agree?
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 #+attr_html: :height 400px
-[[file:real-agent-env.svg]]
+[[file:figures/real-agent-env.svg]]
 
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
@@ -233,7 +233,7 @@ $$
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
 #+attr_html: :height 400px
-[[file:real-agent-env.svg]]
+[[file:figures/real-agent-env.svg]]
 
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
@@ -293,7 +293,7 @@ $$
 ** Maze Example (Start)
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 #+attr_html: :height 400px
-[[file:maze1.svg]]
+[[file:figures/maze1.svg]]
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Rewards: $-1$ per time-step
@@ -304,21 +304,21 @@ $$
 
 ** Maze Example (Policy)
 #+attr_html: :height 400px
-[[file:maze2.svg]]
+[[file:figures/maze2.svg]]
 
 - Arrows represent policy \(\pi(s)\) for each state \(s\)
 
 
 ** Maze Example (Value Function)
 #+attr_html: :height 400px
-[[file:maze3.svg]]
+[[file:figures/maze3.svg]]
 
 - Numbers represent value \(v_\pi(s)\) of each state \(s\)
 - What is the value for the square marked ?
 ** Maze Example (Model)
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 #+attr_html: :height 400px
-[[file:maze4.svg]]
+[[file:figures/maze4.svg]]
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Agent may have an internal model of the environment
@@ -352,7 +352,7 @@ $$
 
 ** RL Agent Taxonomy
 #+attr_html: :height 400px
-[[file:rl-taxonomy.svg]]
+[[file:figures/rl-taxonomy.svg]]
 
 
 * Problems within RL  
@@ -371,7 +371,7 @@ $$
 ** Atari Example (Reinforcement Learning)
 #+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
-[[file:agent-env-atari.svg]]
+[[file:figures/agent-env-atari.svg]]
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Rules of the game are unknown
@@ -392,7 +392,7 @@ $$
 - Plan ahead to find optimal policy
   - e.g. tree search
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
-[[file:seaquest.svg]]
+[[file:figures/seaquest.svg]]
 #+REVEAL_HTML: </div></div>
 
 
@@ -427,13 +427,13 @@ $$
 
 ** Gridworld Example (Prediction)
 #+attr_html: :height 400px
-[[file:gridworld.svg]]
+[[file:figures/gridworld.svg]]
 
 - Question: What is the value function for the uniform random policy?
 
 ** Gridworld Example (Control)
 #+attr_html: :height 400px
-[[file:gridworld2.svg]]
+[[file:figures/gridworld2.svg]]
 
 - Questions:
   - What is the optimal value function over all possible policies?

@@ -1,0 +1,580 @@
+% Created 2026-01-08 Thu 14:35
+% Intended LaTeX compiler: pdflatex
+\documentclass[presentation]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{minted}
+\usetheme{default}
+\author{James Brusey}
+\date{\today}
+\title{Lecture 1: Introduction to Reinforcement Learning (David Silver)}
+\hypersetup{
+ pdfauthor={James Brusey},
+ pdftitle={Lecture 1: Introduction to Reinforcement Learning (David Silver)},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={},
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\begin{frame}{Outline}
+\setcounter{tocdepth}{2}
+\tableofcontents
+\end{frame}
+
+\begin{frame}[label={sec:org89fcfb6}]{Outline}
+\begin{enumerate}
+\item Admin
+\item About Reinforcement Learning
+\item The Reinforcement Learning Problem
+\item Inside An RL Agent
+\item Problems within Reinforcement Learning
+\end{enumerate}
+\end{frame}
+\begin{frame}[label={sec:org3795e19}]{Admin: Class Information}
+\begin{itemize}
+\item Thursdays 9:30 to 11:00am
+\item Website: \url{http://www.cs.ucl.ac.uk/staff/D.Silver/web/Teaching.html}
+\item Group: \url{http://groups.google.com/group/csml-advanced-topics}
+\item Contact: d.silver@cs.ucl.ac.uk
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org8fd728a}]{Admin: Assessment}
+\begin{itemize}
+\item Assessment will be 50\% coursework, 50\% exam
+\item Coursework
+\begin{itemize}
+\item Assignment A: RL problem
+\item Assignment B: Kernels problem
+\item Assessment = max(assignment1, assignment2)
+\end{itemize}
+\item Examination
+\begin{itemize}
+\item A: 3 RL questions
+\item B: 3 kernels questions
+\item Answer any 3 questions
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org84616b0}]{Admin: Textbooks}
+\begin{itemize}
+\item \alert{An Introduction to Reinforcement Learning}, Sutton and Barto, 1998
+\begin{itemize}
+\item MIT Press, 1998
+\item \textasciitilde{}40 pounds
+\item Available free online: \url{http://webdocs.cs.ualberta.ca/\~sutton/book/the-book.html}
+\end{itemize}
+\item \alert{Algorithms for Reinforcement Learning}, Szepesvari
+\begin{itemize}
+\item Morgan and Claypool, 2010
+\item \textasciitilde{}20 pounds
+\item Available free online: \url{http://www.ualberta.ca/\~szepesva/papers/RLAlgsInMDPs.pdf}
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org140c2bd}]{About RL: Many Faces of Reinforcement Learning}
+\begin{itemize}
+\item Fields / influences:
+\begin{itemize}
+\item Computer Science, Economics, Mathematics, Engineering, Neuroscience, Psychology
+\item Machine Learning, Classical/Operant Conditioning, Optimal Control, Reward System,
+Operations Research, Bounded Rationality, Reinforcement Learning
+\end{itemize}
+\item (Figure on page 6: Venn-style “Many Faces …”)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org531596b}]{About RL: Branches of Machine Learning}
+\begin{itemize}
+\item Supervised Learning
+\item Unsupervised Learning
+\item Reinforcement Learning
+\item (Figure on page 7: ML branches Venn diagram)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org9268056}]{About RL: Characteristics of Reinforcement Learning}
+\begin{itemize}
+\item No supervisor, only a reward signal
+\item Feedback is delayed, not instantaneous
+\item Time matters (sequential, non i.i.d. data)
+\item Agent’s actions affect subsequent data it receives
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orga4ec700}]{About RL: Examples}
+\begin{itemize}
+\item Fly stunt manoeuvres in a helicopter
+\item Defeat the world champion at Backgammon
+\item Manage an investment portfolio
+\item Control a power station
+\item Make a humanoid robot walk
+\item Play many different Atari games better than humans
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org7ff7505}]{About RL: Helicopter Manoeuvres}
+\begin{itemize}
+\item (Image-only slide; see page 10)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org38dff0c}]{About RL: Bipedal Robots}
+\begin{itemize}
+\item (Image-only slide; see page 11)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgf7eb1bb}]{About RL: Atari}
+\begin{itemize}
+\item (Image-only slide; see page 12)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgc3ad2b2}]{The RL Problem: Reward}
+\begin{itemize}
+\item A reward \(R_t\) is a scalar feedback signal
+\begin{itemize}
+\item Indicates how well agent is doing at step \(t\)
+\end{itemize}
+\item The agent’s job is to maximise cumulative reward
+\item Reinforcement learning is based on the \alert{reward hypothesis}
+\item Definition (Reward Hypothesis)
+\begin{itemize}
+\item All goals can be described by the maximisation of expected cumulative reward
+\end{itemize}
+\item Question: Do you agree with this statement?
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org0a849f8}]{The RL Problem: Examples of Rewards}
+\begin{itemize}
+\item Fly stunt manoeuvres in a helicopter
+\begin{itemize}
+\item +ve reward for following desired trajectory
+\item -ve reward for crashing
+\end{itemize}
+\item Defeat the world champion at Backgammon
+\begin{itemize}
+\item +/-ve reward for winning/losing a game
+\end{itemize}
+\item Manage an investment portfolio
+\begin{itemize}
+\item +ve reward for each \$ in bank
+\end{itemize}
+\item Control a power station
+\begin{itemize}
+\item +ve reward for producing power
+\item -ve reward for exceeding safety thresholds
+\end{itemize}
+\item Make a humanoid robot walk
+\begin{itemize}
+\item +ve reward for forward motion
+\item -ve reward for falling over
+\end{itemize}
+\item Play many different Atari games better than humans
+\begin{itemize}
+\item +/-ve reward for increasing/decreasing score
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orge189130}]{The RL Problem: Sequential Decision Making}
+\begin{itemize}
+\item Goal: select actions to maximise total future reward
+\item Actions may have long term consequences
+\item Reward may be delayed
+\item It may be better to sacrifice immediate reward to gain more long-term reward
+\item Examples:
+\begin{itemize}
+\item A financial investment (may take months to mature)
+\item Refuelling a helicopter (might prevent a crash in several hours)
+\item Blocking opponent moves (might help winning chances many moves from now)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org69c39da}]{The RL Problem: Environments (Agent and Environment)}
+\begin{itemize}
+\item (Diagram on page 16: agent/environment with observation \(O_t\), action \(A_t\), reward \(R_t\))
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org6bf0261}]{The RL Problem: Environments (Agent and Environment)}
+\begin{itemize}
+\item At each step \(t\) the agent:
+\begin{itemize}
+\item Executes action \(A_t\)
+\item Receives observation \(O_t\)
+\item Receives scalar reward \(R_t\)
+\end{itemize}
+\item The environment:
+\begin{itemize}
+\item Receives action \(A_t\)
+\item Emits observation \(O_{t+1}\)
+\item Emits scalar reward \(R_{t+1}\)
+\end{itemize}
+\item \(t\) increments at environment step
+\item (Same diagram, with bullets; page 17)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org711dcf0}]{The RL Problem: State (History and State)}
+\begin{itemize}
+\item History is the sequence of observations, actions, rewards:
+\begin{itemize}
+\item \(H_t = O_1, R_1, A_1, \ldots, A_{t-1}, O_t, R_t\)
+\end{itemize}
+\item i.e. all observable variables up to time \(t\)
+\item i.e. sensorimotor stream of a robot/embodied agent
+\item What happens next depends on the history:
+\begin{itemize}
+\item agent selects actions
+\item environment selects observations/rewards
+\end{itemize}
+\item State is the information used to determine what happens next
+\item Formally, state is a function of the history:
+\begin{itemize}
+\item \(S_t = f(H_t)\)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgc746c5d}]{The RL Problem: State (Environment State)}
+\begin{itemize}
+\item The environment state \(S^e_t\) is the environment’s private representation
+\begin{itemize}
+\item i.e. whatever data the environment uses to pick next observation/reward
+\end{itemize}
+\item Environment state is not usually visible to the agent
+\item Even if \(S^e_t\) is visible, it may contain irrelevant information
+\item (Diagram on page 19)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org8707e7e}]{The RL Problem: State (Agent State)}
+\begin{itemize}
+\item The agent state \(S^a_t\) is the agent’s internal representation
+\begin{itemize}
+\item i.e. whatever information the agent uses to pick the next action
+\item i.e. the information used by RL algorithms
+\end{itemize}
+\item It can be any function of history:
+\begin{itemize}
+\item \(S^a_t = f(H_t)\)
+\end{itemize}
+\item (Diagram on page 20)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org6f4e3f1}]{The RL Problem: State (Information / Markov State)}
+\begin{itemize}
+\item An information state (a.k.a. Markov state) contains all useful information from history.
+\item Definition: a state \(S_t\) is Markov iff
+\begin{itemize}
+\item \(P[S_{t+1}\mid S_t] = P[S_{t+1}\mid S_1,\ldots,S_t]\)
+\end{itemize}
+\item “The future is independent of the past given the present”
+\begin{itemize}
+\item \(H_{1:t} \rightarrow S_t \rightarrow H_{t+1:\infty}\)
+\end{itemize}
+\item Once the state is known, the history may be thrown away
+\begin{itemize}
+\item i.e. state is a sufficient statistic of the future
+\end{itemize}
+\item Environment state \(S^e_t\) is Markov
+\item History \(H_t\) is Markov
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org39eea41}]{The RL Problem: State (Rat Example)}
+\begin{itemize}
+\item What if agent state = last 3 items in sequence?
+\item What if agent state = counts for lights, bells and levers?
+\item What if agent state = complete sequence?
+\item (Illustration on page 22)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgd5e74d2}]{The RL Problem: State (Fully Observable Environments)}
+\begin{itemize}
+\item Full observability: agent directly observes environment state
+\begin{itemize}
+\item \(O_t = S^a_t = S^e_t\)
+\end{itemize}
+\item Agent state = environment state = information state
+\item Formally: Markov decision process (MDP)
+\begin{itemize}
+\item (Next lecture and the majority of this course)
+\end{itemize}
+\item (Diagram on page 23)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org14f8903}]{The RL Problem: State (Partially Observable Environments)}
+\begin{itemize}
+\item Partial observability: agent indirectly observes environment:
+\begin{itemize}
+\item robot with camera vision isn’t told absolute location
+\item trading agent only observes current prices
+\item poker-playing agent only observes public cards
+\end{itemize}
+\item Now agent state \(\neq\) environment state
+\item Formally: partially observable Markov decision process (POMDP)
+\item Agent must construct its own state representation \(S^a_t\), e.g.
+\begin{itemize}
+\item Complete history: \(S^a_t = H_t\)
+\item Beliefs of environment state:
+\begin{itemize}
+\item \(S^a_t = (P[S^e_t=s_1], \ldots, P[S^e_t=s_n])\)
+\end{itemize}
+\item Recurrent neural network:
+\begin{itemize}
+\item \(S^a_t = \sigma(S^a_{t-1} W_s + O_t W_o)\)
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org66a75aa}]{Inside An RL Agent: Major Components}
+\begin{itemize}
+\item An RL agent may include one or more of:
+\begin{itemize}
+\item Policy: agent’s behaviour function
+\item Value function: how good is each state and/or action
+\item Model: agent’s representation of the environment
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org1fca901}]{Inside An RL Agent: Policy}
+\begin{itemize}
+\item A policy is the agent’s behaviour
+\item Map from state to action, e.g.
+\begin{itemize}
+\item Deterministic policy: \(a = \pi(s)\)
+\item Stochastic policy: \(\pi(a\mid s)=P[A_t=a\mid S_t=s]\)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org8c0bca8}]{Inside An RL Agent: Value Function}
+\begin{itemize}
+\item Value function is a prediction of future reward
+\item Used to evaluate goodness/badness of states
+\item Therefore to select between actions, e.g.
+\begin{itemize}
+\item \(v^\pi(s) = \mathbb{E}_\pi[ R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \ldots \mid S_t=s]\)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org29e04e0}]{Inside An RL Agent: Example (Value Function in Atari)}
+\begin{itemize}
+\item (Image-only slide; see page 28)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org2e5e56e}]{Inside An RL Agent: Model}
+\begin{itemize}
+\item A model predicts what the environment will do next
+\begin{itemize}
+\item \(P\) predicts next state
+\item \(R\) predicts next (immediate) reward
+\end{itemize}
+\item Example:
+\begin{itemize}
+\item \(P^a_{ss'} = P[S_{t+1}=s' \mid S_t=s, A_t=a]\)
+\item \(R^a_s = \mathbb{E}[R_{t+1} \mid S_t=s, A_t=a]\)
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org276d77e}]{Inside An RL Agent: Maze Example (Start)}
+\begin{itemize}
+\item Goal
+\item Rewards: -1 per time-step
+\item Actions: N, E, S, W
+\item States: agent’s location
+\item (Maze diagram on page 30)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orge360fd1}]{Inside An RL Agent: Maze Example (Policy)}
+\begin{itemize}
+\item Arrows represent policy \(\pi(s)\) for each state \(s\)
+\item (Diagram on page 31)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orge924aaf}]{Inside An RL Agent: Maze Example (Value Function)}
+\begin{itemize}
+\item Numbers represent value \(v_\pi(s)\) of each state \(s\)
+\item (Diagram on page 32)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgd60440e}]{Inside An RL Agent: Maze Example (Model)}
+\begin{itemize}
+\item Agent may have an internal model of the environment
+\begin{itemize}
+\item Dynamics: how actions change the state
+\item Rewards: how much reward from each state
+\end{itemize}
+\item The model may be imperfect
+\item Grid layout represents transition model \(P^a_{ss'}\)
+\item Numbers represent immediate reward \(R^a_s\) from each state \(s\) (same for all \(a\))
+\item (Diagram on page 33)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org83d341a}]{Inside An RL Agent: Categorizing RL agents (1)}
+\begin{itemize}
+\item Value-Based
+\begin{itemize}
+\item No policy (implicit)
+\item Value function
+\end{itemize}
+\item Policy-Based
+\begin{itemize}
+\item Policy
+\item No value function
+\end{itemize}
+\item Actor-Critic
+\begin{itemize}
+\item Policy
+\item Value function
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgcb98c46}]{Inside An RL Agent: Categorizing RL agents (2)}
+\begin{itemize}
+\item Model-Free
+\begin{itemize}
+\item Policy and/or value function
+\item No model
+\end{itemize}
+\item Model-Based
+\begin{itemize}
+\item Policy and/or value function
+\item Model
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org4ff1250}]{Inside An RL Agent: RL Agent Taxonomy}
+\begin{itemize}
+\item (Diagram on page 36: Model / Value Function / Policy overlap; value-based vs policy-based; model-free vs model-based; actor-critic in intersection)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org99d27a1}]{Problems within RL: Learning and Planning}
+\begin{itemize}
+\item Two fundamental problems in sequential decision making
+\item Reinforcement Learning:
+\begin{itemize}
+\item environment initially unknown
+\item agent interacts with environment
+\item agent improves its policy
+\end{itemize}
+\item Planning:
+\begin{itemize}
+\item model of environment is known
+\item agent performs computations with model (no external interaction)
+\item agent improves its policy
+\item a.k.a. deliberation, reasoning, introspection, pondering, thought, search
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org49239df}]{Problems within RL: Atari Example (Reinforcement Learning)}
+\begin{itemize}
+\item Rules of the game are unknown
+\item Learn directly from interactive gameplay
+\item Pick actions on joystick, see pixels and scores
+\item (Diagram on page 38)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org07ac79f}]{Problems within RL: Atari Example (Planning)}
+\begin{itemize}
+\item Rules of the game are known
+\item Can query emulator
+\begin{itemize}
+\item perfect model inside agent’s brain
+\end{itemize}
+\item If I take action \(a\) from state \(s\):
+\begin{itemize}
+\item what would the next state be?
+\item what would the score be?
+\end{itemize}
+\item Plan ahead to find optimal policy
+\begin{itemize}
+\item e.g. tree search
+\end{itemize}
+\item (Diagram on page 39)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgbc2bb03}]{Problems within RL: Exploration and Exploitation (1)}
+\begin{itemize}
+\item RL is like trial-and-error learning
+\item Agent should discover a good policy
+\begin{itemize}
+\item from experiences of the environment
+\item without losing too much reward along the way
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:orgfc824d9}]{Problems within RL: Exploration and Exploitation (2)}
+\begin{itemize}
+\item Exploration finds more information about the environment
+\item Exploitation exploits known information to maximise reward
+\item Usually important to explore as well as exploit
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org983d45d}]{Problems within RL: Examples (Explore/Exploit)}
+\begin{itemize}
+\item Restaurant selection
+\begin{itemize}
+\item Exploitation: go to favourite restaurant
+\item Exploration: try a new restaurant
+\end{itemize}
+\item Online banner advertisements
+\begin{itemize}
+\item Exploitation: show most successful advert
+\item Exploration: show a different advert
+\end{itemize}
+\item Oil drilling
+\begin{itemize}
+\item Exploitation: drill at best known location
+\item Exploration: drill at a new location
+\end{itemize}
+\item Game playing
+\begin{itemize}
+\item Exploitation: play the move believed best
+\item Exploration: play an experimental move
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org76d58ba}]{Problems within RL: Prediction and Control}
+\begin{itemize}
+\item Prediction: evaluate the future (given a policy)
+\item Control: optimise the future (find the best policy)
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org5ae3cb8}]{Problems within RL: Gridworld Example (Prediction)}
+\begin{itemize}
+\item (Gridworld table + question on page 44)
+\item Question: What is the value function for the uniform random policy?
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org41a1453}]{Problems within RL: Gridworld Example (Control)}
+\begin{itemize}
+\item (Figure on page 45: gridworld + \(V^*\) + \(\pi^*\))
+\item Questions:
+\begin{itemize}
+\item What is the optimal value function over all possible policies?
+\item What is the optimal policy?
+\end{itemize}
+\end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org2056056}]{Course Outline}
+\begin{itemize}
+\item Part I: Elementary Reinforcement Learning
+\begin{enumerate}
+\item Introduction to RL
+\item Markov Decision Processes
+\item Planning by Dynamic Programming
+\item Model-Free Prediction
+\item Model-Free Control
+\end{enumerate}
+\item Part II: Reinforcement Learning in Practice
+\begin{enumerate}
+\item Value Function Approximation
+\item Policy Gradient Methods
+\item Integrating Learning and Planning
+\item Exploration and Exploitation
+\item Case study — RL in games
+\end{enumerate}
+\end{itemize}
+\end{frame}
+\end{document}
