@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Markov Decision Processes</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<meta name="description" content="J Brusey - ">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Markov Decision Processes</h1><h2 class="author">James Brusey</h2>
+</section>
+<section>
+<section id="slide-org0c66229">
+<h2 id="org0c66229">Overview</h2>
+<ol>
+<li>Markov Processes</li>
+<li>Markov Reward Processes</li>
+<li>Markov Decision Processes</li>
+<li>Extensions to MDPS</li>
+
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-orgad08a1f">
+<h2 id="orgad08a1f">Markov Processes</h2>
+<div class="outline-text-2" id="text-orgad08a1f">
+</div>
+</section>
+<section id="slide-orgc39e0c3">
+<h3 id="orgc39e0c3">Introduction to MDPs</h3>
+<ul>
+<li>Markov decision processes formally describe an environment for
+reinforcement learning</li>
+<li>Where the environment is fully observable</li>
+<li>i.e., the current state completely characterises the process</li>
+<li>Almost all RL problems can be formalised as MDPs, e.g.,
+<ul>
+<li>Optimal control primarily deals with continuous MDPs</li>
+<li>Partially observable problems can be converted into MDPs</li>
+<li>Bandits are MDPs with one state</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org9038a02">
+<h3 id="org9038a02">Markov Property</h3>
+<p>
+"The future is independent of the past given the present"
+</p>
+
+<div class="definition" id="org6685671">
+<p>
+A state is Markov if and only if
+\[
+\mathbb{P}[S_{t+1} \mid S_t] = \mathbb{P} [S_{t+1} \mid S_1, \ldots, S_t]
+\]
+</p>
+
+</div>
+
+<ul>
+<li>The state captures all relevant information from the history</li>
+
+<li>Once the state is known, the history may be thrown away</li>
+
+<li>i.e., The state is a sufficient statistic of the future</li>
+
+</ul>
+</section>
+<section id="slide-org2f8adfc">
+<h3 id="org2f8adfc">State Transition Matrix</h3>
+<ul>
+<li>For a Markov state and successor state , the state transition
+probability is defined by
+\[
+  \mathcal{P}_{ss^{\prime}}=\mathbb{P}[S_{t+1}=s^{\prime}|S_{t}=s]
+  \]</li>
+
+<li>State transition matrix defines transition probabilities from all
+states to all successor states
+\[
+  \mathcal{P}=\begin{bmatrix}\mathcal{P}_{11}&...&\mathcal{P}_{1n}\\ \vdots&&&\\ \mathcal{P}_{n1}&...&\mathcal{P}_{nn}\end{bmatrix}
+  \]
+where each row of the matrix sums to 1</li>
+
+</ul>
+</section>
+<section id="slide-org6f25b73">
+<h3 id="org6f25b73">Markov Process</h3>
+<ul>
+<li>A Markov process is a memoryless random process, i.e. a sequence of
+random states with the Markov property</li>
+
+</ul>
+
+<div class="definition" id="orgad95a22">
+<p>
+A Markov Process (or Markov Chain) is a tuple \(\langle \mathcal{S}, \mathcal{P}\rangle\) 
+</p>
+<ul>
+<li>\(\mathcal{S}\) is a (finite) set of states</li>
+<li>\(\mathcal{P}\) is a state transition probability matrix, \(\mathcal{P}_{ss^{\prime}}=\mathbb{P}[S_{t+1}=s^{\prime}|S_{t}=s]\)</li>
+
+</ul>
+
+</div>
+</section>
+<section id="slide-orgf3bf462">
+<h3 id="orgf3bf462">Example: Student Markov Chain</h3>
+
+<div id="orgfec22a5" class="figure">
+<p><img src="figures/student.svg" alt="student.svg" class="org-svg" height="400px" />
+</p>
+</div>
+</section>
+<section id="slide-orga93596e">
+<h3 id="orga93596e">Example: Student Markov Chain Episodes</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+<div id="org500d621" class="figure">
+<p><img src="figures/student.svg" alt="student.svg" class="org-svg" />
+</p>
+</div>
+
+</div><div style="flex: 1; padding: 0px; ">
+<p>
+Sample <b>episodes</b> for Student Markov Chain starting from \(S_1 = C1\):
+\[
+S_1, S_2, \ldots, S_T
+\]
+</p>
+
+<ul>
+<li>C1 C2 C3 Pass Sleep</li>
+
+<li>C1 FB FB C1 C2 Sleep</li>
+
+<li>C1 C2 C3 Pub C2 C3 Pass Sleep</li>
+<li>C1 FB FB C1 C2 C3 Pub C1 FB FB FB C1 C2 C3 Pub C2 Sleep</li>
+
+</ul>
+</div></div>
+</section>
+<section id="slide-org5f85702">
+<h3 id="org5f85702">Example: Student Markov Chain Episodes</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+<div id="org05d850b" class="figure">
+<p><img src="figures/student.svg" alt="student.svg" class="org-svg" />
+</p>
+</div>
+
+</div><div style="flex: 1; padding: 0px; ">
+<p>
+\[
+\mathcal{P} =   \begin{array}{c@{\;}c}
+  & \begin{array}{ccccccc}
+     C1 & C2 & C3 & \textit{Pass} & \textit{Pub} & \textit{FB} & \textit{Sleep}
+    \end{array} \\[0.3em]  \begin{array}{c}
+     C1 \\ C2 \\ C3 \\ \textit{Pass} \\ \textit{Pub} \\ \textit{FB} \\ \textit{Sleep}
+  \end{array} & \left(   \begin{array}{ccccccc}
+  & 0.5 & & & & 0.5 & \\
+  & & 0.8 & & & & 0.2 \\
+  & & & 0.6 & 0.4 & & \\
+  & & & & & & 1.0 \\
+  0.2 & 0.4 & 0.4 \\
+  0.1 & & & & & 0.9 & \\
+  & & & & & & 1.0 
+  \end{array}  \right)
+\end{array}
+\]
+</p>
+
+</div></div>
+</section>
+</section>
+<section>
+<section id="slide-org156907f">
+<h2 id="org156907f">Markov Reward Processes</h2>
+<ul>
+<li>A Markov reward process is a Markov chain with values</li>
+
+</ul>
+<div class="definition" id="org9447bde">
+<p>
+A Markov Reward Process is a tuple \((S, \mathcal{P}, \mathcal{R}, \gamma)\)
+</p>
+<ul>
+<li>\(S\) is a finite set of states</li>
+
+<li>\(\mathcal{P}\) is a state transition probability matrix</li>
+
+<li>\(\mathcal{R}\) is a reward function, \(\mathcal{R}_{s}=\mathbb{E}[R_{t+1}|S_{t}=s]\)</li>
+
+<li>\(\gamma\) is a discount factor, \(\gamma \in [0, 1]\)</li>
+
+</ul>
+
+</div>
+</section>
+<section id="slide-org821b73c">
+<h3 id="org821b73c">Example: Student MRP</h3>
+
+<div id="orga7c2d1d" class="figure">
+<p><img src="figures/student-mrp.svg" alt="student-mrp.svg" class="org-svg" height="400px" />
+</p>
+</div>
+</section>
+<section id="slide-org8afc950">
+<h3 id="org8afc950">Return</h3>
+<div class="definition" id="org162b7fb">
+<p>
+The return \(G_t\) is the total discounted reward from time-step \(t\)
+\[
+G_t = R_{t+1} + \gamma R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
+\]
+</p>
+
+</div>
+<ul>
+<li>The discount \(\gamma \in [0, 1]\) is the present value of future rewards</li>
+<li>This values immediate reward above delayed reward
+<ul>
+<li>\(\gamma\) close to 0 leads to "myopic" evaluation;</li>
+<li>\(\gamma\) close to 1 leads to "far-sighted" evaluation</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org30e0cb5">
+<h3 id="org30e0cb5">Why discount?</h3>
+<ul>
+<li>Mathematically convenient to discount rewards</li>
+
+<li>Avoids infinite returns in cyclic Markov processes</li>
+
+<li>Uncertainty about the future may not be fully represented</li>
+
+<li>If the reward is financial, immediate rewards may earn more interest</li>
+
+<li>Animal/human behaviour shows preference for immediate reward</li>
+
+<li>It is sometimes possible to use undiscounted processes () if all
+sequences terminate</li>
+
+</ul>
+</section>
+<section id="slide-orgfcda434">
+<h3 id="orgfcda434">Value Function</h3>
+<ul>
+<li>The value function gives the long-term value of state</li>
+
+<li><b>Definition</b>: The state value function of an MRP is the expected
+return starting from state</li>
+
+<li></li>
+
+</ul>
+</section>
+<section id="slide-org3d2b6bb">
+<h3 id="org3d2b6bb">Bellman Equation for MRPs</h3>
+<ul>
+<li>The value function can be decomposed into two parts: immediate reward
+and discounted value of successor state</li>
+
+<li></li>
+
+
+<li></li>
+
+</ul>
+</section>
+<section id="slide-org67921f8">
+<h3 id="org67921f8">Bellman Equation in Matrix Form</h3>
+<ul>
+<li>The Bellman equation can be expressed concisely using matrices:</li>
+
+<li></li>
+
+</ul>
+</section>
+<section id="slide-orgefce0a1">
+<h3 id="orgefce0a1">Solving the Bellman Equation</h3>
+<ul>
+<li>The Bellman equation is a linear equation and can be solved directly:</li>
+
+<li>Computational complexity is for states</li>
+
+<li>Direct solution only possible for small MRPs</li>
+
+<li>Iterative methods for large MRPs:</li>
+
+<li>Dynamic programming</li>
+
+<li>Monte-Carlo evaluation</li>
+
+<li>Temporal-Difference learning</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org76df14a">
+<h2 id="org76df14a">Markov Decision Processes</h2>
+<ul>
+<li>An MDP is a Markov reward process with decisions</li>
+
+<li><b>Definition</b>: A Markov Decision Process is a tuple</li>
+
+<li>is a finite set of states</li>
+
+<li>is a finite set of actions</li>
+
+<li>is a state transition probability matrix,</li>
+
+<li>is a reward function,</li>
+
+<li>is a discount factor</li>
+
+</ul>
+</section>
+<section id="slide-orga0a706e">
+<h3 id="orga0a706e">Policies</h3>
+<ul>
+<li><b>Definition</b>: A policy is a distribution over actions given states,</li>
+
+<li>A policy fully defines the behaviour of an agent</li>
+
+<li>MDP policies depend on the current state (stationary),</li>
+
+<li>Given a policy , the MDP reduces to a Markov process and a Markov
+reward process</li>
+
+</ul>
+</section>
+<section id="slide-orgb8d00ad">
+<h3 id="orgb8d00ad">Value Functions</h3>
+<ul>
+<li><b>State-value function</b>:</li>
+
+<li><b>Action-value function</b>:</li>
+
+</ul>
+</section>
+<section id="slide-org45ffc94">
+<h3 id="org45ffc94">Bellman Expectation Equation</h3>
+<ul>
+<li></li>
+
+
+<li></li>
+
+
+<li>Relationship:</li>
+
+<li>Matrix form:</li>
+
+</ul>
+</section>
+<section id="slide-org0c85d4f">
+<h3 id="org0c85d4f">Optimal Value Functions</h3>
+<ul>
+<li><b>Optimal state-value function</b>:</li>
+
+<li><b>Optimal action-value function</b>:</li>
+
+<li>An MDP is "solved" when the optimal value function is known</li>
+
+</ul>
+</section>
+<section id="slide-orgad7a9bc">
+<h3 id="orgad7a9bc">Optimal Policy</h3>
+<ul>
+<li><b>Theorem</b>: For any MDP, there exists an optimal policy such that</li>
+
+<li>An optimal policy can be found by maximizing over :</li>
+
+</ul>
+</section>
+<section id="slide-orgee0f800">
+<h3 id="orgee0f800">Bellman Optimality Equation</h3>
+<ul>
+<li></li>
+
+<li></li>
+
+<li></li>
+
+</ul>
+</section>
+<section id="slide-org28d2e01">
+<h3 id="org28d2e01">Solving the Bellman Optimality Equation</h3>
+<ul>
+<li>Non-linear equation, no general closed-form solution</li>
+
+<li>Iterative methods:</li>
+
+<li>Value Iteration</li>
+
+<li>Policy Iteration</li>
+
+<li>Q-learning</li>
+
+<li>Sarsa</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org4d8b7ab">
+<h2 id="org4d8b7ab">Extensions to MDPs</h2>
+<ul>
+<li>Infinite and continuous MDPs</li>
+
+<li>Partially observable MDPs (POMDPs)</li>
+
+<li>Average reward MDPs</li>
+
+</ul>
+
+
+<p>
+Would you like me to create a summary table of the key differences
+between Markov Processes, MRPs, and MDPs based on this document?
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'convex',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>
