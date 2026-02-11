@@ -22,8 +22,8 @@
 <h1 class="title">Markov Decision Processes</h1><h2 class="author">James Brusey</h2>
 </section>
 <section>
-<section id="slide-org0c66229">
-<h2 id="org0c66229">Overview</h2>
+<section id="slide-org5485a19">
+<h2 id="org5485a19">Overview</h2>
 <ol>
 <li>Markov Processes</li>
 <li>Markov Reward Processes</li>
@@ -34,13 +34,13 @@
 </section>
 </section>
 <section>
-<section id="slide-orgad08a1f">
-<h2 id="orgad08a1f">Markov Processes</h2>
-<div class="outline-text-2" id="text-orgad08a1f">
+<section id="slide-orga22eb2d">
+<h2 id="orga22eb2d">Markov Processes</h2>
+<div class="outline-text-2" id="text-orga22eb2d">
 </div>
 </section>
-<section id="slide-orgc39e0c3">
-<h3 id="orgc39e0c3">Introduction to MDPs</h3>
+<section id="slide-org4cc87cc">
+<h3 id="org4cc87cc">Introduction to MDPs</h3>
 <ul>
 <li>Markov decision processes formally describe an environment for
 reinforcement learning</li>
@@ -56,13 +56,13 @@ reinforcement learning</li>
 
 </ul>
 </section>
-<section id="slide-org9038a02">
-<h3 id="org9038a02">Markov Property</h3>
+<section id="slide-orge3c80d5">
+<h3 id="orge3c80d5">Markov Property</h3>
 <p>
 "The future is independent of the past given the present"
 </p>
 
-<div class="definition" id="org6685671">
+<div class="definition" id="org8e6debc">
 <p>
 A state is Markov if and only if
 \[
@@ -81,8 +81,8 @@ A state is Markov if and only if
 
 </ul>
 </section>
-<section id="slide-org2f8adfc">
-<h3 id="org2f8adfc">State Transition Matrix</h3>
+<section id="slide-orgfc15aa0">
+<h3 id="orgfc15aa0">State Transition Matrix</h3>
 <ul>
 <li>For a Markov state and successor state , the state transition
 probability is defined by
@@ -99,15 +99,15 @@ where each row of the matrix sums to 1</li>
 
 </ul>
 </section>
-<section id="slide-org6f25b73">
-<h3 id="org6f25b73">Markov Process</h3>
+<section id="slide-org9c3fd5e">
+<h3 id="org9c3fd5e">Markov Process</h3>
 <ul>
 <li>A Markov process is a memoryless random process, i.e. a sequence of
 random states with the Markov property</li>
 
 </ul>
 
-<div class="definition" id="orgad95a22">
+<div class="definition" id="org4890c69">
 <p>
 A Markov Process (or Markov Chain) is a tuple \(\langle \mathcal{S}, \mathcal{P}\rangle\) 
 </p>
@@ -119,19 +119,19 @@ A Markov Process (or Markov Chain) is a tuple \(\langle \mathcal{S}, \mathcal{P}
 
 </div>
 </section>
-<section id="slide-orgf3bf462">
-<h3 id="orgf3bf462">Example: Student Markov Chain</h3>
+<section id="slide-orgf5a52cd">
+<h3 id="orgf5a52cd">Example: Student Markov Chain</h3>
 
-<div id="orgfec22a5" class="figure">
+<div id="orgc82dcde" class="figure">
 <p><img src="figures/student.svg" alt="student.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-orga93596e">
-<h3 id="orga93596e">Example: Student Markov Chain Episodes</h3>
+<section id="slide-org7d8056e">
+<h3 id="org7d8056e">Example: Student Markov Chain Episodes</h3>
 <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
-<div id="org500d621" class="figure">
+<div id="org60c3739" class="figure">
 <p><img src="figures/student.svg" alt="student.svg" class="org-svg" />
 </p>
 </div>
@@ -155,11 +155,11 @@ S_1, S_2, \ldots, S_T
 </ul>
 </div></div>
 </section>
-<section id="slide-org5f85702">
-<h3 id="org5f85702">Example: Student Markov Chain Episodes</h3>
+<section id="slide-org65c7a8f">
+<h3 id="org65c7a8f">Example: Student Markov Chain Episodes</h3>
 <div style="display: flex;"><div style="flex: 1; padding: 0px;">
 
-<div id="org05d850b" class="figure">
+<div id="org1946e86" class="figure">
 <p><img src="figures/student.svg" alt="student.svg" class="org-svg" />
 </p>
 </div>
@@ -189,13 +189,18 @@ S_1, S_2, \ldots, S_T
 </section>
 </section>
 <section>
-<section id="slide-org156907f">
-<h2 id="org156907f">Markov Reward Processes</h2>
+<section id="slide-orga398911">
+<h2 id="orga398911">Markov Reward Processes</h2>
+<div class="outline-text-2" id="text-orga398911">
+</div>
+</section>
+<section id="slide-org0262420">
+<h3 id="org0262420">Markov Reward Processes</h3>
 <ul>
 <li>A Markov reward process is a Markov chain with values</li>
 
 </ul>
-<div class="definition" id="org9447bde">
+<div class="definition" id="org7cb671c">
 <p>
 A Markov Reward Process is a tuple \((S, \mathcal{P}, \mathcal{R}, \gamma)\)
 </p>
@@ -212,17 +217,17 @@ A Markov Reward Process is a tuple \((S, \mathcal{P}, \mathcal{R}, \gamma)\)
 
 </div>
 </section>
-<section id="slide-org821b73c">
-<h3 id="org821b73c">Example: Student MRP</h3>
+<section id="slide-org8b519c6">
+<h3 id="org8b519c6">Example: Student MRP</h3>
 
-<div id="orga7c2d1d" class="figure">
+<div id="orga2419a6" class="figure">
 <p><img src="figures/student-mrp.svg" alt="student-mrp.svg" class="org-svg" height="400px" />
 </p>
 </div>
 </section>
-<section id="slide-org8afc950">
-<h3 id="org8afc950">Return</h3>
-<div class="definition" id="org162b7fb">
+<section id="slide-org77fa279">
+<h3 id="org77fa279">Return</h3>
+<div class="definition" id="orge9ba6af">
 <p>
 The return \(G_t\) is the total discounted reward from time-step \(t\)
 \[
@@ -242,8 +247,8 @@ G_t = R_{t+1} + \gamma R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
 
 </ul>
 </section>
-<section id="slide-org30e0cb5">
-<h3 id="org30e0cb5">Why discount?</h3>
+<section id="slide-org58f5bcb">
+<h3 id="org58f5bcb">Why discount?</h3>
 <ul>
 <li>Mathematically convenient to discount rewards</li>
 
@@ -255,126 +260,179 @@ G_t = R_{t+1} + \gamma R_{t+2} + ... = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
 
 <li>Animal/human behaviour shows preference for immediate reward</li>
 
-<li>It is sometimes possible to use undiscounted processes () if all
+<li>It is sometimes possible to use undiscounted processes (i.e., \(\gamma=1\)) if all
 sequences terminate</li>
 
 </ul>
 </section>
-<section id="slide-orgfcda434">
-<h3 id="orgfcda434">Value Function</h3>
+<section id="slide-org4915fab">
+<h3 id="org4915fab">Value Function</h3>
+<p>
+The value function gives the long-term value of state \(s\)
+</p>
+<div class="definition" id="org62e99ff">
+<p>
+The <i>state value function</i> \(v(s)\) of an MRP is the expected return starting from state \(s\)
+\[
+v(s) = \mathbb{E} [G_t | S_t = s]
+\]
+</p>
+
+</div>
+</section>
+<section id="slide-org189983d">
+<h3 id="org189983d">Example: Student MRP Returns</h3>
+<p>
+Sample <b>returns</b> for Student MRP:
+</p>
+
+<p>
+Starting from \(S_1=C1\) with \(\gamma=\frac{1}{2}\):
+\[
+G_1 = R_2 + \gamma R_3 + \cdots + \gamma^{T-2}R_T
+\]
+</p>
+
 <ul>
-<li>The value function gives the long-term value of state</li>
+<li>C1 C2 C3 Pass Sleep
+<ul>
+<li>\(v1 = −2 − 2 ∗ 1/2 − 2 ∗ 1/4 + 10 ∗ 1/8 = -2.25\)</li>
 
-<li><b>Definition</b>: The state value function of an MRP is the expected
-return starting from state</li>
+</ul></li>
+<li>C1 FB FB C1 C2 Sleep
+<ul>
+<li>\(v1 = −2 − 1 ∗ 1/2 − 1 ∗ 1/4 − 2 ∗ 1/8 − 2 ∗ 1/6=−3.125\)</li>
 
-<li></li>
+</ul></li>
+<li>C1 C2 C3 Pub C2 C3 Pass Sleep
+<ul>
+<li>\(v1 = −2 − 2 ∗ 1/2 − 2 ∗ 1/4 + 1 ∗ 1/8 − 2 ∗ 16=−3.41\)</li>
+
+</ul></li>
 
 </ul>
 </section>
-<section id="slide-org3d2b6bb">
-<h3 id="org3d2b6bb">Bellman Equation for MRPs</h3>
+<section id="slide-org07f0e15">
+<h3 id="org07f0e15">Bellman Equation for MRPs</h3>
 <ul>
-<li>The value function can be decomposed into two parts: immediate reward
-and discounted value of successor state</li>
+<li>The value function can be decomposed into two parts: immediate reward \(R_{t+1}\) and discounted value of successor state \(\gamma v(S_{t+1})\)</li>
 
-<li></li>
+<li>\(v(s) = \mathbb{E} [R_{t+1} + \gamma v(S_{t+1}) | S_t = s]\)</li>
 
-
-<li></li>
+<li>\(v(s) = \mathcal{R}_s + \gamma \sum_{s' \in S} \mathcal{P}_{ss'} v(s')\)</li>
 
 </ul>
 </section>
-<section id="slide-org67921f8">
-<h3 id="org67921f8">Bellman Equation in Matrix Form</h3>
+<section id="slide-org1d9f35d">
+<h3 id="org1d9f35d">Bellman Equation in Matrix Form</h3>
 <ul>
-<li>The Bellman equation can be expressed concisely using matrices:</li>
+<li><p>
+The Bellman equation can be expressed concisely using matrices: \(v = \mathcal{R} + \gamma \mathcal{P} v\)
+</p>
 
-<li></li>
+<div>
+\begin{equation}  
+ \begin{bmatrix} v(1) \\ \vdots \\ v(n) \end{bmatrix} = \begin{bmatrix} \mathcal{R}_1 \\ \vdots \\ \mathcal{R}_n \end{bmatrix} + \gamma \begin{bmatrix} \mathcal{P}_{11} & \dots & \mathcal{P}_{1n} \\ \vdots & \ddots & \vdots \\ \mathcal{P}_{n1} & \dots & \mathcal{P}_{nn} \end{bmatrix} \begin{bmatrix} v(1) \\ \vdots \\ v(n) \end{bmatrix} \end{equation}
+
+</div></li>
 
 </ul>
 </section>
-<section id="slide-orgefce0a1">
-<h3 id="orgefce0a1">Solving the Bellman Equation</h3>
+<section id="slide-org297f60e">
+<h3 id="org297f60e">Solving the Bellman Equation</h3>
 <ul>
-<li>The Bellman equation is a linear equation and can be solved directly:</li>
-
-<li>Computational complexity is for states</li>
-
+<li>The Bellman equation is a linear equation and can be solved directly:  ls\(v = (I - \gamma \mathcal{P})^{-1} \mathcal{R}\)</li>
+<li>Computational complexity is \(O(n^3)\)  for states</li>
 <li>Direct solution only possible for small MRPs</li>
-
-<li>Iterative methods for large MRPs:</li>
-
+<li>Iterative methods for large MRPs:
+<ul>
 <li>Dynamic programming</li>
-
 <li>Monte-Carlo evaluation</li>
-
 <li>Temporal-Difference learning</li>
+
+</ul></li>
 
 </ul>
 </section>
 </section>
 <section>
-<section id="slide-org76df14a">
-<h2 id="org76df14a">Markov Decision Processes</h2>
+<section id="slide-org970a1ad">
+<h2 id="org970a1ad">Markov Decision Processes</h2>
 <ul>
 <li>An MDP is a Markov reward process with decisions</li>
 
-<li><b>Definition</b>: A Markov Decision Process is a tuple</li>
+</ul>
+<div class="definition" id="orge3ce518">
+<p>
+A Markov Decision Process is a tuple \(\langle S, A, \mathcal{P}, \mathcal{R}, \gamma \rangle\)
+</p>
+<ul>
+<li>\(S\) is a finite set of states \(A\) is a finite set of actions</li>
 
-<li>is a finite set of states</li>
+<li>\(\mathcal{P}\) is a state transition probability matrix,</li>
 
-<li>is a finite set of actions</li>
+<li>\(\mathcal{P}_{ss'}^a = \mathbb{P} [S_{t+1} = s' | S_t = s, A_t = a]\)</li>
 
-<li>is a state transition probability matrix,</li>
+<li>\(\mathcal{R}\) is a reward function, \(\mathcal{R}_s^a = \mathbb{E} [R_{t+1} | S_t = s, A_t = a]\)</li>
 
-<li>is a reward function,</li>
-
-<li>is a discount factor</li>
+<li>\(\gamma\) is a discount factor \(\gamma \in [0, 1]\)</li>
 
 </ul>
-</section>
-<section id="slide-orga0a706e">
-<h3 id="orga0a706e">Policies</h3>
-<ul>
-<li><b>Definition</b>: A policy is a distribution over actions given states,</li>
 
+</div>
+</section>
+<section id="slide-org87fdbcc">
+<h3 id="org87fdbcc">Policies</h3>
+<div class="definition" id="org0956088">
+<p>
+A policy \(\pi\) is a distribution over actions given states, \(\pi(a|s) = \mathbb{P} [A_t = a | S_t = s]\)
+</p>
+<ul>
 <li>A policy fully defines the behaviour of an agent</li>
-
-<li>MDP policies depend on the current state (stationary),</li>
-
-<li>Given a policy , the MDP reduces to a Markov process and a Markov
-reward process</li>
+<li>MDP policies depend on the current state (stationary), \(A_t \sim \pi(\cdot|S_t)\)</li>
+<li>Given a policy \(\pi\), the MDP reduces to a Markov process \(\langle S, \mathcal{P}^\pi \rangle\) and a Markov reward process \(\langle S, \mathcal{P}^\pi, \mathcal{R}^\pi, \gamma \rangle\)</li>
 
 </ul>
+
+</div>
 </section>
-<section id="slide-orgb8d00ad">
-<h3 id="orgb8d00ad">Value Functions</h3>
-<ul>
-<li><b>State-value function</b>:</li>
+<section id="slide-org4cccedd">
+<h3 id="org4cccedd">Value Functions</h3>
+<div class="definition" id="org4f7c506">
+<p>
+The <i>state-value function</i> \(v_\pi(s)\) of an MDP is the expected return starting from state \(s\), and then following policy \(\pi\)
+\[v_\pi(s) = \mathbb{E}_\pi [G_t | S_t = s]\]
+</p>
 
-<li><b>Action-value function</b>:</li>
+</div>
+<div class="definition" id="orgc0e638b">
+<p>
+The <i>action-value function</i> \(q_\pi(s, a)\) is the expected return starting from state \(s\), taking action \(a\), and then following policy \(\pi\)
+\[
+q_\pi(s, a) = \mathbb{E}_\pi [G_t | S_t = s, A_t = a]
+\]
+</p>
 
-</ul>
+</div>
 </section>
-<section id="slide-org45ffc94">
-<h3 id="org45ffc94">Bellman Expectation Equation</h3>
-<ul>
-<li></li>
-
-
-<li></li>
-
-
-<li>Relationship:</li>
-
-<li>Matrix form:</li>
-
-</ul>
+<section id="slide-orgb895e33">
+<h3 id="orgb895e33">Bellman Expectation Equation</h3>
+<p>
+The state-value function can again be decomposed into immediate
+reward plus discounted value of successor state,
+\[
+v_\pi(s) = \mathbb{E}_\pi [R_{t+1} + \gamma v_\pi(S_{t+1}) | S_t = s]
+\]
+The action value function can similarly be decomposed
+\[q_\pi(s, a) = \mathbb{E}_\pi [R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1}) | S_t = s, A_t = a]\]
+</p>
 </section>
-<section id="slide-org0c85d4f">
-<h3 id="org0c85d4f">Optimal Value Functions</h3>
+<section id="slide-orgc6cac20">
+<h3 id="orgc6cac20">Optimal Value Functions</h3>
 <ul>
+<li>Optimal state-value function: \(v^*(s) = \max_\pi v_\pi(s)\)</li>
+<li>Optimal action-value function: \(q^*(s, a) = \max_\pi q_\pi(s, a)\)</li>
+<li>An MDP is "solved" when the optimal value function is known</li>
 <li><b>Optimal state-value function</b>:</li>
 
 <li><b>Optimal action-value function</b>:</li>
@@ -383,33 +441,56 @@ reward process</li>
 
 </ul>
 </section>
-<section id="slide-orgad7a9bc">
-<h3 id="orgad7a9bc">Optimal Policy</h3>
-<ul>
-<li><b>Theorem</b>: For any MDP, there exists an optimal policy such that</li>
+<section id="slide-org9695b8e">
+<h3 id="org9695b8e">Optimal Policy</h3>
+<p>
+Define a partial ordering over policies
+</p>
 
-<li>An optimal policy can be found by maximizing over :</li>
+<p>
+\[\pi \geq \pi ' \text{ if } v_\pi (s) \geq v_{\pi'} (s), \forall s\]
+</p>
+
+<div class="definition" id="orgd7f86b1">
+<p>
+For any MDP,
+</p>
+<ul>
+<li>There exists an optimal policy \(\pi_*\) that is better than or equal to all other policies, \(\pi_* \geq \pi, \forall \pi\)</li>
+<li>All optimal policies achieve the optimal value function, \(v_{\pi_*} (s) = v_* (s)\)</li>
+<li>All optimal policies achieve the optimal action-value function, \(q_{\pi_*} (s, a) = q_* (s, a)\)</li>
+
+</ul>
+
+</div>
+</section>
+<section id="slide-org713e2eb">
+<h3 id="org713e2eb">Finding an Optimal Policy</h3>
+<p>
+An optimal policy can be found by maximizing over \(q^*(s, a)\):
+\[
+\pi^*(a|s) = \begin{cases} 1 & \text{if } a = \text{argmax}_{a \in A} q^*(s, a) \\ 0 & \text{otherwise} \end{cases}\]
+</p>
+</section>
+<section id="slide-orgb0c243e">
+<h3 id="orgb0c243e">Bellman Optimality Equation</h3>
+<ul>
+<li>\(v^*(s) = \max_a q^*(s, a)\)</li>
+<li>\(q^*(s, a) = \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v^*(s')\)</li>
+<li>\(v^*(s) = \max_a \left( \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v^*(s') \right)\)</li>
 
 </ul>
 </section>
-<section id="slide-orgee0f800">
-<h3 id="orgee0f800">Bellman Optimality Equation</h3>
+<section id="slide-orgcc2535a">
+<h3 id="orgcc2535a">Solving the Bellman Optimality Equation</h3>
 <ul>
-<li></li>
+<li>Non-linear equation,</li>
 
-<li></li>
+<li>No general closed-form solution</li>
 
-<li></li>
+<li>Many iterative solution methods:
 
-</ul>
-</section>
-<section id="slide-org28d2e01">
-<h3 id="org28d2e01">Solving the Bellman Optimality Equation</h3>
 <ul>
-<li>Non-linear equation, no general closed-form solution</li>
-
-<li>Iterative methods:</li>
-
 <li>Value Iteration</li>
 
 <li>Policy Iteration</li>
@@ -418,12 +499,14 @@ reward process</li>
 
 <li>Sarsa</li>
 
+</ul></li>
+
 </ul>
 </section>
 </section>
 <section>
-<section id="slide-org4d8b7ab">
-<h2 id="org4d8b7ab">Extensions to MDPs</h2>
+<section id="slide-orgd1f7c75">
+<h2 id="orgd1f7c75">Extensions to MDPs</h2>
 <ul>
 <li>Infinite and continuous MDPs</li>
 
@@ -432,12 +515,6 @@ reward process</li>
 <li>Average reward MDPs</li>
 
 </ul>
-
-
-<p>
-Would you like me to create a summary table of the key differences
-between Markov Processes, MRPs, and MDPs based on this document?
-</p>
 </section>
 </section>
 </div>
