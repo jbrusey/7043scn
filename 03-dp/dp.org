@@ -70,22 +70,49 @@
 - Start from base cases
 - Fill row by row or column by column
 - Each cell uses only already-computed neighbours
+** DP: Edit distance between kitten and sitting
+#+attr_html: :height 400px
+[[file:figures/kitten1.svg]]
 
+- Since "k" is not equal to "s", we take the minimum of the two table values above and to the left. 
+** DP: Edit distance between kitten and sitting
+#+attr_html: :height 400px
+[[file:figures/kitten2.svg]]
+- Since both prefixes have "i" here, we can copy, meaning we take the value from the diagonal above left
+** DP: Edit distance between kitten and sitting
+#+attr_html: :height 400px
+[[file:figures/kitten3.svg]]
+- The whole path to edit the string (from kitten to sitting) can be seen as +k+ *s* itt +e+ *i* n *g*
+- By the way, the same approach can be used for whole files by representing each line with its hash
 ** Why this is dynamic programming
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+[[file:figures/kitten.svg]]
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Each subproblem D(i, j) solved once
 - Results stored in the table
 - Global optimum built from optimal sub-solutions
 
+#+REVEAL_HTML: </div></div>
+
+
 ** Time and space complexity
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+[[file:figures/kitten.svg]]
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Table has |x| × |y| cells
 - Each cell computed in constant time
 - Total time: O(|x|·|y|)
+#+REVEAL_HTML: </div></div>
 
 ** Key takeaways
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+[[file:figures/kitten.svg]]
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Identify subproblems over prefixes
 - Write a recurrence
 - Use a table (array) to store partial results
 - DP works best if you can order the computation so that you have the correct value for the sub-problems already
+#+REVEAL_HTML: </div></div>
 
 * Policy evaluation (prediction)
 ** Why study Dynamic Programming?

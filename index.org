@@ -5,7 +5,7 @@ Remember to export this prior to committing a new version
 [[elisp:(let ((org-twbs-postamble nil)) (org-twbs-export-to-html))]]
 * Lecture slides
 - [[./01-intro/intro.html][Lecture 01 - Introduction]]
-- [[./02-mdps/mdp.html][Lecture 02 - Markov Decision Processes]]
+- [[./02-mdps/mdp2.html][Lecture 02 - Markov Decision Processes]]
 - [[./03-dp/dp.html][Lecture 03 - Dynamic Programming]]
 - [[./04-prediction/mc-td.html][Lecture 04 - Prediction]]
 - [[./05-control/control.html][Lecture 05 - Control]]
