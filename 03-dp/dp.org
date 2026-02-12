@@ -63,20 +63,13 @@
   D(i,j) = 1 + \min\big(D(i-1,j), D(i,j-1), D(i-1,j-1)\big)
   $$
 
-** Dynamic programming table
-- Create a 2D table of size (|x|+1) × (|y|+1)
-- Rows = prefixes of x
-- Columns = prefixes of y
+** DP: Edit distance between kitten and sitting
+#+attr_html: :height 400px
+[[file:figures/kitten.svg]]
 
-** Filling the table
 - Start from base cases
 - Fill row by row or column by column
 - Each cell uses only already-computed neighbours
-
-** Example table (kitten → sitting)
-- Show small table
-- Highlight how each cell is computed from neighbours
-- Final answer is bottom-right cell
 
 ** Why this is dynamic programming
 - Each subproblem D(i, j) solved once
@@ -88,16 +81,11 @@
 - Each cell computed in constant time
 - Total time: O(|x|·|y|)
 
-** From recursion to DP
-- Recursion defines the structure
-- DP adds memoisation or tabulation
-- Same mathematical recurrence, but efficient
-
 ** Key takeaways
 - Identify subproblems over prefixes
 - Write a recurrence
-- Use a table to avoid recomputation
-- Edit distance is a canonical DP example
+- Use a table (array) to store partial results
+- DP works best if you can order the computation so that you have the correct value for the sub-problems already
 
 * Policy evaluation (prediction)
 ** Why study Dynamic Programming?
