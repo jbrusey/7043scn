@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="950" height="520" viewBox="0 0 950 520">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0,0 10,4 0,8" fill="#222" />
+    </marker>
+  </defs>
+  <rect width="950" height="520" fill="white"/>
+  <rect x="60" y="70" width="250" height="80" rx="15" fill="#e7f0ff" stroke="#222" stroke-width="3"/>
+  <text x="185" y="118" text-anchor="middle" font-family="serif" font-size="28">Generate episode</text>
+
+  <rect x="350" y="70" width="250" height="80" rx="15" fill="#e9ffe7" stroke="#222" stroke-width="3"/>
+  <text x="475" y="108" text-anchor="middle" font-family="serif" font-size="26">Compute returns</text>
+  <text x="475" y="136" text-anchor="middle" font-family="serif" font-size="22">for visited (s,a)</text>
+
+  <rect x="640" y="70" width="250" height="80" rx="15" fill="#fff5d9" stroke="#222" stroke-width="3"/>
+  <text x="765" y="108" text-anchor="middle" font-family="serif" font-size="26">Update Q(s,a)</text>
+  <text x="765" y="136" text-anchor="middle" font-family="serif" font-size="22">toward sampled return</text>
+
+  <rect x="350" y="220" width="250" height="80" rx="15" fill="#ffe8e8" stroke="#222" stroke-width="3"/>
+  <text x="475" y="268" text-anchor="middle" font-family="serif" font-size="28">Policy improvement</text>
+
+  <rect x="350" y="370" width="250" height="80" rx="15" fill="#ececec" stroke="#222" stroke-width="3"/>
+  <text x="475" y="418" text-anchor="middle" font-family="serif" font-size="28">Repeat episodes</text>
+
+  <line x1="310" y1="110" x2="350" y2="110" stroke="#222" stroke-width="3" marker-end="url(#a)"/>
+  <line x1="600" y1="110" x2="640" y2="110" stroke="#222" stroke-width="3" marker-end="url(#a)"/>
+  <line x1="765" y1="150" x2="510" y2="220" stroke="#222" stroke-width="3" marker-end="url(#a)"/>
+  <line x1="475" y1="300" x2="475" y2="370" stroke="#222" stroke-width="3" marker-end="url(#a)"/>
+  <line x1="350" y1="410" x2="110" y2="150" stroke="#222" stroke-width="3" marker-end="url(#a)"/>
+
+  <text x="475" y="490" text-anchor="middle" font-family="serif" font-size="28">Monte Carlo Control with ε-greedy exploration</text>
+</svg>

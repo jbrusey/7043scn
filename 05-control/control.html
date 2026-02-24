@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Model-Free Control</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Model-Free Control</h1><h2 class="author">James Brusey</h2>
+</section>
+<section>
+<section id="slide-org9fdb2a3">
+<h2 id="org9fdb2a3">Overview</h2>
+<div class="outline-text-2" id="text-org9fdb2a3">
+</div>
+</section>
+<section id="slide-orgcae580c">
+<h3 id="orgcae580c">Lecture outline</h3>
+<ol>
+<li>Introduction to model-free control</li>
+<li>Generalised policy iteration (GPI)</li>
+<li>Monte Carlo control</li>
+<li>Temporal-difference control</li>
+<li>On-policy vs off-policy learning</li>
+
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-org7d19e2f">
+<h2 id="org7d19e2f">Introduction</h2>
+<div class="outline-text-2" id="text-org7d19e2f">
+</div>
+</section>
+<section id="slide-org8b17257">
+<h3 id="org8b17257">Model-Free Reinforcement Learning</h3>
+<ul>
+<li>Last lecture:
+<ul>
+<li><b>Model-free prediction</b></li>
+<li>Estimate the value function of an <i>unknown</i> MDP</li>
+
+</ul></li>
+
+<li>This lecture:
+<ul>
+<li><b>Model-free control</b></li>
+<li>Optimise the value function of an <i>unknown</i> MDP</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org4a1abb4">
+<h3 id="org4a1abb4">Uses of Model-Free Control</h3>
+<p>
+Some example problems that can be modelled as MDPs:
+</p>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+<ul>
+<li>Elevator</li>
+<li>Parallel Parking</li>
+<li>Ship Steering</li>
+<li>Bioreactor</li>
+<li>Helicopter</li>
+<li>Aeroplane Logistics</li>
+
+</ul>
+</div><div style="flex: 1; padding: 0px; ">
+<ul>
+<li>Robocup Soccer</li>
+<li>Quake</li>
+<li>Portfolio management</li>
+<li>Protein Folding</li>
+<li>Robot walking</li>
+<li>Game of Go</li>
+
+</ul>
+</div></div>
+
+<p>
+For most of these problems, either:
+</p>
+
+<ul>
+<li>The MDP model is unknown, but experience can be sampled</li>
+<li>The MDP model is known, but is too big to use, except by samples</li>
+
+</ul>
+
+<p>
+<b>Model-free control</b> can solve these problems.
+</p>
+</section>
+<section id="slide-org17b928f">
+<h3 id="org17b928f">On and Off-Policy Learning</h3>
+<ul>
+<li><b>On-policy</b> learning
+<ul>
+<li>"learn on the job"</li>
+<li>learn about policy \(\pi\) from experience sampled from \(\pi\)</li>
+
+</ul></li>
+<li><b>Off-policy</b> learning
+<ul>
+<li>"Look over someone's shoulder"</li>
+<li>Learn about policy \(\pi\) from experience sampled from \(\mu\)</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-orge1163b3">
+<h3 id="orge1163b3">Generalised Policy Iteration (Refresher)</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+<div id="org87c6b9a" class="figure">
+<p><img src="figures/gpi-converge.png" alt="gpi-converge.png" />
+</p>
+</div>
+
+<dl>
+<dt>Policy evaluation</dt><dd>Estimate \(v_\pi\) e.g., Iterative policy evaluation</dd>
+<dt>Policy improvement</dt><dd>Generate \(\pi' > \pi\) e.g., Greedy policy improvement</dd>
+
+</dl>
+</div><div style="flex: 1; padding: 0px; ">
+
+<div id="orga80c387" class="figure">
+<p><img src="figures/gpi-loop.png" alt="gpi-loop.png" />
+</p>
+</div>
+</div></div>
+</section>
+<section id="slide-org2cdd4dd">
+<h3 id="org2cdd4dd">Generalised Policy Iteration With Monte-Carlo Evaluation</h3>
+
+<div id="org09cdcec" class="figure">
+<p><img src="figures/gpi-converge.png" alt="gpi-converge.png" height="300px" />
+</p>
+</div>
+<dl>
+<dt>Policy evaluation</dt><dd>Monte-Carlo policy evaluation, \(V=v_\pi\)?</dd>
+<dt>Policy improvement</dt><dd>Greedy policy improvement?</dd>
+
+</dl>
+</section>
+<section id="slide-org151f32d">
+<h3 id="org151f32d">Model-Free Policy Iteration Using Action-Value Function</h3>
+<p>
+Greedy policy improvement over \( V(s) \) requires a model of the MDP:
+</p>
+
+<p>
+\[
+\pi'(s) = \arg\max_{a \in \mathcal{A}} \left( \mathcal{R}_s^a + \sum_{s'} \mathcal{P}_{ss'}^a V(s') \right)
+\]
+</p>
+
+<p>
+Greedy policy improvement over \( Q(s,a) \) is model-free:
+</p>
+
+<p>
+\[
+\pi'(s) = \arg\max_{a \in \mathcal{A}} Q(s,a)
+\]
+</p>
+</section>
+<section id="slide-org63fcb3b">
+<h3 id="org63fcb3b">Generalised Policy Iteration with Action-Value Function</h3>
+
+<div id="org1a8c81a" class="figure">
+<p><img src="figures/gpi-q-converge.png" alt="gpi-q-converge.png" height="300px" />
+</p>
+</div>
+<dl>
+<dt>Policy evaluation</dt><dd>Monte-Carlo policy evaluation, \( Q = q_{\pi} \)</dd>
+<dt>Policy improvement</dt><dd>Greedy policy improvement?</dd>
+
+</dl>
+</section>
+<section id="slide-org19cbdb9">
+<h3 id="org19cbdb9">Example of Greedy Action Selection</h3>
+<div style="display: flex;"><div style="flex: 1; padding: 0px;">
+
+<div id="org5ee0811" class="figure">
+<p><img src="figures/ChatGPT Image Feb 23, 2026, 09_49_42 PM.png" alt="ChatGPT Image Feb 23, 2026, 09_49_42 PM.png" />
+</p>
+</div>
+</div><div style="flex: 1; padding: 0px; ">
+<p>
+There are two doors in front of you.
+</p>
+
+<ul>
+<li>You open the left door and get reward \(0\)  
+\(V(\text{left}) = 0\)</li>
+
+<li>You open the right door and get reward \(+1\)  
+\(V(\text{right}) = +1\)</li>
+
+<li>You open the right door and get reward \(+3\)  
+\(V(\text{right}) = +2\)</li>
+
+<li>You open the right door and get reward \(+2\)  
+\(V(\text{right}) = +2\)
+\[\vdots\]</li>
+
+<li>Are you sure you’ve chosen the best door?</li>
+
+</ul>
+
+</div></div>
+</section>
+<section id="slide-orgbffbfd5">
+<h3 id="orgbffbfd5">\( \varepsilon \)-Greedy Exploration</h3>
+<ul>
+<li>Simplest idea for ensuring continual exploration.</li>
+
+<li>All \( m \) actions are tried with non-zero probability.</li>
+
+<li>With probability \( 1 - \varepsilon \), choose the greedy action.</li>
+<li>With probability \( \varepsilon \), choose an action at random.
+\[
+    \pi(a \mid s) = \begin{cases}
+    \frac{\varepsilon}{m} + 1 - \varepsilon
+    & \text{if } a = \arg\max_{a \in \mathcal{A}} Q(s,a) \\
+    \\
+    \frac{\varepsilon}{m}
+    & \text{otherwise}
+    \end{cases}
+    \]</li>
+
+</ul>
+</section>
+<section id="slide-org450e1f5">
+<h3 id="org450e1f5">\( \varepsilon \)-Greedy Policy Improvement</h3>
+<div class="definition" id="org94ca36b">
+<p>
+For any \( \varepsilon \)-greedy policy \( \pi \), the \( \varepsilon \)-greedy policy \( \pi' \) with respect to \( q^{\pi} \) is an improvement:
+\[
+v^{\pi'}(s) \ge v^{\pi}(s)
+\]
+</p>
+
+</div>
+
+<div>
+\begin{eqnarray}
+q^{\pi}(s, \pi'(s)) &= & \sum_{a \in \mathcal{A}} \pi'(a \mid s)\, q^{\pi}(s,a) \\
+& = & \varepsilon / m \sum_{a \in \mathcal{A}} q^{\pi}(s,a) + (1-\varepsilon)\max_{a \in \mathcal{A}} q^{\pi}(s,a) \\
+& \ge & \varepsilon / m \sum_{a \in \mathcal{A}} q^{\pi}(s,a) + (1-\varepsilon)\sum_{a \in \mathcal{A}}
+\frac{ \pi(a \mid s) - \varepsilon / m}{1 - \varepsilon}  q^{\pi}(s,a) \\
+& = &  \sum_{a \in \mathcal{A}} \pi(a \mid s)\, q^{\pi}(s,a) = v^{\pi}(s) 
+\end{eqnarray}
+
+</div>
+
+<p>
+Therefore, by the policy improvement theorem, \(v^{\pi'}(s) \ge v^{\pi}(s)\).
+</p>
+</section>
+<section id="slide-org51cfe23">
+<h3 id="org51cfe23">Control in reinforcement learning</h3>
+<ul>
+<li><b>Prediction</b> estimates the value of a fixed policy.</li>
+<li><b>Control</b> improves behaviour to find an optimal policy.</li>
+<li>In an MDP, the goal is to compute
+\[
+  \pi_* = \arg\max_\pi v_\pi(s),\;\forall s\in\mathcal{S}.
+  \]</li>
+<li>For action values, we seek
+\[
+  q_*(s,a)=\max_\pi q_\pi(s,a).
+  \]</li>
+
+</ul>
+</section>
+<section id="slide-org8878871">
+<h3 id="org8878871">Why model-free control?</h3>
+<ul>
+<li>Dynamic programming requires known transition and reward models.</li>
+<li>Many practical RL problems only provide sampled experience.</li>
+<li>Model-free control learns directly from episodes or transitions.</li>
+<li>Typical strategy:
+<ol>
+<li>estimate action values,</li>
+<li>improve the policy greedily (or nearly greedily),</li>
+<li>repeat.</li>
+
+</ol></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org0984b7a">
+<h2 id="org0984b7a">On-Policy Monte-Carlo Control</h2>
+<div class="outline-text-2" id="text-org0984b7a">
+</div>
+</section>
+<section id="slide-org76bd261">
+<h3 id="org76bd261">GPI intuition</h3>
+<ul>
+<li>GPI alternates between:
+<ul>
+<li><b>policy evaluation</b> (make values consistent with policy), and</li>
+<li><b>policy improvement</b> (make policy greedy wrt values).</li>
+
+</ul></li>
+<li>These two processes can be partial and interleaved.</li>
+<li>Control algorithms differ mainly in <b>how</b> each process is approximated.</li>
+
+</ul>
+</section>
+<section id="slide-orgc60d0f9">
+<h3 id="orgc60d0f9">GPI loop diagram</h3>
+
+<div id="org4be389d" class="figure">
+<p><img src="figures/gpi-cycle.svg" alt="gpi-cycle.svg" class="org-svg" height="420px" />
+</p>
+</div>
+</section>
+<section id="slide-orgad15d37">
+<h3 id="orgad15d37">Greedy policy improvement</h3>
+<p>
+Given action-value estimates \(Q(s,a)\), an improved policy is
+\[
+\pi'(s)=\arg\max_a Q(s,a).
+\]
+For stochastic exploration, use $&epsilon;$-greedy:
+$$
+&pi;(a\mid s)=
+</p>
+<div>
+\begin{cases}
+1-\epsilon+\frac{\epsilon}{|\mathcal{A}(s)|}, & a=\arg\max_b Q(s,b)\\
+\frac{\epsilon}{|\mathcal{A}(s)|}, & \text{otherwise.}
+\end{cases}
+
+</div>
+<p>
+$$
+</p>
+</section>
+</section>
+<section>
+<section id="slide-org2839799">
+<h2 id="org2839799">Monte Carlo Control</h2>
+<div class="outline-text-2" id="text-org2839799">
+</div>
+</section>
+<section id="slide-org2d89850">
+<h3 id="org2d89850">Monte Carlo control setup</h3>
+<ul>
+<li>Works with complete episodes.</li>
+<li>Uses returns \(G_t\) as unbiased sample targets.</li>
+<li>First-visit MC action-value estimate:
+\[
+  Q(s,a) \leftarrow Q(s,a) + \alpha\left(G_t - Q(s,a)\right)
+  \]</li>
+<li>Policy is improved between episodes.</li>
+
+</ul>
+</section>
+<section id="slide-orgd2896ae">
+<h3 id="orgd2896ae">Exploring starts and practical alternatives</h3>
+<ul>
+<li><b>Exploring starts</b> guarantees all state-action pairs are visited, but is unrealistic in many tasks.</li>
+<li>In practice, use <b>soft policies</b> (e.g., $&epsilon;$-greedy) so every action retains non-zero probability.</li>
+<li>This ensures continual exploration during learning.</li>
+
+</ul>
+</section>
+<section id="slide-orgfd6413e">
+<h3 id="orgfd6413e">Monte Carlo control flow</h3>
+
+<div id="orge4888d5" class="figure">
+<p><img src="figures/mc-control-flow.svg" alt="mc-control-flow.svg" class="org-svg" height="430px" />
+</p>
+</div>
+</section>
+<section id="slide-org1e78be3">
+<h3 id="org1e78be3">GLIE idea</h3>
+<ul>
+<li>GLIE: <b>Greedy in the Limit with Infinite Exploration</b>.</li>
+<li>Requirements:
+<ul>
+<li>every \((s,a)\) visited infinitely often,</li>
+<li>policy converges to greedy as training proceeds.</li>
+
+</ul></li>
+<li>Common schedule: decrease \(\epsilon_t \to 0\) slowly over time.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org0e32dad">
+<h2 id="org0e32dad">Temporal-Difference Control</h2>
+<div class="outline-text-2" id="text-org0e32dad">
+</div>
+</section>
+<section id="slide-org984a4e9">
+<h3 id="org984a4e9">SARSA (on-policy TD control)</h3>
+<p>
+Update using experienced transition \((S_t,A_t,R_{t+1},S_{t+1},A_{t+1})\):
+\[
+Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha\left[R_{t+1}+\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t)\right].
+\]
+</p>
+<ul>
+<li>Learns value of the behaviour policy itself.</li>
+<li>Typically paired with $&epsilon;$-greedy exploration.</li>
+
+</ul>
+</section>
+<section id="slide-orgbcabe22">
+<h3 id="orgbcabe22">Q-learning (off-policy TD control)</h3>
+<p>
+Update using greedy bootstrap target:
+\[
+Q(S_t,A_t) \leftarrow Q(S_t,A_t) + \alpha\left[R_{t+1}+\gamma\max_a Q(S_{t+1},a)-Q(S_t,A_t)\right].
+\]
+</p>
+<ul>
+<li>Behaviour policy can remain exploratory.</li>
+<li>Target policy is greedy wrt current \(Q\) estimates.</li>
+
+</ul>
+</section>
+<section id="slide-org3923a2b">
+<h3 id="org3923a2b">SARSA vs Q-learning</h3>
+
+<div id="org68267c4" class="figure">
+<p><img src="figures/td-control-compare.svg" alt="td-control-compare.svg" class="org-svg" height="420px" />
+</p>
+</div>
+</section>
+<section id="slide-org28591c9">
+<h3 id="org28591c9">Expected SARSA</h3>
+<p>
+Expected SARSA replaces sampled \(Q(S_{t+1},A_{t+1})\) with expectation under policy:
+\[
+Q(S_t,A_t) \leftarrow Q(S_t,A_t)+\alpha\left[R_{t+1}+\gamma\sum_a\pi(a\mid S_{t+1})Q(S_{t+1},a)-Q(S_t,A_t)\right].
+\]
+</p>
+<ul>
+<li>Lower variance than SARSA.</li>
+<li>Can be more stable with stochastic policies.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgab70031">
+<h2 id="orgab70031">On-Policy and Off-Policy Learning</h2>
+<div class="outline-text-2" id="text-orgab70031">
+</div>
+</section>
+<section id="slide-org334748a">
+<h3 id="org334748a">Conceptual distinction</h3>
+<ul>
+<li><b>On-policy</b>: learn about the policy used to generate data.
+<ul>
+<li>Example: SARSA.</li>
+
+</ul></li>
+<li><b>Off-policy</b>: learn about a target policy different from behaviour policy.
+<ul>
+<li>Example: Q-learning.</li>
+
+</ul></li>
+<li>Off-policy methods are often more data-reuse friendly.</li>
+
+</ul>
+</section>
+<section id="slide-org9fbec23">
+<h3 id="org9fbec23">Behaviour and target policies</h3>
+<ul>
+<li>Behaviour policy \(b\): generates actions and trajectories.</li>
+<li>Target policy \(\pi\): policy we evaluate/improve.</li>
+<li>In value-based control, off-policy methods often keep:
+<ul>
+<li>exploratory \(b\) for coverage,</li>
+<li>greedy \(\pi\) for optimisation.</li>
+
+</ul></li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgc2e8fab">
+<h2 id="orgc2e8fab">Practical Guidance</h2>
+<div class="outline-text-2" id="text-orgc2e8fab">
+</div>
+</section>
+<section id="slide-org4813226">
+<h3 id="org4813226">Key implementation details</h3>
+<ul>
+<li>Initialise \(Q(s,a)\) carefully (optimistic initialisation can encourage exploration).</li>
+<li>Tune learning rate \(\alpha\) and exploration \(\epsilon\) schedules.</li>
+<li>Use episode returns for MC; one-step bootstrapping for TD.</li>
+<li>Track both training reward and policy evaluation performance.</li>
+
+</ul>
+</section>
+<section id="slide-org99e0fe1">
+<h3 id="org99e0fe1">Summary</h3>
+<ul>
+<li>Model-free control solves MDP control from sampled interaction.</li>
+<li>GPI unifies MC and TD control methods.</li>
+<li>MC: episodic, unbiased but higher variance.</li>
+<li>TD: bootstrapped, usually faster and more incremental.</li>
+<li>SARSA is on-policy; Q-learning is off-policy.</li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/search/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js/plugin/zoom/zoom.js"></script>
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'slide',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

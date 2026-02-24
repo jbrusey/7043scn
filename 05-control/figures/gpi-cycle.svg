@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500" viewBox="0 0 900 500">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0,0 10,4 0,8" fill="#223" />
+    </marker>
+  </defs>
+  <rect width="900" height="500" fill="#fff"/>
+  <ellipse cx="300" cy="250" rx="180" ry="90" fill="#dce8ff" stroke="#223" stroke-width="3"/>
+  <ellipse cx="600" cy="250" rx="180" ry="90" fill="#e8f7df" stroke="#223" stroke-width="3"/>
+  <text x="300" y="245" font-family="serif" font-size="34" text-anchor="middle">Policy evaluation</text>
+  <text x="300" y="285" font-family="serif" font-size="26" text-anchor="middle">update V or Q</text>
+  <text x="600" y="245" font-family="serif" font-size="34" text-anchor="middle">Policy improvement</text>
+  <text x="600" y="285" font-family="serif" font-size="26" text-anchor="middle">greedy wrt V or Q</text>
+  <path d="M480 180 C530 120, 650 120, 730 180" fill="none" stroke="#223" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M730 320 C650 380, 530 380, 420 320" fill="none" stroke="#223" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="605" y="130" font-family="serif" font-size="24">make policy better</text>
+  <text x="540" y="405" font-family="serif" font-size="24">re-evaluate policy</text>
+  <text x="450" y="460" font-family="serif" font-size="28" text-anchor="middle">Generalised Policy Iteration (GPI)</text>
+</svg>
