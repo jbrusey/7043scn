@@ -157,6 +157,57 @@ q^{\pi}(s, \pi'(s)) &= & \sum_{a \in \mathcal{A}} \pi'(a \mid s)\, q^{\pi}(s,a) 
 
 Therefore, by the policy improvement theorem, $v^{\pi'}(s) \ge v^{\pi}(s)$.
 
+
+** Monte-Carlo Policy Iteration
+#+attr_html: :height 250px
+[[file:figures/mc-q-converge.png]]
+
+- Policy evaluation :: Monte-Carlo policy evaluation, \( Q = q^{\pi} \)
+- Policy improvement :: \( \varepsilon \)-greedy policy improvement
+
+** Monte-Carlo Control
+#+attr_html: :height 250px
+[[file:figures/mc-q-converge2.png]]
+Every episode:
+
+- Policy evaluation :: Monte-Carlo policy evaluation, \( Q \approx q^{\pi} \)
+- Policy improvement :: \( \varepsilon \)-greedy policy improvement
+
+
+** Greedy in the Limit with Infinite Exploration (GLIE)
+
+#+begin_definition
+- All state–action pairs are explored infinitely many times:
+  \[
+  \lim_{k \to \infty} N_k(s,a) = \infty
+  \]
+
+- The policy converges to a greedy policy:
+  \[
+  \lim_{k \to \infty} \pi_k(a \mid s)
+  = \mathbf{1}\!\left(a = \arg\max_{a' \in \mathcal{A}} Q_k(s,a')\right)
+  \]
+#+end_definition
+
+For example, \( \varepsilon \)-greedy is GLIE if $\varepsilon_k = \frac{1}{k}$ so that $\varepsilon_k \to 0$
+
+** Monte-Carlo Control in Blackjack
+[[file:figures/blackjack.png]]
+
+** MC vs. TD Control
+
+Temporal-difference (TD) learning has several advantages over Monte-Carlo (MC):
+
+- Lower variance  
+- Online  
+- Works with incomplete sequences  
+
+Natural idea:
+
+- Use TD instead of MC in the control loop  
+- Apply TD to \( Q(S,A) \)  
+- Use \( \varepsilon \)-greedy policy improvement  
+- Update every time-step  
 ** Control in reinforcement learning
 - *Prediction* estimates the value of a fixed policy.
 - *Control* improves behaviour to find an optimal policy.
