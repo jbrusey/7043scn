@@ -27,9 +27,9 @@
 
 * Admin: Textbooks
 - *An Introduction to Reinforcement Learning*, Sutton and Barto, 2018
-  - Available free online: http://webdocs.cs.ualberta.ca/~sutton/book/the-book.html
+  - Available free online: http://incompleteideas.net/book/RLbook2020.pdf 
 - *Algorithms for Reinforcement Learning*, Szepesvari, 2010
-  - Available free online: http://www.ualberta.ca/~szepesva/papers/RLAlgsInMDPs.pdf
+  - Available free online: http://sites.ualberta.ca/~szepesva/papers/RLAlgsInMDPs.pdf
 
 * About RL    
 ** Many Faces of Reinforcement Learning
