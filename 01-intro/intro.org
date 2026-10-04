@@ -26,7 +26,7 @@
 
 
 * Admin: Textbooks
-- *An Introduction to Reinforcement Learning*, Sutton and Barto, 2018
+- *Reinforcement Learning: An Introduction*, Sutton and Barto, 2018
   - Available free online: http://incompleteideas.net/book/RLbook2020.pdf 
 - *Algorithms for Reinforcement Learning*, Szepesvari, 2010
   - Available free online: http://sites.ualberta.ca/~szepesva/papers/RLAlgsInMDPs.pdf
@@ -49,7 +49,7 @@ learning paradigms?
 - Time really matters (sequential, non i.i.d. data)
 - Agent’s actions affect subsequent data it receives
 
-** Examples (from 10 years ago)
+** Classic Applications
 - Fly stunt manoeuvres in a helicopter
 - Defeat the world champion at Backgammon
 - Manage an investment portfolio
@@ -70,18 +70,17 @@ learning paradigms?
 #+BEGIN_NOTES
 + How would you control a helicopter to perform this stunt?
 #+END_NOTES
-** Atari DQN (Google DeepMind 2016) - Start of DeepRL
+** Atari DQN (Google DeepMind 2015) - Landmark in DeepRL
 #+REVEAL_HTML: <video data-autoplay src="figures/DQN Breakout-TmPfTpjtdgg.mp4" width="640" height="480"></video>
 #+BEGIN_NOTES
-+ prior to this - full access to internal state
-+ this RL agent just sees pixel values
++ DQN learned control directly from raw pixels, without hand-designed state features
 + makes use of deep learning via experience replay
 + achieves superhuman performance
 
 #+END_NOTES
 
 
-** Examples (more recently)
+** Recent Examples (2016 -- 2023)
 - AlphaGo - defeat world champion at Go
 - Control cooling for a data centre
 - Find faster matrix multiplication algorithms
@@ -89,7 +88,13 @@ learning paradigms?
 - Play StarCraft 2 better than humans
 - Drive Gran Turismo better than humans
 - Race drones faster than humans
-- Teach LLMs how to behave (RLHF)
+
+** Examples of RL with LLMs
+- Preference alignment using human feedback (RLHF)
+- Reasoning using verifiable or rule-based rewards
+  - OpenAI o1 (2024): large-scale RL for multi-step reasoning
+  - DeepSeek-R1-Zero (2025): reasoning behaviours emerging through RL
+  - DeepSeek-R1 (2025): cold-start data followed by multi-stage RL training
 
 ** Quick exercise (5 mins)
 - Go and find web pages, videos, or research papers for as many of the examples as you can
@@ -135,6 +140,23 @@ Do you agree?
   - Refuelling a helicopter (might prevent a crash in several hours)
   - Blocking opponent moves (might help winning chances many moves from now)
 
+** Return and Discounting
+- Immediate reward tells us what happened at one step
+- Return measures total future reward:
+  \[
+  G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots
+  \]
+- \(\gamma \in [0,1]\) is the discount factor
+  - small \(\gamma\): prioritise immediate rewards
+  - large \(\gamma\): value long-term consequences
+  - continuing tasks normally use \(\gamma < 1\)
+  - episodic tasks may use \(\gamma = 1\)
+- The objective is to maximise expected return
+** Why RL is difficult
+- Credit assignment :: delayed reward raises the question “which earlier actions deserve credit or blame?”
+- Episodic vs continuing tasks :: some tasks terminate naturally; others, such as building control, continue indefinitely
+- Reward specification :: the agent maximises the reward we specify, which may not produce the behaviour we intended
+- Data efficiency and safe exploration :: exploration in Atari is cheap; in power stations, healthcare, or autonomous vehicles it may be costly or dangerous
 ** Environments (Agent and Environment)
 #+attr_html: :height 400px
 [[file:figures/agent-env.svg]]
@@ -148,9 +170,9 @@ Do you agree?
 
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - At each step \(t\) the agent:
-  - Executes action \(A_t\)
   - Receives observation \(O_t\)
   - Receives scalar reward \(R_t\)
+  - Executes action \(A_t\)
 - The environment:
   - Receives action \(A_t\)
   - Emits observation \(O_{t+1}\)
@@ -286,7 +308,6 @@ $$
 - A model predicts what the environment will do next
   - \(\mathcal{P}\) predicts next state
   - \(\mathcal{R}\) predicts next (immediate) reward
-    $$
   - \(\mathcal{P}^a_{ss'} = \mathbb{P}[S_{t+1}=s' \mid S_t=s, A_t=a]\)
   - \(\mathcal{R}^a_s = \mathbb{E}[R_{t+1} \mid S_t=s, A_t=a]\)
 

@@ -344,9 +344,3 @@ TD(1) = MC
 Online:
 Exact equivalence only with Exact Online TD((\lambda)) (Sutton & van Seijen, 2014).
 
----
-
-If you want, I can now:
-
-* Split this into one-concept-per-slide with `#+BEGIN_NOTE` speaker notes (as you prefer), or
-* Add Mermaid sketches for the Random Walk, AB example, and TD backups.
