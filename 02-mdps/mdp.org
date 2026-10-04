@@ -20,7 +20,7 @@
  1. Markov Processes
  2. Markov Reward Processes
  3. Markov Decision Processes
- 4. Extensions to MDPS
+ 4. Extensions to MDPs
 
 * Markov Processes
 ** Introduction to MDPs
@@ -54,7 +54,7 @@ $$
 
 ** State Transition Matrix
 
-- For a Markov state and successor state , the state transition
+- For a Markov state and successor state, the state transition
   probability is defined by
   $$
   \mathcal{P}_{ss^{\prime}}=\mathbb{P}[S_{t+1}=s^{\prime}|S_{t}=s]
@@ -189,11 +189,11 @@ G_1 = R_2 + \gamma R_3 + \cdots + \gamma^{T-2}R_T
 $$
 
 - C1 C2 C3 Pass Sleep
-  - $v1 = −2 − 2 ∗ 1/2 − 2 ∗ 1/4 + 10 ∗ 1/8 = -2.25$
+  - $G_1 = −2 − \frac{2}{2} - \frac{2}{4} + \frac{10}{8} = -2.25$
 - C1 FB FB C1 C2 Sleep
-  - $v1 = −2 − 1 ∗ 1/2 − 1 ∗ 1/4 − 2 ∗ 1/8 − 2 ∗ 1/6=−3.125$
+  - $G_1 = −2 − \frac{1}{2} - \frac{1}{4} - \frac{2}{8} - \frac{2}{16}=−3.125$
 - C1 C2 C3 Pub C2 C3 Pass Sleep
-  - $v1 = −2 − 2 ∗ 1/2 − 2 ∗ 1/4 + 1 ∗ 1/8 − 2 ∗ 16=−3.41$
+  - $G_1 = −2 − \frac{2}{2} − \frac{2}{4} + \frac{1}{8} − \frac{2}{16} - \frac{2}{32} + \frac{10}{64} \approx −3.41$
 
     
 ** Bellman Equation for MRPs
@@ -214,8 +214,14 @@ $$
 
 ** Solving the Bellman Equation
 
-- The Bellman equation is a linear equation and can be solved directly:  ls$v = (I - \gamma \mathcal{P})^{-1} \mathcal{R}$ 
-- Computational complexity is $O(n^3)$  for states
+- The Bellman equation is a linear equation and can be solved directly:
+  \begin{eqnarray}
+  v & = & \mathcal{R} + \gamma \mathcal{P} v\\
+  (I - \gamma \mathcal{P} ) v & = & \mathcal{R} \\
+  v & = & (I - \gamma \mathcal{P})^{-1} \mathcal{R}
+  \end{eqnarray}
+
+- Computational complexity is $O(n^3)$  for $n$ states
 - Direct solution only possible for small MRPs
 - Iterative methods for large MRPs:
     - Dynamic programming
@@ -227,14 +233,11 @@ $$
 - An MDP is a Markov reward process with decisions
 #+begin_definition
 A Markov Decision Process is a tuple $\langle S, A, \mathcal{P}, \mathcal{R}, \gamma \rangle$
-- $S$ is a finite set of states $A$ is a finite set of actions
-
-- $\mathcal{P}$ is a state transition probability matrix,
-
+- $S$ is a finite set of states,
+- $A$ is a finite set of actions,
+- $\mathcal{P}$ is an action-indexed collection of state transition probability matrices,
 - $\mathcal{P}_{ss'}^a = \mathbb{P} [S_{t+1} = s' | S_t = s, A_t = a]$
-
 - $\mathcal{R}$ is a reward function, $\mathcal{R}_s^a = \mathbb{E} [R_{t+1} | S_t = s, A_t = a]$
-
 - $\gamma$ is a discount factor $\gamma \in [0, 1]$
 #+end_definition
 
@@ -242,10 +245,10 @@ A Markov Decision Process is a tuple $\langle S, A, \mathcal{P}, \mathcal{R}, \g
 #+begin_definition
   A policy $\pi$ is a distribution over actions given states, $\pi(a|s) = \mathbb{P} [A_t = a | S_t = s]$
 - A policy fully defines the behaviour of an agent
-- MDP policies depend on the current state (stationary), $A_t \sim \pi(\cdot|S_t)$
+- Under a stationary Markov policy, $A_t \sim \pi(\cdot|S_t)$
 - Given a policy $\pi$, the MDP reduces to a Markov process $\langle S, \mathcal{P}^\pi \rangle$ and a Markov reward process $\langle S, \mathcal{P}^\pi, \mathcal{R}^\pi, \gamma \rangle$
   #+end_definition
-
+Note: we restrict attention to stationary policies
 ** Value Functions
 #+begin_definition
 The /state-value function/ $v_\pi(s)$ of an MDP is the expected return starting from state $s$, and then following policy $\pi$
@@ -268,15 +271,15 @@ The action value function can similarly be decomposed
 $$q_\pi(s, a) = \mathbb{E}_\pi [R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1}) | S_t = s, A_t = a]$$
 
 ** Optimal Value Functions
-- Optimal state-value function: $v^*(s) = \max_\pi v_\pi(s)$
-- Optimal action-value function: $q^*(s, a) = \max_\pi q_\pi(s, a)$
-- An MDP is "solved" when the optimal value function is known 
-- *Optimal state-value function*:
+#+begin_definition
+The /optimal state-value function/ $v_*(s)$ is the maximum value function over all policies
+$$v_*(s) = \max_\pi v_\pi (s)$$
 
-- *Optimal action-value function*:
-
-- An MDP is "solved" when the optimal value function is known
-
+The /optimal action-value function/ $q_*(s,a)$ is the maximum action-value function over all policies
+$$q_*(s,a) = \max_\pi q_\pi(s,a)$$
+#+end_definition
+- The optimal value function specifies the best possible performance for the MDP
+- The MDP is *solved* when we know what the optimal value function is 
 
 ** Optimal Policy
 
@@ -285,24 +288,24 @@ Define a partial ordering over policies
 $$\pi \geq \pi ' \text{ if } v_\pi (s) \geq v_{\pi'} (s), \forall s$$
 
 #+begin_definition
-For any MDP,
+For any finite discounted ($\gamma < 1$) MDP,
 - There exists an optimal policy $\pi_*$ that is better than or equal to all other policies, $\pi_* \geq \pi, \forall \pi$
 - All optimal policies achieve the optimal value function, $v_{\pi_*} (s) = v_* (s)$
 - All optimal policies achieve the optimal action-value function, $q_{\pi_*} (s, a) = q_* (s, a)$
-
-
 #+end_definition
 ** Finding an Optimal Policy
 An optimal policy can be found by maximizing over $q_*(s, a)$:
  $$
-\pi_*(a|s) = \begin{cases} 1 & \text{if } a = \text{argmax}_{a \in A} q_*(s, a) \\ 0 & \text{otherwise} \end{cases}$$
-- There is always a determiistic optimal policy for any MDP
+\pi_*(a|s) = \begin{cases} \frac{1}{m(s)} & \text{if } a \in \text{argmax}_{a' \in A} q_*(s, a') \\ 0 & \text{otherwise} \end{cases}$$
+
+- $m(s)=\left|\arg\max_{a'\in A}q_*(s,a')\right|$  is the number of elements in the argmax
+- There is always a deterministic stationary optimal policy for a finite discounted MDP
 - If we know $q_*(s, a)$, we immediately have the optimal policy
 ** Bellman Optimality Equation
 
-- $v^*(s) = \max_a q^*(s, a)$
-- $q^*(s, a) = \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v^*(s')$
-- $v^*(s) = \max_a \left( \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v^*(s') \right)$
+- $v_*(s) = \max_a q_*(s, a)$
+- $q_*(s, a) = \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v_*(s')$
+- $v_*(s) = \max_a \left( \mathcal{R}_s^a + \gamma \sum_{s' \in S} \mathcal{P}_{ss'}^a v_*(s') \right)$
 
 ** Solving the Bellman Optimality Equation
 
