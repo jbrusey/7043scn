@@ -204,6 +204,22 @@ $$
 
 - $v(s) = \mathcal{R}_s + \gamma \sum_{s' \in S} \mathcal{P}_{ss'} v(s')$
 
+** Example: Student MRP Values
+#+REVEAL_HTML: <div style="display: flex; align-items: center; gap: 2rem;"><div style="flex: 1.15;">
+#+attr_html: :height 410px
+[[file:figures/student-mrp2.svg]]
+#+REVEAL_HTML: </div><div style="flex: 0.85;">
+For $\gamma=1$, solving the Bellman equations gives
+
+\begin{array}{c|rrrrrrr}
+s & FB & C1 & C2 & C3 & Pub & Pass & Sleep\\ \hline
+v(s) & -22.54 & -12.54 & 1.46 & 4.32 & 0.80 & 10 & 0
+\end{array}
+
+For example,
+$$v(C1)=-2+0.5v(C2)+0.5v(FB)\approx-12.54.$$
+#+REVEAL_HTML: </div></div>
+
 ** Bellman Equation in Matrix Form
 - The Bellman equation can be expressed concisely using matrices: $v = \mathcal{R} + \gamma \mathcal{P} v$
 
@@ -261,6 +277,24 @@ q_\pi(s, a) = \mathbb{E}_\pi [G_t | S_t = s, A_t = a]
 $$
 #+end_definition
 
+** From State Value to Action Value
+#+attr_html: :height 240px
+[[file:figures/backup-s-a.svg]]
+
+Choose an action according to the policy and average its action value:
+$$
+v_\pi(s)=\sum_{a\in A}\pi(a\mid s)q_\pi(s,a).
+$$
+
+** From Action Value to the Next State
+#+attr_html: :height 260px
+[[file:figures/backup-a-s.svg]]
+
+Average over the reward and successor state produced by $(s,a)$:
+$$
+q_\pi(s,a)=\mathcal{R}_s^a+\gamma\sum_{s'\in S}\mathcal{P}_{ss'}^a v_\pi(s').
+$$
+
 ** Bellman Expectation Equation
 The state-value function can again be decomposed into immediate
 reward plus discounted value of successor state,
@@ -269,6 +303,36 @@ v_\pi(s) = \mathbb{E}_\pi [R_{t+1} + \gamma v_\pi(S_{t+1}) | S_t = s]
 $$
 The action value function can similarly be decomposed
 $$q_\pi(s, a) = \mathbb{E}_\pi [R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1}) | S_t = s, A_t = a]$$
+
+** Full State-value Backup
+#+REVEAL_HTML: <div style="display: flex; align-items: center; gap: 3rem;"><div style="flex: 0.8;">
+#+attr_html: :height 400px
+[[file:figures/vpi-backup.svg]]
+#+REVEAL_HTML: </div><div style="flex: 1.2;">
+The two one-step backups combine to give
+$$
+v_\pi(s)=\sum_a\pi(a\mid s)
+\left(\mathcal{R}_s^a+\gamma
+\sum_{s'}\mathcal{P}_{ss'}^a v_\pi(s')\right).
+$$
+
+- Policy $\pi$ weights actions.
+- Dynamics $\mathcal{P}$ weights successor states.
+- Rewards and successor values are backed up to $s$.
+#+REVEAL_HTML: </div></div>
+
+** Worked Student-MDP Backup
+At $C3$, compare two actions using the Student values above ($\gamma=1$):
+
+$$
+\begin{aligned}
+q_\pi(C3,\textit{study}) &= -2 + v_\pi(Pass) = -2+10=8,\\
+q_\pi(C3,\textit{pub})   &= +1 + v_\pi(Pub) = 1+0.80=1.80.
+\end{aligned}
+$$
+
+The greedy one-step improvement therefore chooses $\textit{study}$ at $C3$.
+This is the practical meaning of backing up successor-state values into an action choice.
 
 ** Optimal Value Functions
 #+begin_definition
@@ -330,4 +394,3 @@ An optimal policy can be found by maximizing over $q_*(s, a)$:
 - Partially observable MDPs (POMDPs)
 
 - Average reward MDPs
-

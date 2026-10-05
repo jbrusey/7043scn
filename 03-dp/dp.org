@@ -11,7 +11,7 @@
 #+REVEAL_TRANS: fade
 #+REVEAL_SLIDE_NUMBER: t
 #+REVEAL_THEME: serif
-#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="J Brusey - ">
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="J Brusey - Dynamic programming lecture slides">
 #+REVEAL_MATHJAX_URL: https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js
 #+REVEAL_EXTRA_CSS: custom.css
 #+REVEAL_HLEVEL: 1
@@ -54,7 +54,7 @@
 - $D(i, 0) = i$   ($i$ deletions)
 
 ** Recurrence relation
-- If $x[i] = y[j]$:
+- If $x_i = y_i$:
   $$
    D(i, j) = D(i-1, j-1)
   $$
@@ -74,7 +74,7 @@
 #+attr_html: :height 400px
 [[file:figures/kitten1.svg]]
 
-- Since "k" is not equal to "s", we take the minimum of the two table values above and to the left. 
+- Since "k" is not equal to "s", we take the minimum of the three table values above, diagonal, and to the left. 
 ** DP: Edit distance between kitten and sitting
 #+attr_html: :height 400px
 [[file:figures/kitten2.svg]]
@@ -101,7 +101,8 @@
 #+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
 - Table has |x| × |y| cells
 - Each cell computed in constant time
-- Total time: O(|x|·|y|)
+- Total time: $O(|x||y|)$
+- Total space: \(O(|x||y|)\)
 #+REVEAL_HTML: </div></div>
 
 ** Key takeaways
@@ -114,6 +115,12 @@
 - DP works best if you can order the computation so that you have the correct value for the sub-problems already
 #+REVEAL_HTML: </div></div>
 
+* Applying dynamic programming to RL
+- Dynamic programming solves problems by decomposing them into smaller, recursively related subproblems.
+- In reinforcement learning:
+  - each state defines a subproblem;
+  - the Bellman equation provides the recurrence relating one state’s value to successor-state values.
+- When the environment’s model is known, these Bellman equations can be solved using dynamic programming.
 * Policy evaluation (prediction)
 ** Why study Dynamic Programming?
 + DP assumes perfect model and is computationally expensive
@@ -126,13 +133,16 @@
   $$
   \mathbb{E}\left[ x \right] = \sum_{i}{p({x_i}) x_i}
   $$
-+ Quick quiz: what's the expected value of a fair, 6-sized dice?
-** Expectation with a subscript?
-+ When we have a subscript, that means according to that probability measure
-  $$
-  \mathbb{E}_y[x] = \sum_i p_y(x_i)x_i
-  $$
-  where $p_y$ is a probability measure for $x$ that might differ from the sampling probability.
++ Quick quiz: what's the expected value of a fair, six-sided die?
+** Expectation with a subscript
+- A subscript on \(\mathbb E\) identifies the probability distribution used to calculate the expectation.
+- For a discrete random variable \(X\) with distribution \(p\),\[
+  \mathbb E_{X\sim p}[f(X)]
+  =\sum_x p(x)f(x).
+  \]
+- In reinforcement learning, the subscript often identifies a policy:\[
+  \mathbb E_\pi[G_t\mid S_t=s].
+  \] This means: the expected return when starting in state \(s\) and choosing actions according to policy \(\pi\).
 
 ** Bellman optimality equation
 + Dynamic programming is based on solving Bellman's optimality equation
@@ -162,12 +172,12 @@ $$
 v_\pi(s) = \sum_a \pi(a|s) \sum_{s',r} p(s',r|s,a)\left[r+\gamma v_\pi(s')\right]
 $$
 where
-+ $p(s',r|s,a)$ is the transition probability
++ $p(s',r|s,a)$ is the joint probability of the next state and reward
 + $\pi(a|s)$ is the probability of taking action $a$ when in state $s$
 + $r$ is the immediate reward
 + $\gamma$ is the discount factor
 ** Policy evaluation (4)
-For this simple recycle robot, write down the set of equations for $v_\pi(s)$ assuming that $\pi$ is a uniform distribution over actions. 
+For this simple recycle robot, write down the set of equations for $v_\pi(s)$ assuming that $\pi$ is a uniform distribution over actions. (This figure is reproduced from Sutton and Barto (1998))
 
 [[file:figures/recycle-robot.png]]
 # #+begin_src dot :file recycle-robot.png
@@ -185,7 +195,7 @@ v_\pi(\mathrm{high}) & = & \frac{1}{2}  (r_\mathrm{wait} + \gamma v_\pi (\mathrm
 && \frac{1}{2} \Big( \alpha (r_\mathrm{search} + \gamma v_\pi (\mathrm{high})) + \\
 && (1-\alpha) (r_\mathrm{search}+ \gamma v_\pi (\mathrm{low}))\Big)
 \end{eqnarray*}
-** LP solution
+** Exact solution using simultaneous equations
 Note that we have equations in the form:
   $$
   v(a) = k_1 v(a) + k_2 v(b) + k_3
@@ -205,20 +215,17 @@ Note that we have equations in the form:
   \end{bmatrix} \mathbf{v}
   $$
 
-Which can be solved by inverting the matrix.
+Which can be solved using linear algebra. 
 /This will be the subject of a lab exercise/
-** LP solution
-- To be precise
+** Exact solution method
+- In matrix form, the Bellman expectation equations are,
   $$
   (I - \gamma P^\pi) V^\pi = r^\pi
   $$
-- With solution,
-  $$
-  V^\pi = (I - \gamma P^\pi)^{-1} r^\pi
-  $$
+- This linear system can be solved using a standard linear algebra solver
 ** Approximate methods
 + It is also possible to find the solution /iteratively/ by starting off with some guesses for $v$ and updating according to the equations.
-+ This approach forms the basis of many other methods and for large MDPs we will never attempt using LP
++ This approach forms the basis of many other methods and for large MDPs we will never attempt using a solver
 
 ** Example - small gridworld
 - Undiscounted episodic MDP with $\gamma = 1$
@@ -283,13 +290,24 @@ $k = %d$\n\
 
 * Value iteration
 ** Value iteration
+#+ATTR_REVEAL: :frag (none none none appear)
 + A problem with policy iteration is the need to perform policy evaluation to some accuracy before improving the policy.
 
-+ Value iteration skips finding the policy and just updates the value to the maximum value
++ Value iteration postpones constructing the policy until the end, repeatedly updating each state toward its maximum action value.
   $$
   v(s) \leftarrow \max_a \mathbb{E} [R_{t+1} + \gamma v(S_{t+1}) | S_t=s, A_t =a ]
   $$
-#+beamer: \pause
-+ The algorithm terminates when the size of the updates to any $v(s)$ is smaller than some threshold
-       
++ We stop updating when the largest absolute update to $v(s)$ is less than some threshold
+  $\max_s \left| \Delta v(s) \right| < \theta$
++ At the end, the policy is found using
+  $$
+  \pi(s)\in\arg\max_a \sum_{s',r}p(s',r\mid s,a)[r+\gamma v(s')].
+  $$
    
+* Summary
+
+- Dynamic programming uses a complete model of the environment to compute value functions and improve policies.
+- We studied policy evaluation, policy improvement, policy iteration, and value iteration.
+- Small problems can be solved directly as systems of linear equations.
+- For larger problems, iterative methods successively approximate the solution.
+- In the next lecture, we will study model-free prediction: estimating the value function of a given policy from experience.
