@@ -21,7 +21,7 @@
 
 - Last lecture: planning by dynamic programming
 
-  * Solve a known Markov Decision Process
+  - Solve a known Markov Decision Process
 - This lecture: model-free prediction
 
   * Estimate the value function of an unknown Markov Decision Process

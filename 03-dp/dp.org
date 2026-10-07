@@ -54,7 +54,7 @@
 - $D(i, 0) = i$   ($i$ deletions)
 
 ** Recurrence relation
-- If $x_i = y_i$:
+- If $x_i = y_j$:
   $$
    D(i, j) = D(i-1, j-1)
   $$
@@ -74,7 +74,7 @@
 #+attr_html: :height 400px
 [[file:figures/kitten1.svg]]
 
-- Since "k" is not equal to "s", we take the minimum of the three table values above, diagonal, and to the left. 
+- Since "k" is not equal to "s", take 1 plus the minimum of the three table values above, to the left, and diagonally above-left.
 ** DP: Edit distance between kitten and sitting
 #+attr_html: :height 400px
 [[file:figures/kitten2.svg]]
@@ -123,7 +123,7 @@
 - When the environment’s model is known, these Bellman equations can be solved using dynamic programming.
 * Policy evaluation (prediction)
 ** Why study Dynamic Programming?
-+ DP assumes perfect model and is computationally expensive
++ DP assumes a complete and accurate model of the environment and is computationally expensive
 + Still important theoretically, though
 + Basis for understanding
 ** Expectation (reminder)
@@ -177,7 +177,7 @@ where
 + $r$ is the immediate reward
 + $\gamma$ is the discount factor
 ** Policy evaluation (4)
-For this simple recycle robot, write down the set of equations for $v_\pi(s)$ assuming that $\pi$ is a uniform distribution over actions. (This figure is reproduced from Sutton and Barto (1998))
+For this simple recycle robot, write down the set of equations for $v_\pi(s)$ assuming that $\pi$ is a uniform distribution over actions. (This figure is reproduced from Sutton and Barto (1998, 2018))
 
 [[file:figures/recycle-robot.png]]
 # #+begin_src dot :file recycle-robot.png
@@ -215,7 +215,7 @@ Note that we have equations in the form:
   \end{bmatrix} \mathbf{v}
   $$
 
-Which can be solved using linear algebra. 
+Which can be solved using linear algebra.
 /This will be the subject of a lab exercise/
 ** Exact solution method
 - In matrix form, the Bellman expectation equations are,
@@ -235,30 +235,80 @@ Which can be solved using linear algebra.
   - that is $\pi(a \mid \cdot) = \frac{1}{4}$ for all $a$ 
 ** Iterative policy evaluation
 [[file:figures/pol-eval-alg.png]]
++ Figure reproduced from Sutton and Barto (1998, 2018)
 
-** code for iterative policy eval                                  :noexport:
-#+begin_src emacs-lisp :results raw replace :exports results 
-(concat
- (mapconcat
-  (lambda (i)
-    (let* ((xx (format "%05d" i))
-           (header "** Iterative policy evaluation\n")
-           (left (format
-                  "#+REVEAL_HTML: <div style=\"display: flex;\"><div style=\"flex: 1; padding: 0px;\">\n\
-Value $V^\\pi_k$ of random policy at step $k$\n\n\
-[[file:figures/eval_%s_values.svg]]\n\n\
-$k = %d$\n\
-#+REVEAL_HTML: </div><div style=\"flex: 1; padding: 0px; \">\n"
-                  xx i))
-           (right (format
-                   "Greedy policy based on this value\n\n\
-[[file:figures/eval_%s_policy.svg]]\n\
-#+REVEAL_HTML: </div></div>"
-                   xx)))
-      (concat header left right)))
-  '(0 1 2 3 10 10000)
-  "\n")))
-#+end_src
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_00000_values.svg]]
+
+$k = 0$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_00000_policy.svg]]
+#+REVEAL_HTML: </div></div>
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_00001_values.svg]]
+
+$k = 1$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_00001_policy.svg]]
+#+REVEAL_HTML: </div></div>
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_00002_values.svg]]
+
+$k = 2$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_00002_policy.svg]]
+#+REVEAL_HTML: </div></div>
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_00003_values.svg]]
+
+$k = 3$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_00003_policy.svg]]
+#+REVEAL_HTML: </div></div>
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_00010_values.svg]]
+
+$k = 10$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_00010_policy.svg]]
+#+REVEAL_HTML: </div></div>
+** Iterative policy evaluation
+#+REVEAL_HTML: <div style="display: flex;"><div style="flex: 1; padding: 0px;">
+Value $V^\pi_k$ of random policy at step $k$
+
+[[file:figures/eval_10000_values.svg]]
+
+$k = 10000$
+#+REVEAL_HTML: </div><div style="flex: 1; padding: 0px; ">
+Greedy policy based on this value
+
+[[file:figures/eval_10000_policy.svg]]
+#+REVEAL_HTML: </div></div>
 
 
 
@@ -276,7 +326,7 @@ $k = %d$\n\
   $$
 ** Policy improvement (2)
 + If we can find some $a$ for which $q_\pi (s, a) > v_\pi(s)$, then we can /improve/ $\pi$ by adjusting it to use $a$
-+ If we cannot find any improvement for all states then $\pi$ must be optimal
++ If no state has an action for which \(q_\pi(s,a)>v_\pi(s)\), then \(\pi\) is optimal.
 + Discuss:
   + what aspects of MDPs are relied on to ensure this is true?
 
@@ -297,8 +347,9 @@ $k = %d$\n\
   $$
   v(s) \leftarrow \max_a \mathbb{E} [R_{t+1} + \gamma v(S_{t+1}) | S_t=s, A_t =a ]
   $$
-+ We stop updating when the largest absolute update to $v(s)$ is less than some threshold
-  $\max_s \left| \Delta v(s) \right| < \theta$
++ During each sweep, compute
+  \(\Delta=\max_s|v_{\text{new}}(s)-v_{\text{old}}(s)|\)
++ and stop when $\Delta < \theta$
 + At the end, the policy is found using
   $$
   \pi(s)\in\arg\max_a \sum_{s',r}p(s',r\mid s,a)[r+\gamma v(s')].
@@ -308,6 +359,6 @@ $k = %d$\n\
 
 - Dynamic programming uses a complete model of the environment to compute value functions and improve policies.
 - We studied policy evaluation, policy improvement, policy iteration, and value iteration.
-- Small problems can be solved directly as systems of linear equations.
+- For a fixed policy in a small finite MDP, its value function can be found by solving a system of linear equations.
 - For larger problems, iterative methods successively approximate the solution.
 - In the next lecture, we will study model-free prediction: estimating the value function of a given policy from experience.

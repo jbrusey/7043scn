@@ -8,13 +8,33 @@
    height="217.5118"
    viewBox="0 0 423.01871 217.5118"
    sodipodi:docname="student.svg"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   inkscape:version="1.4.4 (dcaf3e7d, 2026-05-05)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs1" />
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="RoundedArrow"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Rounded arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="m -0.21114562,-4.1055728 6.42229122,3.21114561 a 1,1 90 0 1 0,1.78885438 L -0.21114562,4.1055728 A 1.236068,1.236068 31.717474 0 1 -2,3 v -6 a 1.236068,1.236068 148.28253 0 1 1.78885438,-1.1055728 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path63" />
+    </marker>
+  </defs>
   <sodipodi:namedview
      id="namedview1"
      pagecolor="#ffffff"
@@ -25,12 +45,12 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.3339527"
-     inkscape:cx="211.77663"
-     inkscape:cy="109.07434"
-     inkscape:window-width="1920"
-     inkscape:window-height="1080"
-     inkscape:window-x="1792"
-     inkscape:window-y="0"
+     inkscape:cx="212.15145"
+     inkscape:cy="109.44916"
+     inkscape:window-width="1792"
+     inkscape:window-height="1067"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="g1">
     <inkscape:page
@@ -295,14 +315,9 @@
        transform="matrix(1.3333333,0,0,1.3333333,355.29333,33.414667)" />
     <path
        id="path47"
-       d="M -8.99971,26.83234 C -43.02663,-21.76361 56.97981,-10.58517 109.52768,-15.18245"
-       style="fill:none;stroke:#000000;stroke-width:0.89664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(1.3333333,0,0,-1.3333333,85.452,182.30933)" />
-    <path
-       id="path48"
-       d="M 4.72691,0 C 4.14642,0.14441 1.59479,0.96278 0,1.85336 V -1.85336 C 1.59479,-0.96278 4.14642,-0.14441 4.72691,0 Z"
-       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.89664;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-       transform="matrix(1.3282267,0.11621333,0.11621333,-1.3282267,231.48891,202.5526)" />
+       d="m 75.669944,153.97401 c -45.369226,64.7946 94.680996,44.88327 164.744826,51.01297"
+       style="fill:none;stroke:#000000;stroke-width:1.196;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#RoundedArrow)"
+       sodipodi:nodetypes="cc" />
     <path
        id="path49"
        d="m 11.73325,-18.96545 h 13.76791 v 7.77094 H 11.73325 Z"
