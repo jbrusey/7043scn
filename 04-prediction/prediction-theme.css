@@ -1,0 +1,169 @@
+/* @theme prediction */
+
+@import 'default';
+
+:root {
+  --ink: #172033;
+  --muted: #5b6578;
+  --accent: #006a6a;
+  --accent-light: #e8f4f2;
+  --warm: #f1b24a;
+  --paper: #fbfaf7;
+}
+
+section {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Aptos", "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 29px;
+  line-height: 1.25;
+  padding: 64px 76px;
+}
+
+h1 {
+  color: var(--accent);
+  font-size: 1.65em;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.65em;
+}
+
+h2 {
+  color: var(--muted);
+  font-size: 1.05em;
+  font-weight: 500;
+}
+
+p, li { max-width: 1040px; }
+li { margin: 0.25em 0; }
+strong { color: var(--accent); }
+
+blockquote {
+  border-left: 8px solid var(--warm);
+  color: var(--ink);
+  font-size: 1.28em;
+  margin: 1.2em 0;
+  padding: 0.1em 0 0.1em 0.8em;
+}
+
+table {
+  font-size: 0.83em;
+  width: 100%;
+}
+
+th {
+  background: var(--accent);
+  color: white;
+}
+
+td, th { padding: 0.42em 0.6em; }
+
+code { background: #eef0f3; }
+
+section::after {
+  color: var(--muted);
+  font-size: 0.55em;
+  right: 34px;
+}
+
+.title {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title h1 {
+  font-size: 2.25em;
+  margin-bottom: 0.15em;
+}
+
+.title h2 { font-size: 1.25em; }
+
+.section {
+  align-items: flex-start;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.section h1 {
+  color: white;
+  font-size: 2.15em;
+  margin-bottom: 0.25em;
+}
+
+.section p { color: #dcefed; font-size: 1.12em; }
+
+.callout {
+  background: var(--accent-light);
+  border-left: 7px solid var(--accent);
+  margin: 0.8em 0;
+  padding: 0.55em 0.8em;
+}
+
+.walk {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+  justify-content: center;
+  margin: 1.4em 0;
+}
+
+.walk span {
+  align-items: center;
+  background: white;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  display: flex;
+  height: 68px;
+  justify-content: center;
+  position: relative;
+  width: 68px;
+}
+
+.walk span:not(:last-child)::after {
+  color: var(--muted);
+  content: "↔";
+  left: 72px;
+  position: absolute;
+}
+
+.walk .terminal { background: #e5e8ed; border-color: var(--muted); }
+.walk .current { background: var(--warm); color: var(--ink); }
+
+.lambda-line, .spectrum {
+  align-items: stretch;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 1.7em 0;
+  text-align: center;
+}
+
+.lambda-line span {
+  border-top: 5px solid var(--accent);
+  padding: 0.7em 0.3em;
+}
+
+.spectrum {
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+}
+
+.spectrum::before {
+  background: linear-gradient(90deg, var(--accent), var(--warm));
+  content: "";
+  height: 7px;
+  left: 6%;
+  position: absolute;
+  right: 6%;
+  top: 0;
+}
+
+.spectrum span { padding-top: 0.8em; }
+
+/* Keep displayed equations compact enough for live projection. */
+math { font-size: 0.95em; }

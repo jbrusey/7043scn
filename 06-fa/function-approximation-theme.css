@@ -1,0 +1,82 @@
+/* @theme function-approximation */
+
+@import 'default';
+
+:root {
+  --ink: #172033;
+  --muted: #5b6578;
+  --accent: #006a6a;
+  --accent-light: #e8f4f2;
+  --warm: #f1b24a;
+  --paper: #fbfaf7;
+}
+
+section {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Aptos", "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 29px;
+  line-height: 1.25;
+  padding: 64px 76px;
+}
+
+h1 {
+  color: var(--accent);
+  font-size: 1.65em;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.65em;
+}
+
+h2 { color: var(--muted); font-size: 1.05em; font-weight: 500; }
+p, li { max-width: 1040px; }
+li { margin: 0.25em 0; }
+strong { color: var(--accent); }
+blockquote { border-left: 8px solid var(--warm); color: var(--ink); font-size: 1.28em; margin: 1.2em 0; padding: 0.1em 0 0.1em 0.8em; }
+table { font-size: 0.82em; width: 100%; }
+th { background: var(--accent); color: white; }
+td, th { padding: 0.42em 0.6em; }
+section::after { color: var(--muted); font-size: 0.55em; right: 34px; }
+
+.title { align-items: flex-start; display: flex; flex-direction: column; justify-content: center; }
+.title h1 { font-size: 2.25em; margin-bottom: 0.15em; }
+.title h2 { font-size: 1.25em; }
+.section { align-items: flex-start; background: var(--accent); color: white; display: flex; flex-direction: column; justify-content: center; }
+.section h1 { color: white; font-size: 2.15em; margin-bottom: 0.25em; }
+.section p { color: #dcefed; font-size: 1.12em; }
+.callout { background: var(--accent-light); border-left: 7px solid var(--accent); margin: 0.8em 0; padding: 0.55em 0.8em; }
+
+.state-row { display: flex; gap: 22px; margin: 0.45em 0; }
+.state-row span { align-items: center; background: white; border: 3px solid var(--muted); border-radius: 50%; display: flex; height: 56px; justify-content: center; width: 56px; }
+.state-row.isolated .active { background: var(--warm); border-color: var(--warm); }
+.state-row.shared .active { background: var(--warm); border-color: var(--warm); }
+.state-row.shared .active + span, .state-row.shared span:has(+ .active) { background: var(--accent-light); border-color: var(--accent); }
+
+.mountain { background: linear-gradient(165deg, transparent 0 46%, var(--accent-light) 46% 100%); height: 180px; margin: 0.5em 0 0.8em; overflow: hidden; position: relative; }
+.mountain::after { border-bottom: 5px solid var(--accent); border-radius: 50%; bottom: -145px; content: ""; height: 260px; left: 3%; position: absolute; transform: rotate(-4deg); width: 92%; }
+.mountain .car { bottom: 42px; color: var(--warm); font-size: 1.8em; left: 29%; position: absolute; z-index: 2; }
+.mountain .goal { color: var(--accent); font-size: 2em; position: absolute; right: 9%; top: 12px; z-index: 2; }
+
+.bins { display: grid; gap: 5px; grid-template-columns: repeat(6,1fr); height: 110px; margin: 1.2em 0; }
+.bins span { background: #dfe3e8; border: 2px solid var(--muted); }
+.bins .on { background: var(--warm); border-color: var(--accent); }
+
+.tilings { height: 230px; margin: 0.4em auto 0.8em; position: relative; width: 600px; }
+.grid { background-image: linear-gradient(var(--muted) 2px, transparent 2px), linear-gradient(90deg, var(--muted) 2px, transparent 2px); background-size: 80px 55px; border: 3px solid var(--muted); height: 165px; position: absolute; width: 400px; }
+.grid i { background: var(--warm); display: block; height: 51px; opacity: 0.7; position: absolute; width: 76px; }
+.g1 { left: 0; top: 0; }
+.g1 i { left: 162px; top: 57px; }
+.g2 { left: 90px; top: 28px; }
+.g2 i { left: 82px; top: 57px; }
+.g3 { left: 180px; top: 56px; }
+.g3 i { left: 82px; top: 2px; }
+
+.boundary { align-items: center; display: grid; font-size: 1.2em; grid-template-columns: 1fr 12px 1fr; margin: 1.4em 0; text-align: center; }
+.boundary b { background: var(--warm); height: 95px; }
+
+.triad { display: flex; justify-content: space-between; margin: 1.8em 0; }
+.triad span { align-items: center; background: var(--accent-light); border: 3px solid var(--accent); border-radius: 50%; display: flex; height: 170px; justify-content: center; padding: 0.5em; text-align: center; width: 170px; }
+
+.spectrum { align-items: stretch; display: grid; gap: 20px; grid-template-columns: repeat(4,1fr); margin: 1.5em 0; position: relative; text-align: center; }
+.spectrum::before { background: linear-gradient(90deg, var(--accent), var(--warm)); content: ""; height: 7px; left: 6%; position: absolute; right: 6%; top: 0; }
+.spectrum span { padding-top: 0.8em; }
