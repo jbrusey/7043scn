@@ -35,12 +35,12 @@ By the end, you should be able to:
 
 A tabular value function stores one number for every state.
 
-| State description | Approximate number of states |
-|---|---:|
-| 10 binary variables | $2^{10}=1{,}024$ |
-| 30 binary variables | $2^{30}>10^9$ |
-| Position and velocity | Continuous |
-| Camera image | Vast |
+| State description     | Approximate number of states |
+|-----------------------|-----------------------------:|
+| 10 binary variables   |             $2^{10}=1{,}024$ |
+| 30 binary variables   |                $2^{30}>10^9$ |
+| Position and velocity |                   Continuous |
+| Camera image          |                         Vast |
 
 Even a large table cannot predict the value of a state it has never seen.
 
