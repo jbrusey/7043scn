@@ -1,0 +1,92 @@
+/* Interactive widgets for the 7043SCN Reveal decks.
+   Loaded after reveal.css, theme/serif.css and custom.css. It only styles the
+   demonstration widgets; typography, colours and headings come from the theme. */
+
+/* layout */
+.reveal .cols{display:grid;grid-template-columns:1fr 1fr;gap:1.1em;align-items:center;text-align:left}
+.reveal .cols.top{align-items:start}
+.reveal .cols.wide-left{grid-template-columns:1.35fr 1fr}
+.reveal .cols.wide-right{grid-template-columns:1fr 1.35fr}
+.reveal .cols>*{min-width:0}
+.reveal .cols p:first-child,.reveal .cols h4:first-child{margin-top:0}
+.reveal .cols ul,.reveal .cols ol{display:block;margin-left:1em}
+.reveal .left{text-align:left}
+.reveal h4{font-size:1em;margin:0 0 .4em}
+
+/* text sizes, all relative to the 28px base in custom.css */
+.reveal .small,.reveal p.small,.reveal li.small{font-size:.75em}
+.reveal .caption{font-size:.6em;color:#555;font-style:italic;margin:.4em 0}
+.reveal .muted{color:#555}
+.reveal .lead{font-size:1.15em}
+.reveal .readout{font-size:.7em;line-height:1.35;margin:.5em 0;min-height:2.7em}
+.reveal .readout strong{font-weight:700}
+
+/* takeaway box: identical look to the course .definition block */
+.reveal .callout{border-left:6px solid #4caf50;background:#f3fff3;padding:.5em .8em;margin:.6em 0;font-style:normal;text-align:left}
+.reveal .definition p:first-child{margin-top:0}
+.reveal .definition p:last-child{margin-bottom:0}
+
+/* per-slide sources: quiet, in the spirit of .footnote */
+.reveal .sources{font-size:.42em;line-height:1.35;color:#666;margin:.9em 0 0;text-align:left}
+.reveal .sources a{color:#666;text-decoration:underline;text-decoration-color:#bbb}
+
+/* worked equations */
+.reveal .equation{margin:.4em 0;text-align:center}
+.reveal .equation mjx-container[display="true"]{margin:.2em 0!important}
+
+/* numbered steps */
+.reveal ol.steps li{margin:.25em 0}
+
+/* tables inside cols */
+.reveal .cols table{margin:0;font-size:.75em}
+.reveal table.compact{font-size:.78em}
+.reveal table.compact th,.reveal table.compact td{padding:.25em .5em}
+
+/* demonstration controls (named demo-controls because Reveal owns .controls) */
+.reveal .demo-controls{display:flex;flex-wrap:wrap;gap:.25em .7em;align-items:flex-end;margin:.4em 0;text-align:left}
+.reveal .demo-controls .range-label,.reveal .demo-controls .select-label{flex:1 1 11em}
+.reveal .range-label,.reveal .select-label{display:block;font-size:.6em;line-height:1.3;margin:.3em 0;text-align:left}
+.reveal .range-label output{float:right;margin-left:.6em;font-weight:700;color:#51483d;font-variant-numeric:tabular-nums}
+.reveal input[type=range]{display:block;width:100%;margin:.35em 0 .15em;accent-color:#51483d}
+.reveal select{display:block;width:100%;margin-top:.3em;font:inherit;font-size:1em;color:#000;background:#fafaf6;border:1px solid #9b9488;border-radius:3px;padding:.2em .3em}
+.reveal .slides button{font-family:inherit;font-size:.6em;line-height:1.25;color:#000;background:transparent;border:1px solid #51483d;border-radius:3px;padding:.3em .8em;margin:.15em 0;cursor:pointer}
+.reveal .demo-controls button{font-size:.6em}
+.reveal .slides .demo-controls .range-label button{font-size:1em}
+.reveal .slides button:hover{background:rgba(81,72,61,.1)}
+.reveal .slides button:disabled{opacity:.4;cursor:default}
+.reveal .slides button:focus-visible,.reveal .slides input:focus-visible,.reveal .slides select:focus-visible,.reveal .slides a:focus-visible{outline:2px solid #857765;outline-offset:2px}
+
+/* charts drawn by H.plot / H.bars */
+.reveal svg.chart{display:block;width:100%;height:auto;overflow:visible;margin:0 auto}
+.reveal svg.chart text{font-family:var(--r-main-font);font-size:17px;fill:#222}
+.reveal .legend{display:flex;justify-content:center;flex-wrap:wrap;gap:.25em 1em;font-size:.55em;margin:.15em 0 .3em}
+.reveal .legend span{display:inline-flex;align-items:center;gap:.35em}
+.reveal .legend i{display:inline-block;width:1.3em;height:3px}
+
+/* metrics */
+.reveal .metric-row{display:flex;flex-wrap:wrap;gap:.4em 1.2em;margin:.4em 0;text-align:left}
+.reveal .metric{font-size:.6em;border-bottom:1px solid #b8b3a8;padding:.15em 0}
+.reveal .metric strong,.reveal .metric div{display:block;font-size:1.6em;color:#000}
+.reveal .readout .metric{font-size:.85em}
+.reveal .eq-sm{font-size:.85em}
+
+/* quizzes */
+.reveal .quiz{text-align:left;margin:.3em auto;max-width:860px}
+.reveal .quiz .question{margin:0 0 .5em;font-size:.85em}
+.reveal .quiz-options{display:grid;gap:.35em}
+.reveal .slides .quiz-options button{font-size:.75em;text-align:left;padding:.45em .8em;background:#f7f7f2;border-color:#9b9488;margin:0}
+.reveal .slides .quiz-options button:hover{background:#ecebe4}
+.reveal .slides .quiz-options button.correct{border:2px solid #4caf50;background:#f3fff3}
+.reveal .slides .quiz-options button.incorrect{border:2px solid #b23a2a;background:#fbefec}
+.reveal .quiz-feedback{font-size:.7em;margin:.6em 0 0;min-height:1.4em}
+
+/* misc helpers used by individual demos */
+.reveal .pill{display:inline-block;padding:.05em .4em;border:1px solid #b8b3a8;border-radius:3px;font-size:.8em}
+.reveal pre.plain{box-shadow:none;background:#e9e9e2;font-size:.55em;padding:.6em;width:auto}
+.reveal .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+@media print{.reveal .slides button{border-color:#888}}
+@media (prefers-reduced-motion:reduce){.reveal .slides *{transition:none!important;animation:none!important}}
+.reveal details{margin:.4em 0;text-align:left}
+.reveal details summary{cursor:pointer;color:#51483d}
+.reveal blockquote{width:auto;margin:.3em 0;font-size:.85em;text-align:left;background:#ecebe4;box-shadow:none;padding:.4em .7em;border-left:4px solid #b8b3a8}
