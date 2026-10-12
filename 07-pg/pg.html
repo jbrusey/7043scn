@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Policy Gradient</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<link rel="stylesheet" href="interactive.css"/>
+<meta name="description" content="J Brusey - Policy Gradient">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Policy Gradient</h1><h2 class="author">James Brusey</h2>
+<aside class="notes">
+<p>Suggested duration: 75–90 minutes including the interactive slides. The through-line is a two-action bandit (action 1 pays 3, action 0 pays 1) whose policy gradient can be computed exactly, so the numbers on the interactive slides can be checked by hand; the learning-curve slide is the one seeded simulation. All calculations run in the browser; random runs use fixed, displayed seeds. The examples illustrate mechanisms and make no empirical performance claim. Press S for the speaker view.</p>
+</aside>
+</section>
+<section>
+<section id="slide-overview">
+<h2>Overview</h2>
+<ol>
+<li>Introduction</li>
+<li>Parameterising the Policy</li>
+<li>The Policy Gradient</li>
+<li>REINFORCE</li>
+<li>Baselines and Advantage</li>
+<li>Actor–Critic</li>
+<li>Practical Issues</li>
+<li>Summary</li>
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-introduction">
+<h2>Introduction</h2>
+</section>
+<section id="pg-objectives">
+<h3>Learning Outcomes</h3>
+<div class="cols top">
+<div>
+<p>By the end of this lecture you should be able to:</p>
+<ol>
+<li>construct a stochastic policy \(\pi_\theta\)</li>
+<li>derive the score-function gradient</li>
+<li>compute one REINFORCE update</li>
+<li>explain what a baseline and a critic change</li>
+</ol>
+</div>
+<div>
+<p>Prerequisites:</p>
+<ul>
+<li>return \(G_t\) and TD error \(\delta_t\)</li>
+<li>expectation and the chain rule</li>
+</ul>
+<div class="callout">Recurring question: <em>which action should become more likely, and by how much?</em></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), Chapter 13</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a></p>
+<aside class="notes">
+<p>Check prerequisite recall with a short oral prompt: what is G_t, and how does a TD target differ from a complete return? Accept G_t = R_{t+1} + γG_{t+1}. The outcomes are operational: learners should be able to calculate a probability, a score, a gradient sample and a TD-based actor update. A neural network is not needed to understand any of these quantities.</p>
+</aside>
+</section>
+<section id="pg-value-policy">
+<h3>Value-Based and Policy-Based RL</h3>
+<table class="compact">
+<thead><tr><th>Approach</th><th>Learns</th><th>Chooses actions by</th></tr></thead>
+<tbody>
+<tr><td>Value based</td><td>\(\hat q(s,a,\mathbf w)\)</td><td>an action rule on \(\hat q\), e.g. \(\varepsilon\)-greedy</td></tr>
+<tr><td>Policy based</td><td>\(\pi_\theta(a\mid s)\)</td><td>sampling directly from \(\pi_\theta\)</td></tr>
+<tr><td>Actor–critic</td><td>\(\pi_\theta\) and \(\hat v(s,\mathbf w)\)</td><td>sampling from \(\pi_\theta\); the critic guides updates</td></tr>
+</tbody>
+</table>
+<div class="definition">
+<p>A parameterised policy gives action probabilities directly:
+\[\pi_\theta(a\mid s)=\mathbb{P}[A_t=a\mid S_t=s;\theta]\]</p>
+</div>
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.1</a></p>
+<aside class="notes">
+<p>A policy is present in all three approaches. The distinction is whether it is directly represented by its own trainable parameters θ. A value-based method can also act stochastically, for example with ε-greedy. Actor–critic is not a third definition of a policy: it combines a trainable actor with a learned evaluation. A softmax policy does not need a neural network; a vector of preferences is enough for the next examples.</p>
+</aside>
+</section>
+<section id="pg-random-policy">
+<h3>Why Use a Stochastic Policy?</h3>
+<div class="cols">
+<div>
+<p>Rock–paper–scissors:</p>
+<ul>
+<li>+1 win, −1 loss, 0 draw</li>
+<li>any deterministic policy can be exploited</li>
+<li>uniform random play is a Nash equilibrium</li>
+</ul>
+<p class="caption">A finite, fully observed MDP always has a deterministic optimal policy. Stochastic policies matter for games, aliased states and exploration.</p>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">You always play rock. What can a best-responding opponent achieve?</p><div class="quiz-options"><button type="button" data-answer="0">Your expected payoff is +1</button><button type="button" data-answer="1">Your expected payoff is −1</button><button type="button" data-answer="2">No advantage over uniform play</button></div><p class="quiz-feedback" aria-live="polite"></p><template>They play paper every round, so you lose every round. Against uniform play, every opponent action has expected payoff 0.</template></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a></p>
+<aside class="notes">
+<p>Quiz answer: your expected payoff is −1 because the opponent chooses paper. Uniform play gives zero against any fixed action and therefore against any mixture. Do not imply that ordinary finite, fully observed, discounted MDPs need stochastic optimal policies: they admit deterministic optimal policies. Silver's aliased gridworld is the single-agent example where state aliasing makes a stochastic policy better than any deterministic one. Randomised policies are also useful for exploration and for differentiable optimisation.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-parameterising">
+<h2>Parameterising the Policy</h2>
+</section>
+<section id="pg-softmax">
+<h3>Softmax Policy</h3>
+<div class="definition">
+<p>Weight each action by its exponentiated preference \(h(s,a,\theta)\):
+\[\pi_\theta(a\mid s)=\frac{e^{h(s,a,\theta)/\tau}}{\sum_{b} e^{h(s,b,\theta)/\tau}}\]</p>
+</div>
+<ul>
+<li>linear preferences: \(h(s,a,\theta)=\theta^\top\mathbf{x}(s,a)\)</li>
+<li>temperature \(\tau>0\): a small \(\tau\) is nearly greedy</li>
+<li>score function (with \(\tau=1\)):</li>
+</ul>
+\[\nabla_\theta\log\pi_\theta(a\mid s)=\mathbf{x}(s,a)-\mathbb{E}_{\pi_\theta}\big[\mathbf{x}(s,\cdot)\big]\]
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.1</a></p>
+<aside class="notes">
+<p>The score says how the log probability of the chosen action changes with θ: features of the chosen action minus the policy-average features. If every preference rises by the same constant, the probabilities do not change. With a temperature, the score is divided by τ. Implementations subtract the largest preference before exponentiating for numerical stability.</p>
+</aside>
+</section>
+<section id="pg-softmax-lab">
+<h3>Interactive: Softmax Temperature</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Predict the ranking first. Then lower τ: does a lower temperature identify a better action?</p>
+<aside class="notes">
+<p>Ask learners to predict the ranking before moving a slider. At the defaults (h = 0, 1, −1; τ = 1) π = (0.245, 0.665, 0.090) with entropy 0.832 nats. At τ = 0.2 it becomes (0.007, 0.993, 0.000), entropy 0.041; at τ = 3 it is (0.321, 0.448, 0.230), entropy 1.063. Raising all three preferences by the same amount (e.g. to 1, 2, 0) leaves the probabilities unchanged. Lower temperature sharpens differences; it does not identify a better action, because the preferences here contain no reward information and the ranking never changes. A tie stays a tie at any temperature: h = (1, 1, −1) at τ = 0.2 gives (0.500, 0.500, 0.000). Entropy is the categorical entropy in nats, not a reward measure.</p>
+</aside>
+</section>
+<section id="pg-gaussian">
+<h3>Gaussian Policy</h3>
+<div class="definition">
+<p>For continuous actions, sample around a state-dependent mean:
+\[A\sim\mathcal{N}\big(\mu_\theta(s),\sigma^2\big),\qquad \mu_\theta(s)=\theta^\top\mathbf{x}(s)\]</p>
+</div>
+<p>Score function:</p>
+\[\nabla_\theta\log\pi_\theta(a\mid s)=\frac{a-\mu_\theta(s)}{\sigma^2}\,\mathbf{x}(s)\]
+<ul>
+<li>actions above the mean push \(\mu\) up; actions below push it down</li>
+<li>\(\sigma\) can be fixed, or learned through \(\log\sigma\)</li>
+</ul>
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.7</a></p>
+<aside class="notes">
+<p>Worked example with x(s) = 1 and σ = 1: for the action a = 1 the score is +1 at μ = 0 (pushes μ up), 0 at μ = 1 and −1 at μ = 2; with σ = 0.5 and μ = 0 it is 4, because the same action is stronger evidence when the policy is confident. The score is a derivative of a log density, not a probability. If log σ is learned, its score is ((a−μ)²/σ²) − 1. Bounded physical actions need a deliberately bounded policy (for example a squashed Gaussian with the correct change of variables); clipping samples changes the distribution being differentiated.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-gradient">
+<h2>The Policy Gradient</h2>
+</section>
+<section id="pg-objective">
+<h3>Policy Objective Function</h3>
+<p>Episodic objective: the expected discounted return from the start</p>
+\[J(\theta)=\mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{T-1}\gamma^t R_{t+1}\Big]\]
+<ul>
+<li>return from time \(t\): \(G_t=\sum_{k=t}^{T-1}\gamma^{k-t}R_{k+1}\)</li>
+<li>start state \(S_0\sim\rho_0\), which does not depend on \(\theta\)</li>
+</ul>
+<div class="callout">Policy gradient methods use gradient <em>ascent</em>: \(\theta\leftarrow\theta+\alpha\nabla_\theta J(\theta)\)</div>
+<p class="sources">Sources: <a href="https://papers.nips.cc/paper_files/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf">Sutton, McAllester, Singh &amp; Mansour (1999)</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.2</a></p>
+<aside class="notes">
+<p>This is the single objective used in every derivation that follows. Assume a differentiable policy, initial-state and environment laws that do not depend on θ, and enough integrability to swap derivative and expectation. Episodic γ = 1 is allowed when returns are finite; a continuing problem uses T = ∞ with γ &lt; 1. Average reward is a different objective (Silver's slides list it) and should not be silently substituted later.</p>
+</aside>
+</section>
+<section id="pg-score-trick">
+<h3>Score Function</h3>
+<div class="cols top">
+<div>
+<h4>One-step bandit</h4>
+\[J(\theta)=\sum_a\pi_\theta(a)\,r(a)\]
+\[\nabla_\theta J=\sum_a\nabla_\theta\pi_\theta(a)\,r(a)\]
+</div>
+<div>
+<h4>Likelihood-ratio trick</h4>
+\[\nabla_\theta\pi_\theta=\pi_\theta\,\nabla_\theta\log\pi_\theta\]
+\[\nabla_\theta J=\mathbb{E}_{A\sim\pi_\theta}\big[r(A)\,\nabla_\theta\log\pi_\theta(A)\big]\]
+</div>
+</div>
+<div class="callout">The expectation can be estimated from sampled actions. For a Bernoulli policy with \(p=\operatorname{sigmoid}(\theta)\): \(\;\partial_\theta\log\pi_\theta(a)=a-p,\ a\in\{0,1\}\)</div>
+<p class="sources">Sources: <a href="https://link.springer.com/article/10.1007/BF00992696">Williams (1992)</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a></p>
+<aside class="notes">
+<p>Derive the identity from d log f = df / f for positive f. Then derive the Bernoulli result from log π(a) = a log p + (1−a) log(1−p) and dp/dθ = p(1−p): the score is 1−p for action 1 and −p for action 0. The score itself has expectation zero: p(1−p) + (1−p)(−p) = 0. Weighting it by reward is what creates a learning signal. r(a) is the expected reward of action a; a sampled reward gives an unbiased estimate.</p>
+</aside>
+</section>
+<section id="pg-trajectory">
+<h3>Trajectory Likelihood</h3>
+<p>A trajectory \(\xi=(S_0,A_0,R_1,\dots,S_T)\) has probability</p>
+\[p_\theta(\xi)=\rho_0(S_0)\prod_{t=0}^{T-1}\pi_\theta(A_t\mid S_t)\,p(S_{t+1},R_{t+1}\mid S_t,A_t)\]
+\[\nabla_\theta\log p_\theta(\xi)=\sum_{t=0}^{T-1}\nabla_\theta\log\pi_\theta(A_t\mid S_t)\]
+<p class="small">The dynamics \(p\) and \(\rho_0\) do not depend on \(\theta\), so they vanish from the gradient: no model is needed.</p>
+<div class="callout">\(\nabla_\theta J(\theta)=\mathbb{E}_{\pi_\theta}\big[G_0\sum_{t}\nabla_\theta\log\pi_\theta(A_t\mid S_t)\big]\)</div>
+<p class="sources">Sources: <a href="https://link.springer.com/article/10.1007/BF00992696">Williams (1992)</a>; <a href="https://arxiv.org/pdf/1506.02438">Schulman et al. (2016), §2</a></p>
+<aside class="notes">
+<p>Take the log of the product to get a sum. Differentiating removes the initial-state and environment terms because those laws do not contain θ; it does not remove their effect on which trajectories are sampled. Applying the score identity to J = E[G_0] gives the last line. All score terms are evaluated at the same policy that generated the data. If the reward depended directly on θ there would be an extra term; that case is excluded.</p>
+</aside>
+</section>
+<section id="pg-causality">
+<h3>Reward-to-Go</h3>
+<div class="cols top">
+<div>
+<h4>Past rewards contribute zero</h4>
+<p class="small">Rewards before \(A_t\) are fixed given the history, and</p>
+\[\mathbb{E}\big[\nabla_\theta\log\pi_\theta(A_t\mid S_t)\,\big|\,\text{history}\big]=0\]
+</div>
+<div>
+<h4>Keep future rewards</h4>
+\[\sum_{k=t}^{T-1}\gamma^{k}R_{k+1}=\gamma^t G_t\]
+<p class="small">The outer \(\gamma^t\) comes from the start-time objective.</p>
+</div>
+</div>
+\[\nabla_\theta J(\theta)=\mathbb{E}_{\pi_\theta}\Big[\sum_{t=0}^{T-1}\gamma^t G_t\,\nabla_\theta\log\pi_\theta(A_t\mid S_t)\Big]\]
+<p class="caption">Dropping past rewards keeps the mean gradient and usually removes irrelevant noise.</p>
+<p class="sources">Sources: <a href="https://papers.nips.cc/paper_files/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf">Sutton et al. (1999)</a>; <a href="https://arxiv.org/pdf/1506.02438">Schulman et al. (2016), §2</a></p>
+<aside class="notes">
+<p>Let z_t be the policy score. For k &lt; t, γ^k R_{k+1} is fixed given the pre-action history, so its product with the conditionally zero-mean score has expectation zero. For k ≥ t, factoring γ^t out of the discounted tail leaves G_t. Many implementations drop the outer γ^t; that changes the estimator and, in general, the objective being optimised. Removing zero-mean terms is motivated by variance reduction, but avoid claiming a universal variance ordering.</p>
+</aside>
+</section>
+<section id="pg-theorem">
+<h3>Policy Gradient Theorem</h3>
+<div class="definition">
+<p>For any differentiable policy \(\pi_\theta\),
+\[\nabla_\theta J(\theta)=\sum_s d^{\pi}_{\gamma}(s)\sum_a\pi_\theta(a\mid s)\,q_\pi(s,a)\,\nabla_\theta\log\pi_\theta(a\mid s)\]</p>
+</div>
+<ul>
+<li>\(q_\pi(s,a)=\mathbb{E}_\pi[G_t\mid S_t=s,A_t=a]\)</li>
+<li>\(d^{\pi}_{\gamma}(s)=\sum_{t\ge 0}\gamma^t\,\mathbb{P}(S_t=s,\,t&lt;T)\), an <em>unnormalised</em> discounted visit weight</li>
+<li>no derivative of the state distribution is needed</li>
+</ul>
+<p class="sources">Sources: <a href="https://papers.nips.cc/paper_files/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf">Sutton, McAllester, Singh &amp; Mansour (1999)</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.2</a></p>
+<aside class="notes">
+<p>This is the discrete version; sums become integrals for continuous variables. Replacing G_t in the reward-to-go estimator by its conditional expectation q_π(S_t, A_t) gives this form. Future consequences of the action are carried by q_π, which is why no derivative of the visitation distribution appears. Do not call the unnormalised d_γ a probability distribution. In a continuing task with γ &lt; 1, (1−γ)d_γ is a distribution and ∇J = E[q ∇log π]/(1−γ) under it. This slide guards against silently mixing start-state, average-reward and undiscounted sampling conventions.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-reinforce">
+<h2>REINFORCE</h2>
+</section>
+<section id="pg-reinforce">
+<h3>REINFORCE Algorithm</h3>
+<ol class="steps">
+<li>Run \(N\) episodes with \(\pi_\theta\), keeping \(\theta\) fixed</li>
+<li>Compute returns backwards: \(G_T=0,\ G_t=R_{t+1}+\gamma G_{t+1}\)</li>
+<li>Average the gradient estimates and take one ascent step:</li>
+</ol>
+\[\hat g=\frac{1}{N}\sum_{i=1}^{N}\sum_{t=0}^{T_i-1}\gamma^t G^{(i)}_t\,\nabla_\theta\log\pi_\theta\big(A^{(i)}_t\mid S^{(i)}_t\big),\qquad \theta\leftarrow\theta+\alpha\hat g\]
+<div class="callout">\(\hat g\) is an unbiased estimate of \(\nabla_\theta J\): correct on average, not in every batch.</div>
+<p class="sources">Sources: <a href="https://link.springer.com/article/10.1007/BF00992696">Williams (1992)</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.3</a></p>
+<aside class="notes">
+<p>The batch form makes the on-policy requirement explicit: N counts episodes, and the estimator averages episode sums. Keep θ fixed for both data collection and evaluation of the score; updating θ between stored actions but scoring them at new parameters is not the estimator derived here. A practical autodiff loss is minus the batch mean of Σ_t γ^t G_t log π_θ(a_t|s_t), with returns treated as constants. Sutton and Barto present the per-step (online) version of the same update.</p>
+</aside>
+</section>
+<section id="pg-update-lab">
+<h3>Interactive: One REINFORCE Update</h3>
+<div class="cols wide-left">
+<div>
+<p class="small">Bandit: action 1 pays 3, action 0 pays 1. \(p=\operatorname{sigmoid}(\theta)\), \(\hat g=(r-b)(a-p)\), \(\theta'=\theta+\alpha\hat g\).</p>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">With b = 0, choose action 0: why does a positive reward make the worse action more likely? Which baselines reverse this?</p>
+<aside class="notes">
+<p>At the defaults (θ = 0, action 1, b = 0, α = 0.5): p = 0.5, score a − p = 0.5, gradient sample ĝ = 1.5, θ′ = 0.75, so P(action 1) rises from 0.500 to 0.679 and the expected reward J = 1 + 2p from 2 to 2.358. Choose action 0: the score is −0.5 and the positive reward 1 gives ĝ = −0.5, θ′ = −0.25, so P(action 1) falls to 0.438 (the worse action becomes more likely) and J falls to 1.876. Every sampled reward is positive, so whichever action is sampled is reinforced. Any b &gt; 1 = r(0) reverses this: at b = 1 the update is zero; for 1 &lt; b &lt; 3 both outcomes favour action 1, e.g. at b = 2 both give ĝ = +0.5 and P(action 1) = 0.562. One outcome does not contradict unbiasedness: the mean unbaselined gradient is 2p(1−p) = 0.5. The action selector is a counterfactual inspector, not a sampler; α only scales the step (α = 0.2 gives p′ = 0.574).</p>
+</aside>
+</section>
+<section id="pg-curves-lab">
+<h3>Interactive: REINFORCE Learning Curves</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Same bandit, every reward shifted by \(c\): \(r(1)=3+c,\ r(0)=1+c\), plus \(\mathcal{N}(0,1)\) noise. Eight runs from \(\theta=0\) with fixed seeds.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Adding c does not change which action is best. Compare c = 0 and c = 10, with and without the baseline.</p>
+<aside class="notes">
+<p>Each run starts at θ = 0 (p = 0.5) and applies θ ← θ + α(r − b)(a − p) after every episode; the reward noise has standard deviation 1. The running-average baseline starts at b = 0 and is updated after it is used, b ← b + 0.1(r − b), so it never depends on the current action. At the defaults (seeds 1001–1008, c = 10, α = 0.05, no baseline) P(action 1) after 200 episodes has mean 0.74 and sd 0.42 across runs, and two of the eight runs prefer the worse action (final p ≈ 0.12 and 0.02): every reward is large and positive, so whichever action is sampled gets reinforced. Switch on the baseline: mean 0.93, sd 0.02, no run on the worse action. With c = 0 the baseline makes little difference (mean 0.94 without, 0.93 with; sd at most 0.02). A larger step size makes the unbaselined lock-in faster (α = 0.2: two runs end below 0.01), while the baselined runs reach 0.99. New seeds changes how many runs go the wrong way (0 to 2 in the next sets) but the baselined runs stay close together. Shifting all rewards by a constant leaves the optimal policy and the expected gradient unchanged but changes the variance of the unbaselined estimator. Eight runs illustrate variance; they are not a statistical comparison.</p>
+</aside>
+</section>
+<section id="pg-discount-check">
+<h3>Quick Check: Two Discount Clocks</h3>
+<div class="cols">
+<div>
+<p>One episode with rewards</p>
+\[R_1=2,\quad R_2=4,\quad R_3=8\]
+<p>and discount \(\gamma=\tfrac{1}{2}\).</p>
+<p class="small">Use the reward-to-go estimator from this lecture, with no baseline.</p>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">What multiplies the score at \(t=1\)?</p><div class="quiz-options"><button type="button" data-answer="0">\(G_1=8\)</button><button type="button" data-answer="1">\(\gamma G_1=4\)</button><button type="button" data-answer="2">\(G_0=6\)</button></div><p class="quiz-feedback" aria-live="polite"></p><template>\(G_1=4+\tfrac12\times 8=8\), but the start-time objective needs \(\gamma^1 G_1=4\). The earlier reward \(R_1\) contributes zero in expectation.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer: 4. The returns are G_2 = 8, G_1 = 8, G_0 = 6, so the score multipliers γ^t G_t are (6, 4, 2). G_1 is discounted relative to time 1; γG_1 expresses its contribution relative to time 0. The full-return estimator would use G_0 = 6 for every score but keeps irrelevant past-reward noise.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-baselines">
+<h2>Baselines and Advantage</h2>
+</section>
+<section id="pg-baseline-proof">
+<h3>Baselines</h3>
+<p>Subtract any \(b(s)\) that does not depend on the action:</p>
+\[\begin{aligned}\mathbb{E}_{A\sim\pi_\theta}\big[b(s)\,\nabla_\theta\log\pi_\theta(A\mid s)\big]&amp;=b(s)\sum_a\nabla_\theta\pi_\theta(a\mid s)\\&amp;=b(s)\,\nabla_\theta 1=0\end{aligned}\]
+<div class="definition">
+<p>REINFORCE with baseline:
+\[\hat g=\sum_t\gamma^t\big(G_t-b(S_t)\big)\,\nabla_\theta\log\pi_\theta(A_t\mid S_t)\]</p>
+</div>
+<p class="caption">Same expected gradient, different variance. An action-dependent subtraction breaks the cancellation.</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.4</a>; <a href="https://www.jmlr.org/papers/v5/greensmith04a.html">Greensmith, Bartlett &amp; Baxter (2004)</a></p>
+<aside class="notes">
+<p>The expectation is conditional on the current state, so state-dependent baselines are valid; more generally, anything fixed given the history before the action is drawn. A baseline may have its own learned parameters, but the actor gradient should not include the baseline's derivative. If a baseline is fitted using the very same action and return, check the independence condition; a stop-gradient alone does not remove statistical dependence. A poor baseline can increase variance: the proof preserves the mean, it does not guarantee lower variance.</p>
+</aside>
+</section>
+<section id="pg-advantage">
+<h3>Advantage Function</h3>
+<div class="cols">
+<div>
+\[A_\pi(s,a)=q_\pi(s,a)-v_\pi(s)\]
+<p class="small">Bandit with \(p=0.7\), so \(v_\pi=2.4\):</p>
+<table class="compact">
+<thead><tr><th>Action</th><th>\(q_\pi\)</th><th>\(A_\pi\)</th></tr></thead>
+<tbody><tr><td>1</td><td>3</td><td>+0.6</td></tr><tr><td>0</td><td>1</td><td>−1.4</td></tr></tbody>
+</table>
+<p class="small">The policy-weighted mean advantage is 0.</p>
+<p class="small">\(b=v_\pi\) is natural, but the variance-minimising baseline here is \(b^*=3-2p=1.6\).</p>
+</div>
+<div>
+<div class="quiz" data-correct="0"><p class="question">Which subtraction keeps the expected gradient unchanged?</p><div class="quiz-options"><button type="button" data-answer="0">A fixed function of the state</button><button type="button" data-answer="1">The observed action’s own q-value</button><button type="button" data-answer="2">Anything, if we stop its gradient</button></div><p class="quiz-feedback" aria-live="polite"></p><template>An action-independent state baseline cancels because the policy probabilities sum to 1. An action-dependent subtraction changes the expected gradient, and stopping a derivative does not remove statistical dependence.</template></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">David Silver, Lecture 7: Policy Gradient</a>; <a href="https://www.jmlr.org/papers/v5/greensmith04a.html">Greensmith et al. (2004)</a></p>
+<aside class="notes">
+<p>Quiz answer: a state-only baseline fixed before the current action. In the example E[A] = 0.7 × 0.6 + 0.3 × (−1.4) = 0, while E[A(a)(a−p)] = 0.42, the non-zero policy gradient. A zero-mean advantage does not imply zero learning, because the advantage and the score are correlated. Subtracting q(s,a) from q(s,a) gives zero and destroys the gradient. v_π is interpretable and often useful, but it is not always the variance-minimising baseline. With z = a − p, the sample ĝ = (r − b)z has mean 0.42 for every b; its variance is 0.5376 at b = 0 (samples 0.9 and −0.7) and 0.1344 at b = v_π = 2.4 (samples 0.18 and 0.98). Minimising E[(r − b)²z²] gives b* = E[r z²]/E[z²] = 3 − 2p = 1.6, where both samples equal 0.42 and the variance is zero. Zero variance is special to this deterministic two-action example and does not generalise.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-actor-critic">
+<h2>Actor–Critic</h2>
+</section>
+<section id="pg-actor-critic">
+<h3>Actor–Critic</h3>
+<div class="cols top">
+<div>
+<h4>Actor (parameters \(\theta\))</h4>
+<p class="small">Represents \(\pi_\theta(a\mid s)\) and follows the critic’s signal:</p>
+<div class="eq-sm">\[\theta\leftarrow\theta+\alpha\,\gamma^t\delta_t\,\nabla_\theta\log\pi_\theta(A_t\mid S_t)\]</div>
+</div>
+<div>
+<h4>Critic (parameters \(\mathbf{w}\))</h4>
+<p class="small">Represents \(\hat v(s,\mathbf{w})\) and learns by TD:</p>
+<div class="eq-sm">\[\delta_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf{w})-\hat v(S_t,\mathbf{w})\]
+\[\mathbf{w}\leftarrow\mathbf{w}+\beta\,\delta_t\nabla_{\mathbf{w}}\hat v(S_t,\mathbf{w})\]</div>
+</div>
+</div>
+<div class="callout">If \(\hat v=v_\pi\) then \(\mathbb{E}[\delta_t\mid S_t=s,A_t=a]=A_\pi(s,a)\). An approximate critic can bias the actor.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §13.5</a>; <a href="https://arxiv.org/pdf/1506.02438">Schulman et al. (2016)</a></p>
+<aside class="notes">
+<p>This is one-step actor–critic with a state-value critic, keeping the same outer γ^t as our objective. At true termination the next-state value is 0. For exact v_π, the Bellman equation gives E[R + γv(S′) | s, a] = q(s, a), so subtracting v(s) leaves the advantage. With an approximate v̂ the conditional TD mean is not the exact advantage. Actor and critic have separate parameters and usually separate step sizes α and β; online coupled updates track a moving policy and need more analysis than the batch argument.</p>
+</aside>
+</section>
+<section id="pg-td-lab">
+<h3>Interactive: TD Error Drives the Actor</h3>
+<div class="cols wide-left">
+<div>
+<p class="small">One transition at \(t=0\), action 1 observed, \(p=0.4\) (score \(1-p\)). \(\alpha=0.5\); tabular critic with \(\beta=0.2\).</p>
+<div data-readout class="readout" aria-live="polite"></div>
+<div data-plot></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Keep the reward positive. Raise \(\hat v(s)\) until the actor makes action 1 less likely.</p>
+<aside class="notes">
+<p>Default arithmetic (t = 0, so γ^t = 1): target = R_1 + γv̂(s′) = 1 + 0.9 × 3 = 3.7, δ = 3.7 − 2 = 1.7, score for action 1 = 1 − p = 0.6, actor step αδ(1 − p) = 0.5 × 1.7 × 0.6 = 0.51, so P(action 1) rises from 0.400 to 0.526; the tabular critic moves v̂(s) from 2 to 2 + 0.2 × 1.7 = 2.34. At v̂(s) = 3.7, δ = 0 and nothing changes. From v̂(s) = 3.8 (δ = −0.1, P → 0.393) up to 6 (δ = −2.3, P → 0.251) the actor makes action 1 less likely although the immediate reward is positive: the outcome was worse than the critic expected. Selecting Terminal sets the bootstrap to zero, so the v̂(s′) and γ sliders are disabled; at the defaults the target becomes 1, δ = −1 and P(action 1) falls to 0.331. True termination sets the bootstrap to zero; hitting a time limit is different and usually still bootstraps. This is one supplied transition, not a convergence claim.</p>
+</aside>
+</section>
+<section id="pg-tradeoff">
+<h3>How Much Should the Critic Bootstrap?</h3>
+<table class="compact">
+<thead><tr><th>Actor signal</th><th>Uses</th><th>Main approximation</th></tr></thead>
+<tbody>
+<tr><td>\(G_t-\hat v(S_t,\mathbf{w})\)</td><td>complete episode</td><td>baseline only</td></tr>
+<tr><td>\(\delta_t\)</td><td>one transition</td><td>bootstrap at \(S_{t+1}\)</td></tr>
+<tr><td>\(\sum_{\ell}(\gamma\lambda)^{\ell}\,\delta_{t+\ell}\)</td><td>weighted TD errors (GAE)</td><td>depends on \(\lambda\) and the critic</td></tr>
+</tbody>
+</table>
+<ul>
+<li>\(\lambda=0\): one TD error; \(\lambda=1\): \(G_t-\hat v(S_t,\mathbf{w})\)</li>
+</ul>
+<div class="callout">Less bootstrapping usually means less critic bias but more variance. Neither direction is a universal ordering.</div>
+<p class="sources">Sources: <a href="https://arxiv.org/pdf/1506.02438">Schulman et al. (2016), Generalized Advantage Estimation, §§2–3</a></p>
+<aside class="notes">
+<p>Optional bridge to modern actor–critic implementations. The finite sum assumes a complete episode with zero terminal bootstrap. At λ = 1 the TD sum telescopes to G_t − v̂(S_t). With approximate next-state values, shorter bootstrapped estimates can be biased; truncated trajectories keep a final bootstrap term. GAE estimates the advantage; it is not a policy update by itself. The outer γ^t of our objective is separate from the internal γλ weighting.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-practical">
+<h2>Practical Issues</h2>
+</section>
+<section id="pg-offpolicy-lab">
+<h3>Interactive: Stale Data</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Bandit \(r(1)=3,\ r(0)=1\), no baseline. Current policy \(p=\pi_\theta(1)\); data collected earlier with \(p_{\text{old}}=\pi_{\text{old}}(1)\).</p>
+<div data-controls class="demo-controls"></div>
+<p class="small">Importance weight: \(\pi_\theta(a)/\pi_{\text{old}}(a)\)</p>
+</div>
+</div>
+<p class="caption">At the defaults, which way does the uncorrected update point? When does it agree with the true gradient?</p>
+<p class="sources">Sources: <a href="https://arxiv.org/pdf/1707.06347">Schulman et al. (2017), PPO, §§2–3</a></p>
+<aside class="notes">
+<p>All three bars are exact expectations of r(a)(a − p), with the score evaluated at the current p: the true gradient samples a from p, the raw one from p_old, and the weighted one multiplies each old sample by π_θ(a)/π_old(a). With p = 0.8 and p_old = 0.2 the true gradient is 2p(1 − p) = 0.32 but the uncorrected old-data expectation is −0.52: the direction is reversed. The importance weights are 4 for action 1 and 0.25 for action 0, and the weighted expectation is 0.32 again. The raw value agrees only when p_old = p (weights 1); for p = 0.8 it changes sign at p_old = p/(3 − 2p) ≈ 0.57 (−0.03 at 0.55, +0.04 at 0.60). At p = 0.9, p_old = 0.1 a weight reaches 9. In a multi-step MDP, per-action ratios alone do not in general correct the changed state distribution, and small old probabilities create large weights and high variance.</p>
+</aside>
+</section>
+<section id="pg-step-lab">
+<h3>Interactive: Step Size Overshoot</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+</div>
+<div>
+<p class="small">\(A\sim\mathcal{N}(\mu,1)\) and \(r(A)=-(A-2)^2\), so</p>
+\[J(\mu)=-\big[(\mu-2)^2+1\big]\]
+<div data-controls class="demo-controls"></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">From μ = 0, find a step size that improves J, and one that makes it worse.</p>
+<aside class="notes">
+<p>Expected squared error is squared mean error plus variance, hence J(μ) = −(μ−2)² − 1. At μ = 0 the gradient is 4 and one step gives μ′ = 4α. Expected reward improves exactly for 0 &lt; α &lt; 1, is unchanged at α = 1 and worsens for α &gt; 1. Readings: α = 0.25 (default) gives μ′ = 1, J = −2; α = 0.5 lands on the optimum μ′ = 2, J = −1; α = 1 gives μ′ = 4, J = −5 again; α = 1.5 gives μ′ = 6, J = −17. This is an analytic example, not a training curve. Even exact gradients need a suitable step size; noise and non-convex parameterisations make it harder.</p>
+</aside>
+</section>
+<section id="pg-ppo">
+<h3>Proximal Policy Optimisation</h3>
+<p>Reuse a batch from \(\pi_{\text{old}}\), but stay close to it:</p>
+\[\rho_t(\theta)=\frac{\pi_\theta(A_t\mid S_t)}{\pi_{\text{old}}(A_t\mid S_t)}\]
+\[L^{\text{clip}}(\theta)=\hat{\mathbb{E}}_t\Big[\min\big(\rho_t\hat A_t,\ \operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\,\hat A_t\big)\Big]\]
+<ul>
+<li>\(\hat A_t\): a fixed advantage estimate, e.g. GAE</li>
+<li>clipping removes the incentive for large ratio changes</li>
+<li>it is not a hard bound, nor a guarantee of improvement</li>
+</ul>
+<p class="sources">Sources: <a href="https://arxiv.org/pdf/1707.06347">Schulman et al. (2017), PPO, §§2–3</a></p>
+<aside class="notes">
+<p>This extension is limited to the mechanism. With a positive advantage, the objective becomes flat for ratios above 1+ε; with a negative advantage, below 1−ε. The minimum matters: clipping the ratio everywhere is a different objective. Shared network parameters can still move probabilities after a sample's term is flat, so clipping is not a hard trust region. A complete PPO implementation also specifies the critic, sampling, minibatch epochs and stopping rules.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-summary">
+<h2>Summary</h2>
+</section>
+<section id="pg-exercise">
+<h3>Exercise (5 mins): Audit a Claim</h3>
+<div class="cols top">
+<div>
+<blockquote>“Our return was positive, so REINFORCE must improve the policy. We subtract a critic, so the update is unbiased. Reusing yesterday’s data is fine.”</blockquote>
+<p class="small">In pairs: find three missing conditions and support one with a number from the interactive slides.</p>
+</div>
+<div>
+<ol class="steps small">
+<li>Name the objective and the data policy.</li>
+<li>Separate a sample from its expectation.</li>
+<li>Separate a baseline from a bootstrap.</li>
+<li>State the step size and the evaluation.</li>
+</ol>
+<details><summary class="small">Debrief</summary><p class="small">A positive reward can reinforce a worse action. A state baseline preserves the mean; an approximate bootstrap can bias it. Old-policy data needs a correction. Even the exact gradient can overshoot.</p></details>
+</div>
+</div>
+<aside class="notes">
+<p>Allow three minutes, then ask each pair for one concrete counterexample. Possible answers: on the one-update slide, action 0 with p = 0.5 and b = 0 lowers the expected reward from 2 to 1.876 (α = 0.5) despite reward +1; the TD slide gives negative δ for an overestimated v̂(s), e.g. δ = −0.3 at v̂(s) = 4; on the stale-data slide, p = 0.8 with p_old = 0.2 turns the true gradient 0.32 into −0.52; on the step-size slide, the exact gradient with α = 1.5 lowers J from −5 to −17. A stronger report states that a fresh on-policy batch estimates the gradient in expectation under its assumptions, reports critic and step-size choices, and evaluates the resulting policy separately.</p>
+</aside>
+</section>
+<section id="pg-recap">
+<h3>Summary</h3>
+\[\Delta\theta=\alpha\sum_t\gamma^t\;\underbrace{\text{signal}_t}_{\text{better than expected?}}\;\underbrace{\nabla_\theta\log\pi_\theta(A_t\mid S_t)}_{\text{score}}\]
+<ul>
+<li>REINFORCE: signal \(=G_t\)</li>
+<li>with baseline: signal \(=G_t-b(S_t)\)</li>
+<li>actor–critic: signal \(=\delta_t\)</li>
+<li>always check the objective, the data distribution and the estimator’s assumptions</li>
+</ul>
+<aside class="notes">
+<p>The displayed sum is one episode's contribution; average over episodes for a batch update. The signals have different statistical properties: the full return is a Monte Carlo sample; a state-only baseline preserves the mean; an approximate TD error may introduce bias. Before ending, ask learners to explain one of the three checks in their own words. The key connection: multiplying a direction-sensitive score by an outcome-sensitive signal lets us learn from sampled experience.</p>
+</aside>
+</section>
+<section id="pg-references">
+<h3>References</h3>
+<ul class="small">
+<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/RLbook2020.pdf"><em>Reinforcement Learning: An Introduction</em></a>, Chapter 13.</li>
+<li>Silver, D. <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-7-policy-gradient-methods.pdf">Lecture 7: Policy Gradient</a>, UCL RL course.</li>
+<li>Williams, R. J. (1992). <a href="https://link.springer.com/article/10.1007/BF00992696">Simple statistical gradient-following algorithms for connectionist RL</a>. <em>Machine Learning</em> 8.</li>
+<li>Sutton, McAllester, Singh &amp; Mansour (1999). <a href="https://papers.nips.cc/paper_files/paper/1999/file/464d828b85b0bed98e80ade0a5c43b0f-Paper.pdf">Policy gradient methods for RL with function approximation</a>. NIPS.</li>
+<li>Greensmith, Bartlett &amp; Baxter (2004). <a href="https://www.jmlr.org/papers/v5/greensmith04a.html">Variance reduction techniques for gradient estimates in RL</a>. JMLR.</li>
+<li>Schulman et al. (2016). <a href="https://arxiv.org/pdf/1506.02438">High-dimensional continuous control using generalized advantage estimation</a>. ICLR.</li>
+<li>Schulman et al. (2017). <a href="https://arxiv.org/pdf/1707.06347">Proximal policy optimization algorithms</a>. arXiv.</li>
+</ul>
+<aside class="notes">
+<p>The interactive examples and explanatory wording in this deck were written for this course; the structure follows the course's earlier lectures and David Silver's Lecture 7. Source links need an internet connection.</p>
+</aside>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/zoom.js"></script>
+<script src="interactive.js"></script>
+<script src="demos.js"></script>
+<script>
+Demos.mountAll();
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+keyboardCondition: DeckKeyboard,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'slide',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

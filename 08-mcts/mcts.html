@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Monte-Carlo Tree Search</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<link rel="stylesheet" href="interactive.css"/>
+<meta name="description" content="J Brusey - Monte-Carlo Tree Search">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Monte-Carlo Tree Search</h1><h2 class="author">James Brusey</h2>
+<aside class="notes">
+<p>Suggested duration: 75–90 minutes including the six interactive slides (about 15 minutes on models, 15 on Dyna, 30 on simulation-based search and MCTS, 15 on using search well, and the exercise). The deck follows David Silver's Lecture 8, Integrating Learning and Planning, and develops Monte-Carlo tree search in detail. Open with a distinction: taking an action changes the real environment; simulating an action changes only what the agent knows. Ask for a decision where experimenting is expensive but simulating is cheap. All calculations run in the browser and random runs use fixed, disclosed seeds. The toy examples illustrate mechanisms and make no empirical performance claim. Press S for the speaker view.</p>
+</aside>
+</section>
+<section>
+<section id="slide-overview">
+<h2>Overview</h2>
+<ol>
+<li>Introduction</li>
+<li>Model-Based RL</li>
+<li>Integrated Architectures</li>
+<li>Simulation-Based Search</li>
+<li>Monte-Carlo Tree Search</li>
+<li>Using Search Well</li>
+<li>Summary</li>
+</ol>
+<aside class="notes">
+<p>The first three sections follow Silver's lecture: learn a model, plan with it, and combine learning with planning (Dyna). The second half moves from planning for all states to searching from the current state, then develops MCTS and the conventions needed to use it correctly.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-introduction">
+<h2>Introduction</h2>
+</section>
+<section id="mcts-objectives">
+<h3>Learning Outcomes</h3>
+<div class="cols top wide-left">
+<div>
+<p>By the end of this lecture you should be able to:</p>
+<ol>
+<li>separate model learning from planning</li>
+<li>explain the Dyna architecture</li>
+<li>trace one MCTS simulation</li>
+<li>calculate UCT scores and backups</li>
+</ol>
+</div>
+<div>
+<p>Prerequisites:</p>
+<ul>
+<li>return \(G_t\), values \(Q(s,a)\)</li>
+<li>MC evaluation, Q-learning</li>
+</ul>
+<div class="callout">Recurring question: <em>how should an agent spend its next ten simulations?</em></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8: Integrating Learning and Planning</a>; <a href="https://jbrusey.github.io/7043scn/">Brusey, 7043SCN course structure</a></p>
+<aside class="notes">
+<p>Prerequisites are the agent–environment loop, the discounted return, the meaning of Q(s,a), Monte-Carlo evaluation (Lecture 4) and Q-learning (Lecture 5). No neural-network implementation is needed. A further, practical outcome is diagnosing model and rollout errors, which the last section develops. Learners should leave with an algorithm and its assumptions, not a memory of interactive pictures.</p>
+</aside>
+</section>
+<section id="mcts-learning-planning">
+<h3>Model-Free and Model-Based RL</h3>
+<div class="cols top">
+<div>
+<h4>Learning</h4>
+<p class="small">Real experience from the environment:</p>
+\[(S_t,\,A_t,\,R_{t+1},\,S_{t+1})\]
+<p class="small">Model-free RL learns \(v\), \(q\) or \(\pi\) directly from it.</p>
+</div>
+<div>
+<h4>Planning</h4>
+<p class="small">Simulated experience from a model:</p>
+\[(\tilde R,\,\tilde S')\sim\hat{\mathcal M}(s,a)\]
+<p class="small">Model-based RL learns \(\hat{\mathcal M}\) from experience, then plans with it.</p>
+</div>
+</div>
+<div class="definition">
+<p><em>Planning</em>: computing a value function or policy from a model, without new real experience.</p>
+</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.1</a></p>
+<aside class="notes">
+<p>Key line: a simulator supplies consequences; a planner decides which consequences to investigate. Ask learners which arrow touches the real environment. A generative model returns a sampled reward and successor state; it need not enumerate a full transition matrix. A model may come from known rules (games, simulators) or be learned from data. Model-free update rules can run inside a model-based planner, as the next sections show. "Monte-Carlo" describes sampling, not the origin or quality of the model.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-model-based">
+<h2>Model-Based RL</h2>
+</section>
+<section id="mcts-model">
+<h3>What Is a Model?</h3>
+<div class="definition">
+<p>A model \(\hat{\mathcal M}=\langle\hat{\mathcal P},\hat{\mathcal R}\rangle\) approximates the MDP's dynamics:
+\[\hat{\mathcal P}^a_{ss'}\approx\mathbb P[S_{t+1}=s'\mid S_t=s,A_t=a]\]
+\[\hat{\mathcal R}^a_s\approx\mathbb E[R_{t+1}\mid S_t=s,A_t=a]\]</p>
+</div>
+<ul>
+<li>learning \(s,a\to r\) is a regression problem</li>
+<li>learning \(s,a\to s'\) is a density estimation problem</li>
+<li>two sources of error: the model, then the planned values</li>
+</ul>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.1</a></p>
+<aside class="notes">
+<p>This is the course's Lecture 1 model, now estimated. We assume the state and action spaces are known and treat model learning as supervised learning from the pairs (S_t, A_t) → (R_{t+1}, S_{t+1}). Examples: table lookup, linear expectation or linear Gaussian models, Gaussian processes, neural networks. Advantages: supervised learning methods apply, and uncertainty about the model can be reasoned about explicitly. Disadvantage: the planned value inherits the model's error as well as its own approximation error.</p>
+</aside>
+</section>
+<section id="mcts-table-model">
+<h3>Table Lookup Model</h3>
+<p>Count visits \(N(s,a)\) and average what followed:</p>
+\[\hat{\mathcal P}^a_{ss'}=\frac{1}{N(s,a)}\sum_{t}\mathbf 1(S_t,A_t,S_{t+1}=s,a,s')\]
+\[\hat{\mathcal R}^a_s=\frac{1}{N(s,a)}\sum_{t}\mathbf 1(S_t,A_t=s,a)\,R_{t+1}\]
+<ul>
+<li>observed frequencies and mean rewards: maximum-likelihood estimates</li>
+<li>alternative: store every tuple \((S_t,A_t,R_{t+1},S_{t+1})\) and sample one that matches \((s,a)\)</li>
+</ul>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.1</a></p>
+<aside class="notes">
+<p>The sums run over all recorded time steps. Before (s, a) has been tried, N(s, a) = 0 and the estimate is undefined, not zero. The stored-tuple version is the sample model used by Dyna-Q: it reproduces the empirical distribution without ever writing down the probabilities. Worked example: if (s, a) was tried 20 times and 13 tries led to a success state with reward 1 (the rest to failure with reward 0), then N(s, a) = 20, the estimated success probability is 13/20 = 0.65 and the estimated reward is also 0.65. More samples reduce uncertainty in the statistical sense, but a single new observation can move the estimate away from the truth.</p>
+</aside>
+</section>
+<section id="mcts-planning">
+<h3>Planning with a Model</h3>
+<p>Solve the approximate MDP \(\langle\mathcal S,\mathcal A,\hat{\mathcal P},\hat{\mathcal R}\rangle\) with any planner: value iteration, policy iteration, tree search. Each uses backups:</p>
+\[Q(s,a)=\hat{\mathcal R}^a_s+\gamma\sum_{s'}\hat{\mathcal P}^a_{ss'}V(s')\]
+<div class="definition">
+<p>Example: \(\hat{\mathcal R}^a_s=-0.1\); the successor is worth \(V=1\) with \(\hat{\mathcal P}=0.6\), otherwise \(V=0\); \(\gamma=0.9\).
+\[Q(s,a)=-0.1+0.9\,(0.6\times1+0.4\times0)=0.44\]
+Break-even: \(Q(s,a)=0\) when \(\hat{\mathcal P}=0.1/\gamma\approx0.11\).</p>
+</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.1</a></p>
+<aside class="notes">
+<p>One expected backup with supplied successor values (they are not learned here). With γ = 0.9: Q = −0.1 + 0.9 × 0.6 = 0.44, and Q = 0 when the success probability is 0.1/0.9 ≈ 0.111; at γ = 0 only the immediate reward −0.1 remains, so no probability breaks even. The two outcomes are stochastic transitions, so they are averaged: the planner cannot choose the successful one. Distinguish uncertainty about which successor occurs (the probability) from uncertainty about whether the model's probability is right (the inaccurate-model slide). The next slide replaces the sum over successors by samples.</p>
+</aside>
+</section>
+<section id="mcts-sample-planning">
+<h3>Sample-Based Planning</h3>
+<div class="definition">
+<p>Use the model <em>only</em> to generate samples:
+\[S_{t+1}\sim\hat{\mathcal P}(\,\cdot\mid S_t,A_t),\qquad R_{t+1}=\hat{\mathcal R}(S_t,A_t)\]
+then apply model-free RL to the simulated experience.</p>
+</div>
+<ul>
+<li>Monte-Carlo control, Sarsa, Q-learning</li>
+<li>samples concentrate on likely outcomes</li>
+<li>often more efficient than full-width backups</li>
+<li>needs only a generative model</li>
+</ul>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.1</a></p>
+<aside class="notes">
+<p>Full-width planning (value iteration) sums over every successor. Sample-based planning replaces the sum by samples, exactly as Monte-Carlo and TD learning replace it in model-free prediction, so the whole model-free toolbox from Lectures 4–5 becomes a planning method. The efficiency claim is a tendency, not a theorem: rare but important outcomes may be sampled late. The next slide is Silver's AB example.</p>
+</aside>
+</section>
+<section id="mcts-ab-lab">
+<h3>Interactive: The AB Example</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Eight real episodes (\(\gamma=1\)): one A, 0, B, 0; six B, 1; one B, 0.</p>
+<p class="small">Table lookup model: A → B with reward 0; from B the episode ends with reward 1 (probability 0.75) or 0.</p>
+<p class="small">Each sampled episode starts at A or B with probability ½ (seed 806).</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Monte-Carlo on the real data says V(A) = 0. Predict V(A) from model samples first.</p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8 (AB example)</a></p>
+<aside class="notes">
+<p>Same eight episodes as the AB example in Lecture 4. Every-visit Monte-Carlo on the real data gives V(A) = 0 (one episode) and V(B) = 6/8 = 0.75. The table lookup model generalises through the shared state B: sampled episodes that start at A continue like any other visit to B, so every sampled episode updates V(B) and the A-starts also update V(A). Sampled episodes start at A or B with equal probability (seed 806; two draws per episode, start then reward). With this seed the first sample is A, 0, B, 0, so V(A) = 0 at first, just like the real data. 20 samples give V(A) = 0.57 from 7 A-starts and V(B) = 0.70; 40 give 0.73 (15 A-starts) and 0.75; 100 give 0.79 (47 A-starts) and 0.76; 200 give 0.78 (92 A-starts) and 0.75. The plot's x-axis widens to 20, 50, 100 and 200 episodes as samples accumulate; buttons stop at 200 and the readout says so. The limit is the value in the table lookup MDP, V(A) = V(B) = 0.75 (dashed green): the certainty-equivalence answer, which is also where batch TD(0) converges in Lecture 4. It is the better answer only if the Markov assumption holds. Reset repeats seed 806.</p>
+</aside>
+</section>
+<section id="mcts-bias-lab">
+<h3>Interactive: Planning with an Inaccurate Model</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Risky: pays 2 on success, 0 on failure; real success probability 0.6. Safe: always pays 1.3. Whisker: model estimate ± 2 standard errors after n simulations.</p>
+<div data-controls class="demo-controls"></div>
+<p class="small">A planner can do no better than the optimal policy of the <em>approximate</em> MDP.</p>
+</div>
+</div>
+<p class="caption">Raise n from 10 to 1000. Which error shrinks, and which does not? Which model probabilities choose wrongly?</p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.3</a></p>
+<aside class="notes">
+<p>This is an analytical calculator, not a Monte-Carlo run. A simulated risky reward under the model is 2 × Bernoulli(p), where p is the model's success probability, so the mean of n independent simulations has expectation 2p and standard error SE = 2√(p(1−p)/n); the black whisker is the band 2p ± 2 SE, cut to the possible range 0–2. The true risky value is 1.2, below the safe 1.3. At the default p = 0.8 the model predicts 1.60, a bias of +0.40 at every n. The ±2 SE band is 1.09–2.00 at n = 10 (it contains 1.30, so a 10-sample estimate could by chance prefer safe), 1.44–1.76 at n = 100 and 1.55–1.65 at n = 1000: more simulations shrink the sampling error as 1/√n and make the wrong preference more certain, but leave the bias unchanged. Any model with p &gt; 0.65 (0.70 and above on the slider) prefers the wrong action; p = 0.65 ties; p ≤ 0.6 chooses safe, though p &lt; 0.6 is also biased. The standard error excludes parameter uncertainty and misspecification. Silver's two remedies: fall back on model-free RL when the model is wrong, or reason explicitly about model uncertainty.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-integrated">
+<h2>Integrated Architectures</h2>
+</section>
+<section id="mcts-dyna">
+<h3>Dyna Architecture</h3>
+<div class="cols top">
+<div>
+<h4>Two kinds of experience</h4>
+<p class="small">Real, from the environment:</p>
+\[S'\sim\mathcal P^a_{ss'},\quad R=\mathcal R^a_s\]
+<p class="small">Simulated, from the model:</p>
+\[S'\sim\hat{\mathcal P}^a_{ss'},\quad R=\hat{\mathcal R}^a_s\]
+</div>
+<div>
+<h4>Each real step</h4>
+<ol class="steps small">
+<li>act and observe a transition</li>
+<li>direct RL: update values</li>
+<li>model learning: update \(\hat{\mathcal M}\)</li>
+<li>planning: update values again from simulated transitions</li>
+</ol>
+</div>
+</div>
+<div class="definition">
+<p>Dyna: learn a model from real experience; learn <em>and</em> plan values from both real and simulated experience.</p>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Model-free RL uses only real experience; pure sample-based planning uses only simulated experience. Dyna uses both. The same value update is applied to both kinds of transition, so planning gives each real transition extra work. Reusing a wrong model can reinforce a wrong answer, which is why direct RL from real data stays in the loop.</p>
+</aside>
+</section>
+<section id="mcts-dynaq">
+<h3>Dyna-Q Algorithm</h3>
+<p class="small">For each real step from state \(S\):</p>
+<ol class="steps small">
+<li>\(A\leftarrow\varepsilon\)-greedy\((S,Q)\); take \(A\), observe \(R,S'\)</li>
+<li>\(Q(S,A)\leftarrow Q(S,A)+\alpha\big[R+\gamma\max_a Q(S',a)-Q(S,A)\big]\)</li>
+<li>\(\text{Model}(S,A)\leftarrow R,S'\) (deterministic world)</li>
+<li>repeat \(n\) times: pick an observed \((S,A)\), set \(R,S'\leftarrow\text{Model}(S,A)\), apply update 2</li>
+<li>\(S\leftarrow S'\)</li>
+</ol>
+<div class="callout">\(n\) planning updates per real step: computation is traded for real experience.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Tabular Dyna-Q: step 2 is direct RL (Q-learning), step 3 is model learning, step 4 is planning. Planning samples state–action pairs uniformly from those already observed; with n = 0 this is plain Q-learning. Uniform replay wastes updates on pairs whose successor values have not changed: on a stored path A → B → C → end with rewards 0, 0, 1, γ = 0.9 and α = 1, replaying C, B, A backwards reaches the exact values 1, 0.9, 0.81 in three backups, while forward sweeps A, B, C need seven. Prioritised sweeping (Sutton and Barto §8.4) backs up the predecessors of recently changed values first. In a changing world the model becomes stale: Sutton and Barto's Dyna-Q+ adds a bonus κ√τ to simulated rewards, where τ is the time since the pair was last tried in reality, to encourage re-testing. The next slide runs this algorithm.</p>
+</aside>
+</section>
+<section id="mcts-dyna-lab">
+<h3>Interactive: Dyna-Q Planning Steps</h3>
+<div class="cols wide-left">
+<div>
+<p class="small">Dyna maze: +1 on reaching G, else 0; \(\gamma=0.95,\ \alpha=0.1,\ \varepsilon=0.1\). Mean of 20 seeded runs.</p>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+<div data-maze></div>
+<div data-maze-note class="readout small" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Predict how many episodes n = 50 needs before episodes are short. What does each real step saved cost?</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2, Example 8.1</a></p>
+<aside class="notes">
+<p>A complete tabular Dyna-Q on Sutton and Barto's 6 × 9 maze (shortest path 14 steps), 50 episodes per run, mean of 20 runs with seeds 1001–1020 (New seeds moves to 2001–2020, 3001–3020, …). Q starts at 0 and greedy ties are broken at random; acting and planning use separate seeded streams, so episode 1 is the same random walk for every n (no reward has been seen, so planning changes nothing): mean 800 steps. Episode 2 then takes 736 steps with n = 0, 149 with n = 5, 104 with n = 10 and 42 with n = 50. Answer to the prompt: with n = 50 the mean episode length stays at or below 25 steps from episode 3 (18 steps), against episode 4 for n = 10, 6 for n = 5 and 28 for n = 0; about 17 steps remain at the end because of ε-exploration. Cost: over 50 episodes n = 0 takes 4,908 real steps and 4,908 value updates; n = 50 takes 1,661 real steps but 84,693 value updates, about 24.6 extra updates per real step saved (n = 5: 1,831 steps, 10,987 updates, 2.0 per step saved; n = 10: 1,738 steps, 19,120 updates, 4.5 per step saved). Planning is worthwhile when real steps are expensive and computation is cheap; the returns diminish as n grows. The maze shows the greedy action after episode k for the first seed: after episode 2, n = 0 has values in 2 states, n = 5 in 31, n = 10 in 44, n = 50 in all 46. One-step Q-learning extends the chain by about one state per episode (episode k gives k valued states for n = 0). With seeds 2001–2020 the numbers change (episode 1: 844 steps; episode 2: 635 against 183 with n = 5) but the pattern does not. Values above 800 would be drawn at 800 (stated in the readout). Each setting is computed once in the browser (under 0.1 s) and cached.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-simulation-search">
+<h2>Simulation-Based Search</h2>
+</section>
+<section id="mcts-forward">
+<h3>Forward Search</h3>
+<ul>
+<li>build a search tree rooted at the current state \(s_t\)</li>
+<li>look ahead with the model</li>
+<li>solve only the sub-MDP starting <em>now</em></li>
+</ul>
+<p>A full tree with branching factor \(b\) and depth \(d\) has
+\[1+b+\dots+b^d=\frac{b^{d+1}-1}{b-1}\]
+nodes: 1,111,111 for \(b=10,\ d=6\).</p>
+<div class="callout">Sampling helps when exploring every branch is unaffordable.</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>Global planning (Dyna, value iteration) improves values across many states for future decisions. Forward search spends computation on the decision in front of the agent. The node count assumes a regular tree with distinct nodes and no merging of transpositions. A search can reuse its subtree after the real agent acts. A generative model suffices for sampling even when enumerating every transition probability is impractical. Search allocates finite computation; its output can still be wrong because of sampling, depth limits or model error.</p>
+</aside>
+</section>
+<section id="mcts-sim-search">
+<h3>Simulation-Based Search</h3>
+<div class="definition">
+<p>Simulate \(K\) episodes from now with the model, then apply model-free RL to them:
+\[\{s_t,A^k_t,R^k_{t+1},S^k_{t+1},\dots,S^k_T\}_{k=1}^{K}\sim\hat{\mathcal M}\]</p>
+</div>
+<table class="compact">
+<thead><tr><th>Model-free RL</th><th>Search method</th><th>Backs up</th></tr></thead>
+<tbody>
+<tr><td>Monte-Carlo control</td><td>Monte-Carlo search</td><td>complete simulated returns</td></tr>
+<tr><td>Sarsa</td><td>TD search</td><td>bootstrapped targets</td></tr>
+</tbody>
+</table>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Simulated episodes all start from the current real state s_t. As in model-free learning, bootstrapping trades variance for bias: TD search is often more efficient than Monte-Carlo search, especially when many simulated paths reach the same states. Silver's Dyna-2 combines a long-term memory learned from real experience with a short-term memory updated by TD search during each decision. TD search and Dyna-2 are follow-up reading; the rest of this lecture develops Monte-Carlo search.</p>
+</aside>
+</section>
+<section id="mcts-flat-mc">
+<h3>Simple Monte-Carlo Search</h3>
+<p>Given a model \(\hat{\mathcal M}\) and a fixed simulation policy \(\pi\):</p>
+<ol class="steps">
+<li>for each action \(a\), simulate \(K\) episodes from \(s_t\)</li>
+<li>evaluate actions by mean return:
+\[Q(s_t,a)=\frac{1}{K}\sum_{k=1}^{K}G^k_t\;\to\;q_\pi(s_t,a)\]</li>
+<li>take the real action \(a_t=\arg\max_a Q(s_t,a)\)</li>
+</ol>
+<div class="callout">This estimates \(q_\pi\) for the rollout policy, not \(q_*\): a bad continuation can make a good first move look bad.</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>Also called flat Monte-Carlo or rollout search. The convergence is in probability as K grows, to the value of the rollout policy π. If the rollout policy blunders after a promising first move, the search estimates the return of that blundering continuation: a meaningful policy value, but it may rank actions differently from optimal play. The result is still a one-step improvement over π. MCTS fixes this by letting the continuation improve inside a growing tree; the interactive slide after the tree trace compares the two on the same problem.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-mcts">
+<h2>Monte-Carlo Tree Search</h2>
+</section>
+<section id="mcts-mcts">
+<h3>Monte-Carlo Tree Search</h3>
+<div class="definition">
+<p>Simulate episodes from \(s_t\), store visited states and actions in a tree, and evaluate each edge by its mean return:
+\[Q(s,a)=\frac{1}{N(s,a)}\sum_{k=1}^{K}\sum_{u=t}^{T}\mathbf 1(S^k_u,A^k_u=s,a)\,G^k_u\]</p>
+</div>
+<div class="cols top">
+<div>
+<h4>Tree policy (improves)</h4>
+<p class="small">Inside the tree: choose by \(Q\) plus an exploration bonus.</p>
+</div>
+<div>
+<h4>Rollout policy (fixed)</h4>
+<p class="small">Beyond the tree: e.g. uniformly random actions.</p>
+</div>
+</div>
+<p class="small">Monte-Carlo control on simulated experience: with UCT, \(Q(s_t,a)\to q_*(s_t,a)\) as simulations grow.</p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>N(s, a) counts the simulations that passed through edge (s, a); G is the return from that point in simulation k. Each simulation evaluates states by Monte-Carlo and then improves the tree policy, so this is Monte-Carlo control applied to simulated experience. The convergence statement is Kocsis and Szepesvári's consistency result for UCT under finite-horizon (or truncated discounted) MDPs with bounded rewards; it says nothing about a finite budget. Because the tree policy changes, the root average is not an unbiased sample mean of a fixed q.</p>
+</aside>
+</section>
+<section id="mcts-phases">
+<h3>Four Phases of a Simulation</h3>
+<div class="cols top">
+<div>
+<ol class="steps">
+<li><strong>Select:</strong> follow the tree policy</li>
+<li><strong>Expand:</strong> store one untried child</li>
+<li><strong>Evaluate:</strong> roll out, or estimate the leaf</li>
+<li><strong>Back up:</strong> update the path</li>
+</ol>
+</div>
+<div>
+<p class="small">Each stored edge keeps</p>
+\[N(s,a),\quad W(s,a)\]
+\[Q(s,a)=\frac{W(s,a)}{N(s,a)}\]
+<p class="small">visits, total return and mean return.</p>
+</div>
+</div>
+<p>Repeat within the budget, then commit by a stated rule, e.g. most visits:
+\[a_t=\arg\max_a N(s_t,a)\]</p>
+<div class="callout">An action can deserve another simulation without deserving the real move.</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a>; <a href="https://arxiv.org/abs/1712.01815">Silver et al. (2017), AlphaZero</a></p>
+<aside class="notes">
+<p>Implementations package expansion and evaluation differently, but these roles remain. The demos expand one node per simulation. Selection follows stored nodes only; rollouts visit model states without storing them, and a completed simulation updates N and W only on the selected and expanded path. Root decision rules differ: most visits (used here), highest mean Q (Silver's slide), or sampling from visit counts during training. Do not apply the exploration bonus to the real commitment. Compare methods under equal model-evaluation or wall-clock budgets, not equal numbers of differently costly iterations.</p>
+</aside>
+</section>
+<section id="mcts-uct-lab">
+<h3>Interactive: UCT Selection</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+\[Q(s,a)+c\sqrt{\frac{\ln N(s)}{N(s,a)}}\]
+<p class="small">A: \(Q=0.55\) after 12 visits. B: \(Q=0.45\). \(N(s)\) is the sum of child visits.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">At c = 1, how many visits does B need before A is selected again?</p>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>UCT applies the UCB1 bandit rule at every tree node. N(s) is the parent's visit count and N(s, a) the action's; unvisited legal actions are tried first, so there is no division by zero. Texts absorb factors such as √2 into c, and c must match the reward scale. At the defaults A ≈ 0.55 + 0.475 = 1.025 and B ≈ 0.45 + 0.950 = 1.400, so B is selected despite its lower mean. Answer to the prompt: at c = 1, B needs 9 visits (A 1.054 against B 1.032); at 8 visits B still wins (1.050 against 1.062). At c = 0 the scores are the means, so A always wins; larger c needs more visits to B (11 at c = 3), smaller c fewer (2 at c = 0.1). The bonus falls with the action's own visits and rises slowly with the parent's. Here N(s) = 12 + N(s, B), the sum of child visits, as at the root of the trace; deeper in a tree N(s) is the node's own visit count, which also counts the simulation that expanded it. This calculator holds the means fixed; a real search updates both, and subtree returns are not stationary bandit samples.</p>
+</aside>
+</section>
+<section id="mcts-backup">
+<h3>Backing Up a Return</h3>
+<div class="cols top">
+<div>
+<p class="small">A simulation returns \(G\). Each edge on the stored path updates</p>
+\[\begin{aligned}N(s,a)&amp;\leftarrow N(s,a)+1\\ W(s,a)&amp;\leftarrow W(s,a)+G\\ Q(s,a)&amp;\leftarrow W(s,a)/N(s,a)\end{aligned}\]
+<p class="small">Incremental form: \(Q\leftarrow Q+\frac{G-Q}{N}\), with the updated \(N\).</p>
+</div>
+<div>
+<h4>Example</h4>
+<p class="small">An edge has \(N=3\), \(W=1.5\), \(Q=0.5\). A new simulation returns \(G=0.8\):</p>
+\[N=4,\quad W=2.3,\quad Q=\frac{2.3}{4}=0.575\]
+<p class="small">Check: \(0.5+\frac{0.8-0.5}{4}=0.575\).</p>
+</div>
+</div>
+<div class="callout">The new mean lies between the old mean and \(G\): MCTS averages returns; it does not keep the best one.</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>With the same edge, G = 0 gives Q = 1.5/4 = 0.375 and G = 1 gives 2.5/4 = 0.625: one return moves Q a quarter of the way towards G, never beyond it. A max backup would jump to 0.8 and keep the luckiest rollout, which overestimates noisy actions. The incremental form uses the updated N and is algebraically identical to W/N. With intermediate rewards, each edge needs its own return-to-go, accumulated backwards along the path as G ← R + γG; copying one terminal reward along the path is valid only under the single-agent, terminal-reward, γ = 1 convention of the tree trace on the next slide. Opponent perspectives are handled in the last section.</p>
+</aside>
+</section>
+<section id="mcts-tree-lab">
+<h3>Interactive: Trace a Real Search</h3>
+<div class="cols wide-left">
+<div>
+<div data-tree></div>
+</div>
+<div>
+<p class="small">One agent chooses at both levels; payoffs at the leaves; \(\gamma=1\). UCT selection, uniform random rollouts (seed 808).</p>
+<div data-controls class="demo-controls"></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Step through three simulations, predicting each phase. Then run 10 and drag c to 0: why is A2 never stored?</p>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>A complete finite MCTS with deterministic payoffs at depth two. It uses UCT on stored children, expands the first untried child from the left, rolls out uniformly at random (seed 808) and commits by most visits, ties to the left. This is a planning tree, not a game: the same agent chooses at both levels, and every node on the selected and expanded path adds the terminal return. Each box shows N, W and Q = W/N; dashed boxes are not stored.</p>
+<p>From Reset at c = 1. Simulation 1: R has untried children, so selection stops at R; expand A; the rollout A → A2 returns 0.8 (A2 is visited but not stored, the case in the next quick check); back up: R and A get N = 1, W = 0.8. Simulation 2: expand B; rollout B → B2 returns 0.65; R has N = 2, W = 1.45. Simulation 3: both children stored, so UCT at R: A 0.8 + √(ln 2 / 1) = 1.633 against B 0.65 + 0.833 = 1.483, choose A; A has untried children, so expand A1, a leaf, G = 0.2; now R N = 3, W = 1.65; A N = 2, W = 1.0, Q = 0.5; A1 N = 1. Simulation 4: A 0.5 + √(ln 3 / 2) = 1.241 against B 0.65 + √(ln 3) = 1.698, choose B, expand B1, G = 0.55.</p>
+<p>After 10 simulations: c = 1 gives N(A) = 5, N(B) = 5 (commit A by the tie rule) with A2 N = 3; c = 0 gives N(A) = 2, N(B) = 8; c = 2 gives 5 and 5. Answer to the prompt: with c = 0, selection is greedy. After A's first two simulations return 0.8 and 0.2 (Q(A) = 0.5), B's mean stays above 0.5 because both of B's leaves pay at least 0.55, so A is never selected again; A2 is only expanded at A, so the optimal leaf is never stored and the search recommends B although A is optimal (0.8). After 200 at c = 1 (the budget): A has N = 153, W = 117.00, Q = 0.76; B has N = 47, W = 28.75, Q = 0.61, the same search as the final point of the comparison slide. Checks at any point: root N = N(A) + N(B); N(A) = N(A1) + N(A2) + 1, the extra visit being the simulation that expanded A (likewise for B); inside the tree, UCT uses the parent's own N.</p>
+<p>Moving c replays the search from the start with the new c to the same point (same number of simulations and phases), so the display is always the search that would have happened with that c; the readout says so. Run 10 completes ten simulations; if a simulation is in progress, it is finished first and counts as one of the ten. Buttons stop at 200 simulations and the readout says why.</p>
+</aside>
+</section>
+<section id="mcts-phase-check">
+<h3>Quick Check: Tree or Rollout?</h3>
+<div class="cols">
+<div>
+<p>One-node expansion, as in the trace:</p>
+<ul>
+<li>you expand node A</li>
+<li>the rollout visits A2 and returns 0.8</li>
+<li>A2 has not been stored in the tree</li>
+</ul>
+</div>
+<div>
+<div class="quiz" data-correct="0"><p class="question">Which stored statistics receive this simulation?</p><div class="quiz-options"><button type="button" data-answer="0">The root and A; A2 stays unstored</button><button type="button" data-answer="1">Every possible descendant of A</button><button type="button" data-answer="2">Only A2, where the reward was found</button></div><p class="quiz-feedback" aria-live="polite"></p><template>Backup follows the selected and expanded path. Rollout states need not become tree nodes: the root and A each gain one visit and 0.8 of return.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer: the root and A. This is exactly simulation 1 of the trace (seed 808): afterwards the root and A show N = 1, W = 0.8, and A2 is still drawn as not stored. Distinguish a visited model state from a stored search-tree node; many implementation bugs conflate the two. Some MCTS variants store more than one rollout node; the question refers to the one-node expansion convention of the trace. Invite a learner to point at the nodes in the trace before revealing the feedback.</p>
+</aside>
+</section>
+<section id="mcts-flat-lab">
+<h3>Interactive: Simple Monte-Carlo vs MCTS</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Same tree and seed as the trace: leaves 0.2 and 0.8 under A, 0.55 and 0.65 under B. Simple search alternates A and B, each with a uniform rollout; MCTS uses UCT. 200 simulations each.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Which first action does each method prefer after 200 simulations? Then try c = 0.</p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>Both methods use the same uniform rollout policy and the same seed (808 at Reset; each method has its own generator started from that seed). Simple Monte-Carlo search runs 100 rollouts per action and estimates q under the rollout policy: Q(A) → (0.2 + 0.8)/2 = 0.5 and Q(B) → 0.6, so it prefers B after any large budget (after 200: 0.49 and 0.59, choose by mean as on the Simple Monte-Carlo Search slide). MCTS improves the policy inside the tree: at c = 1 it ends with N(A) = 153, Q(A) = 0.76 against N(B) = 47, Q(B) = 0.61, and recommends A by visits (ties would go to A, as in the trace), whose optimal value is 0.8. Q(A) approaches 0.8 only slowly because early exploratory returns from A1 stay in the average. At c = 0 the search locks onto B after A's second simulation returns 0.2 (N(A) = 2, N(B) = 198). At c = 3 it explores more evenly (N(A) = 108, N(B) = 92) and still recommends A. The curves at c = 1 are the same search as the trace: run the trace to its 200-simulation budget and its root shows the same N and Q. New seed changes both methods' streams (seed 809: simple 0.52 and 0.60 → B; MCTS N(A) = 153 → A; at c = 0 N(A) = 1 because A's first rollout returns 0.2).</p>
+</aside>
+</section>
+<section id="mcts-advantages">
+<h3>Advantages of MCTS</h3>
+<ul>
+<li>highly selective, best-first search</li>
+<li>evaluates states dynamically, from the current state, unlike DP over all states</li>
+<li>sampling breaks the curse of dimensionality</li>
+<li>works for black-box models: needs only samples</li>
+<li>computationally efficient, anytime and parallelisable</li>
+</ul>
+<div class="callout">Case study: computer Go, where hand-written position evaluation is hard but simulated games are cheap.</div>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a></p>
+<aside class="notes">
+<p>Silver's lecture uses Go as the case study: the value of a position is estimated by the mean outcome of simulated games, and the search tree grows asymmetrically towards promising moves. Anytime means the search can return its current answer when interrupted; it does not mean each extra sample monotonically improves that answer. Parallel MCTS needs care because simultaneous simulations see the same stale statistics. These are qualitative advantages; this deck makes no performance claim.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-using-search">
+<h2>Using Search Well</h2>
+</section>
+<section id="mcts-horizon">
+<h3>Where the Rollout Stops</h3>
+<p class="small">A rollout cut off after \(h\) steps must evaluate the state where it stops:</p>
+<div class="eq-sm">\[G=\sum_{k=1}^{h}\gamma^{k-1}R_{t+k}+\gamma^{h}\hat v(S_{t+h})\]</div>
+<div class="cols top">
+<div>
+<h4>Example (\(\gamma=0.9\))</h4>
+<ul class="small">
+<li>short route: 0.45 after one step</li>
+<li>long route: 1 after six steps, so \(G=\gamma^{5}\approx0.59\)</li>
+<li>the long route is better</li>
+</ul>
+</div>
+<div>
+<h4>Cut off at \(h=3\)</h4>
+<ul class="small">
+<li>\(\hat v=0\): long route \(\approx 0\); search picks short</li>
+<li>\(\hat v=\gamma^{2}=0.81\) (exact): \(0.9^{3}\times0.81\approx0.59\); picks long</li>
+</ul>
+</div>
+</div>
+<div class="callout">A computational cutoff is not a terminal state: leaving out \(\hat v\) assumes it is 0.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), Chapter 8</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>The long route's reward arrives as R_{t+6}, so its exact return is γ⁵ (0.590 at γ = 0.9), not γ⁶. With h &lt; 6 the estimate is γ^h v̂(S_{t+h}), because the first h rewards are 0. At h = 3 and γ = 0.9 the exact remaining value is γ² = 0.81, and inserting it gives γ³ × 0.81 = 0.59049, the exact return; any v̂ above 0.45/0.729 ≈ 0.617 makes the search pick the long route. With v̂ = 0, an omitted bootstrap is a hidden zero-value assumption. At h = 6 the episode terminates and no v̂ is needed. At γ = 0.5 the short route really is better (0.5⁵ ≈ 0.031), so a deeper search need not choose the long route; the break-even discount is 0.45^(1/5) ≈ 0.852. In MCTS the leaf evaluation may be a rollout, a truncated rollout plus v̂, or v̂ alone (a value network, as on the Policy Priors and Value Networks slide).</p>
+</aside>
+</section>
+<section id="mcts-chance">
+<h3>Chance and Opponent Nodes</h3>
+<p>Two outcomes, worth +1 and −1 to the root player. Who picks the branch decides the value:</p>
+<table class="compact">
+<thead><tr><th>Node</th><th>Rule</th><th>Value to the root player</th></tr></thead>
+<tbody>
+<tr><td>our decision</td><td>maximise</td><td>\(\max(+1,-1)=+1\)</td></tr>
+<tr><td>chance, \(p(+1)=0.75\)</td><td>average</td><td>\(0.75(+1)+0.25(-1)=0.5\)</td></tr>
+<tr><td>zero-sum opponent</td><td>minimise</td><td>\(\min(+1,-1)=-1\)</td></tr>
+</tbody>
+</table>
+<div class="callout">Chance nodes sample outcomes; opponents choose them. Treating an opponent as chance changes the problem.</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/10-climate/lecture-10-case-study-rl-in-classic-games.pdf">David Silver, Lecture 10: Classic Games</a></p>
+<aside class="notes">
+<p>Three node types: our decision (maximise), chance (average under the probability law: 2p − 1 for a general p, 0.5 at p = 0.75) and an opponent's decision. A random-opponent model gives an expectation; a perfect-information zero-sum adversary chooses the best response, −1 for every p, so no p makes the opponent's branch worth more than −1. In MCTS, opponent nodes either maximise values stored from the opponent's perspective, or minimise root-perspective values with a matching exploration bonus. Never maximise root-player Q at both. With alternating player-to-move values, zero-sum returns change sign during backup; with a fixed root perspective, the stored sign stays and the selection rule changes. Chance nodes sample outcomes; they never choose optimistic ones.</p>
+</aside>
+</section>
+<section id="mcts-perspective-check">
+<h3>Quick Check: Whose Value?</h3>
+<div class="cols">
+<div>
+<ul>
+<li>all stored returns are measured for the <em>root</em> player</li>
+<li>at an opponent node, one move gives +0.8 and the other −0.4 to the root player</li>
+<li>ignore exploration</li>
+</ul>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">Which move should a rational zero-sum opponent choose?</p><div class="quiz-options"><button type="button" data-answer="0">+0.8: MCTS maximises every stored value</button><button type="button" data-answer="1">−0.4: it harms the root player most</button><button type="button" data-answer="2">The average: all branching is chance</button></div><p class="quiz-feedback" aria-live="polite"></p><template>With root-player values, a zero-sum opponent minimises. The trace used the same decision-maker at both levels, so it always maximised.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer: −0.4. Make the convention explicit before writing any code. A different answer would be right if the numbers were measured for the opponent, but they are not. This is not an instruction to negate every edge: stochastic transitions, same-player turns and intermediate rewards need a convention that matches the game or MDP. Ask which assumption changed between the trace and this slide.</p>
+</aside>
+</section>
+<section id="mcts-neural">
+<h3>Policy Priors and Value Networks</h3>
+<div class="cols top">
+<div>
+\[(\mathbf p,\,v)=f_\theta(s)\]
+<ul>
+<li>prior \(P(s,a)\): where to search first</li>
+<li>value \(v(s)\): evaluates a leaf instead of a rollout</li>
+</ul>
+</div>
+<div>
+<p>AlphaZero: known game rules + MCTS + one network.</p>
+<div class="callout">Search improves the move distribution; self-play outcomes train the next network.</div>
+<p class="small">Not implemented in the toy demos.</p>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1712.01815">Silver et al. (2017), AlphaZero, algorithm description</a></p>
+<aside class="notes">
+<p>The conceptual addition is two learned outputs, not a larger rollout budget. The policy head supplies prior move probabilities; the value head replaces random rollouts at the leaf. Search produces visit-count targets for the policy and games produce outcome targets for the value. The network does not replace the known legal-move and transition rules in AlphaZero. Training, exploration noise, terminal handling, player perspective, batching and evaluation protocol all matter. This slide states mechanisms and does not reproduce benchmark claims.</p>
+</aside>
+</section>
+<section id="mcts-puct">
+<h3>Prior-Guided Selection</h3>
+<p class="small">AlphaZero-style (PUCT) selection adds a prior to the bonus:</p>
+<div class="eq-sm">\[Q(s,a)+c\,P(s,a)\,\frac{\sqrt{N(s)}}{1+N(s,a)}\]</div>
+<p class="small">Example: \(N(s)=12\), \(c=2\):</p>
+<table class="compact">
+<thead><tr><th>Action</th><th>\(Q\)</th><th>\(N(s,a)\)</th><th>\(P(s,a)\)</th><th>Score</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>0.2</td><td>10</td><td>0.7</td><td>\(0.2+2\times0.7\times\sqrt{12}/11\approx0.64\)</td></tr>
+<tr><td>B</td><td>0.6</td><td>2</td><td>0.3</td><td>\(0.6+2\times0.3\times\sqrt{12}/3\approx1.29\)</td></tr>
+</tbody>
+</table>
+<div class="callout">B is simulated next. Only a prior \(P(s,A)\gtrsim0.92\) would send the search back to A.</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1712.01815">Silver et al. (2017), AlphaZero, algorithm description</a></p>
+<aside class="notes">
+<p>An illustrative PUCT-style score, not a replication of AlphaZero search or its hyperparameter schedule. The contrast with UCT is the prior P(s, a) and the 1 + N(s, a) denominator, which keeps the score finite for unvisited actions. Worked: √12 ≈ 3.464; A's bonus is 2 × 0.7 × 3.464 / 11 ≈ 0.441, so 0.641; B's is 2 × 0.3 × 3.464 / 3 ≈ 0.693, so 1.293. With P(s, B) = 1 − P(s, A), the scores cross at P(s, A) ≈ 0.922. With P(s, A) = 1, c above about 1.27 makes A win. A prior of exactly zero can suppress an action under this score; practical systems add exploration deliberately (e.g. root noise). Values and counts are held fixed to isolate the score.</p>
+</aside>
+</section>
+<section id="mcts-limits">
+<h3>Before Trusting a Search Result</h3>
+<div class="cols top">
+<div>
+<h4>Model and information</h4>
+<ul class="small">
+<li>Does the model reproduce the relevant consequences?</li>
+<li>Are chance and opponent nodes distinct?</li>
+<li>Could the search see hidden information?</li>
+</ul>
+</div>
+<div>
+<h4>Computation and evaluation</h4>
+<ul class="small">
+<li>Was a cutoff mistaken for termination?</li>
+<li>Were values backed up in one clear convention?</li>
+<li>Does the choice survive other seeds and budgets?</li>
+</ul>
+</div>
+</div>
+<div class="callout">A consistent planner can still solve the wrong decision problem.</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1007/11871842_29">Kocsis &amp; Szepesvári (2006)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a>; <a href="https://arxiv.org/abs/1712.01815">Silver et al. (2017)</a></p>
+<aside class="notes">
+<p>The UCT paper gives consistency results under particular finite-horizon or discounted MDP and bounded-reward assumptions, not a finite-budget guarantee for any learned-model or neural implementation. Hidden-information games need information-state reasoning; searching with the opponent's actual hidden cards is not valid play. Distribution shift in learned models and rare outcomes matter especially outside games. Numerical correctness, model validity and application performance are separate checks.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-summary">
+<h2>Summary</h2>
+</section>
+<section id="mcts-exercise">
+<h3>Exercise (5 mins): A Search Audit</h3>
+<div class="cols top">
+<div>
+<p class="small">Root statistics:</p>
+<table class="compact">
+<thead><tr><th>Action</th><th>\(N\)</th><th>\(W\)</th></tr></thead>
+<tbody><tr><td>A</td><td>20</td><td>12</td></tr><tr><td>B</td><td>5</td><td>2.5</td></tr></tbody>
+</table>
+<ol class="steps small">
+<li>Compute both means.</li>
+<li>With \(c=1\), choose the next simulation by UCT.</li>
+<li>Commit now by most visits.</li>
+</ol>
+</div>
+<div>
+<div class="quiz" data-correct="2"><p class="question">Simulate next, then commit now:</p><div class="quiz-options"><button type="button" data-answer="0">A, then A</button><button type="button" data-answer="1">B, then B</button><button type="button" data-answer="2">B, then A</button></div><p class="quiz-feedback" aria-live="polite"></p><template>Means: A 0.60, B 0.50. UCT scores are about 1.001 and 1.302, so simulate B. The most-visited commitment is A.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Give two minutes individually, then compare in pairs. N(s) = 25. A: 0.6 + √(ln 25 / 20) ≈ 1.00118; B: 0.5 + √(ln 25 / 5) ≈ 1.30236. The exploration score sends the next simulation to B, while the commitment rule chooses A. Extension: a rollout under B returns 1, so B becomes N = 6, W = 3.5, Q = 7/12 ≈ 0.583. Does that single observation prove B is better? No.</p>
+</aside>
+</section>
+<section id="mcts-recap">
+<h3>Summary</h3>
+\[\text{experience}\;\to\;\text{model}\;\to\;\text{simulations}\;\to\;\text{better-informed action}\]
+<ul>
+<li>model-based RL: learn \(\hat{\mathcal P},\hat{\mathcal R}\), then plan with samples</li>
+<li>Dyna: learn and plan from real and simulated experience</li>
+<li>MCTS: select, expand, evaluate, back up; explore while searching, commit by a stated rule</li>
+<li>every estimate depends on the model, rollout policy, horizon and value perspective</li>
+</ul>
+<p class="small">Next: exploration and exploitation, spending <em>real</em> interactions.</p>
+<aside class="notes">
+<p>Exit ticket: name one quantity updated by MCTS, one assumption the tree trace made, and one reason more simulations may not repair a bad decision. Strong answers: N, W and Q; an exact single-agent model with terminal payoffs; model bias, a weak rollout policy, a horizon cutoff or invalid access to hidden information. Revisit the opening question: the next simulation should trade current promise against uncertainty, under a convention matched to the decision problem. UCT's bonus is the bridge to the exploration lecture.</p>
+</aside>
+</section>
+<section id="mcts-references">
+<h3>References</h3>
+<ul class="small">
+<li>Silver, D. <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/08-mcts/lecture-8-integrating-learning-and-planning.pdf">Lecture 8: Integrating Learning and Planning</a>, UCL RL course.</li>
+<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/the-book-2nd.html"><em>Reinforcement Learning: An Introduction</em></a>, Chapter 8.</li>
+<li>Kocsis, L. &amp; Szepesvári, C. (2006). <a href="https://doi.org/10.1007/11871842_29">Bandit based Monte-Carlo planning</a>. ECML.</li>
+<li>Silver, D. et al. (2017). <a href="https://arxiv.org/abs/1712.01815">Mastering chess and shogi by self-play with a general reinforcement learning algorithm</a>. arXiv.</li>
+<li>Silver, D. <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/10-climate/lecture-10-case-study-rl-in-classic-games.pdf">Lecture 10: Classic Games</a>, UCL RL course.</li>
+</ul>
+<aside class="notes">
+<p>The interactive examples and explanatory wording in this deck were written for this course; the structure follows the course's earlier lectures and David Silver's Lecture 8. The course index calls this lecture MCTS, while the source lecture is the broader Integrating Learning and Planning; model learning and Dyna are kept as context and MCTS is developed in detail. TD search and Dyna-2 are follow-up reading. Extension exercise: add stochastic transitions to the tree trace and explain how sampling at chance nodes differs from UCT selection. Source links need an internet connection.</p>
+</aside>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/zoom.js"></script>
+<script src="interactive.js"></script>
+<script src="demos.js"></script>
+<script>
+Demos.mountAll();
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+keyboardCondition: DeckKeyboard,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'slide',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

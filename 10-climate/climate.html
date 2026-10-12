@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Case Study: RL in Car Climate Control</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<link rel="stylesheet" href="interactive.css"/>
+<meta name="description" content="J Brusey - Case Study: RL in Car Climate Control">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Case Study: RL in Car Climate Control</h1><h2 class="author">James Brusey</h2>
+<aside class="notes">
+<p>Suggested duration: 60–75 minutes including the six interactive slides. The case study is J. Brusey, D. Hintea, E. Gaura and N. Beloe (2018), “Reinforcement learning-based thermal comfort control for vehicle cabins”, Mechatronics 50:413–421 (preprint arXiv:1704.07899). Every number quoted from the paper is labelled with its section, table or figure. All interactive numbers come from a deliberately simple single-zone cabin model written for this lecture: it is a teaching toy, not the paper's empirically validated model, and its results are not the paper's results. All calculations run in the browser; random runs use fixed, disclosed seeds. Press S for the speaker view.</p>
+</aside>
+</section>
+<section>
+<section id="slide-overview">
+<h2>Overview</h2>
+<ol>
+<li>Introduction</li>
+<li>The Cabin as an MDP</li>
+<li>Reward and Baselines</li>
+<li>Planning and Pre-conditioning</li>
+<li>Learning a Controller</li>
+<li>Safety and Evaluation</li>
+<li>Summary</li>
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-introduction">
+<h2>Introduction</h2>
+</section>
+<section id="cc-objectives">
+<h3>Learning Outcomes</h3>
+<div class="cols top">
+<div>
+<p>By the end of this lecture you should be able to:</p>
+<ol>
+<li>formulate cabin comfort control as an MDP</li>
+<li>explain why air temperature alone may not be a Markov state</li>
+<li>write a comfort–energy reward with explicit units</li>
+<li>compare a learned controller fairly with credible baselines</li>
+</ol>
+</div>
+<div>
+<p>Prerequisites:</p>
+<ul>
+<li>Sarsa, Q-learning and eligibility traces (Lectures 4–5)</li>
+<li>planning with a model (Lecture 8)</li>
+</ul>
+<div class="callout">Recurring question: <em>when should the heater spend battery energy?</em></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey, Hintea, Gaura &amp; Beloe (2018)</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), Chapters 3, 6, 12</a></p>
+<aside class="notes">
+<p>Before showing any model, ask learners to name a state, an action and a reward for a car heater; return to their answers on the MDP slide. The case study is published work by the course lecturer and colleagues at Coventry University, with a co-author at Jaguar Land Rover (Brusey, Hintea, Gaura and Beloe, 2018). Everything numerical that runs in the browser uses the toy single-zone model introduced in the next section; every number quoted from the paper is labelled with its section or table, so the two are never mixed.</p>
+</aside>
+</section>
+<section id="cc-comfort">
+<h3>Comfort, Not Temperature</h3>
+<blockquote>“current systems control temperature rather than thermal comfort and tend to be energy hungry, which is of particular concern when considering electric vehicles.”</blockquote>
+<ul>
+<li>comfort also depends on radiant heat and airflow</li>
+<li>electric vehicles have little engine waste heat to use</li>
+<li>heating energy comes out of the driving range</li>
+</ul>
+<div class="definition">
+<p>The case study poses energy-efficient comfort control as an MDP, solves it with Sarsa(\(\lambda\)) on a validated cabin model, and tests the controller on 200 random scenarios.</p>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), Abstract and §1</a></p>
+<aside class="notes">
+<p>The quotation is from the abstract. Section 1 lists three drivers for change: current systems only control cabin temperature although comfort also depends on factors such as radiant heat and airflow; past systems relied on engine waste heat, which electric vehicles largely lack; and current systems are energy hungry, while electric and hybrid vehicles demand efficiency. The paper cites Farrington and Rugh (2000) for the observation that air conditioning reduces the fuel economy of fuel-efficient cars by about 50%. Prompt: what does a temperature controller get wrong when the air is warm but the seats are still cold? Keep the answer for the hidden-variable slide.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-mdp">
+<h2>The Cabin as an MDP</h2>
+</section>
+<section id="cc-model">
+<h3>A Toy Cabin Model</h3>
+\[C\,\frac{dT}{dt}=UA\,(T_{\text{amb}}-T)+P+Q_{\text{sol}}\]
+<p>Exact update over one step with constant inputs:</p>
+\[T_{t+1}=T_\infty+(T_t-T_\infty)\,e^{-\Delta t/\tau}\]
+\[T_\infty=T_{\text{amb}}+\frac{P_t+Q_{\text{sol}}}{UA},\qquad \tau=\frac{C}{UA}\]
+<table class="compact">
+<thead><tr><th>\(C\)</th><th>\(UA\)</th><th>\(\tau\)</th><th>\(\Delta t\)</th><th>Heater \(P_t\)</th></tr></thead>
+<tbody><tr><td>90 kJ/K</td><td>50 W/K</td><td>30 min</td><td>1 min</td><td>0, 1, …, 5 kW</td></tr></tbody>
+</table>
+<p class="small muted">One temperature node, an electric heater, no cooling: a teaching toy, not the paper's validated cabin model.</p>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.1–3.2 and Table 1 (the validated model this toy simplifies)</a></p>
+<aside class="notes">
+<p>Units: UA times a temperature difference is in W; dividing net power by C (J/K) gives K/s. The update is the exact solution over one minute with the inputs held constant (zero-order hold), not an Euler step. Full power gives an asymptote of T_amb + 100 °C, which is never approached in practice because every controller backs off inside the band; one 5 kW minute near 22 °C at −5 °C still adds about 2.4 K. Holding 20 °C needs UA(20 − T_amb): 1.25 kW at −5 °C, 1.5 kW at −10 °C, 0.5 kW at +10 °C. From a cold soak at full power the cabin reaches 20 °C in 9 one-minute steps from −5 °C (11 from −10 °C, 7 from 0 °C). Motivation for the values: Table 1 of the paper gives an interior-mass capacitance of 450 × 0.02 × 7850 J/K ≈ 71 kJ/K, a cabin-air capacitance with factor k = 8 of roughly 24 kJ/K (with standard air properties), and 1/R_c ≈ 23 W/K; our single C lumps the first two, and our UA adds an allowance for fresh-air intake. The paper's model is three heat-balance equations (cabin air, interior mass, mixed air), validated against warm-up and cool-down data from a real car in a climatic wind tunnel. The toy has one node, a resistive heater (electrical power equals heat delivered, no heat-pump COP) and no cooling.</p>
+</aside>
+</section>
+<section id="cc-balance-lab">
+<h3>Interactive: Heat Balance</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Cold soak: the cabin starts at ambient and the heater runs at constant power. Shaded: the comfort band, 20–24 °C.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Predict first: if you double C, does the final temperature change, or only how fast the cabin gets there?</p>
+<aside class="notes">
+<p>Defaults (3 kW, −5 °C, no sun, C = 90 kJ/K): T∞ = −5 + 3000/50 = 55 °C, τ = C/UA = 30 min, and the continuous solution reaches 20 °C after 30 ln(60/35) ≈ 16.2 min; 30 minutes at 3 kW use 1.5 kWh. Answer to the prompt: doubling C to 180 kJ/K doubles τ to 60 min and the time to 20 °C to 32.3 min, but T∞ (the dashed red line) stays at 55 °C: capacity sets the speed, the heat balance sets the destination. At 5 kW the time to 20 °C is 8.6 min (17.3 min with C doubled); in one-minute steps the cabin first passes 20 °C at step 9, as quoted on the previous slide. Solar gain adds to the heater one for one: 2 kW of heater plus 1 kW of sun gives the same curve as 3 kW. Holding 20 °C needs UA(20 − T_amb): 1.25 kW at −5 °C, between the 1 and 2 kW heater levels, which is why the controllers later alternate between them. Constant power is not a controller: whenever the cabin reaches the band it passes through it and keeps rising towards T∞. The vertical axis grows to include T∞.</p>
+</aside>
+</section>
+<section id="cc-mdp">
+<h3>The Cabin as an MDP</h3>
+<table class="compact">
+<thead><tr><th></th><th>Toy (this lecture)</th><th>Brusey et al. (2018)</th></tr></thead>
+<tbody>
+<tr><td>State \(S_t\)</td><td>cabin temperature, ambient</td><td>cabin air \(T_c\), interior mass \(T_m\), ambient \(T_{\text{amb}}\)</td></tr>
+<tr><td>Action \(A_t\)</td><td>heater power, 6 levels</td><td>vent flow × vent temperature × recirculation: 60</td></tr>
+<tr><td>Transition</td><td>exact 1-minute update</td><td>validated 1D cabin model, deterministic</td></tr>
+<tr><td>Reward \(R_{t+1}\)</td><td>comfort and energy</td><td>comfort and energy</td></tr>
+<tr><td>Episode</td><td>30-minute trip from a cold soak</td><td>500 steps from a random start state</td></tr>
+<tr><td>Discount \(\gamma\)</td><td>0.95</td><td>0.99</td></tr>
+</tbody>
+</table>
+<p class="small">Neither ends an episode on reaching comfort: episodes stop at a time limit.</p>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3, §3.3, §3.5, §3.7</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), Chapter 3</a></p>
+<aside class="notes">
+<p>The paper writes the MDP as the tuple ⟨S, S0, A, T, R, γ⟩ with continuous states, a distribution S0 of initial states and a deterministic environment model T. Its initial states are drawn uniformly (interior mass 0–50 °C, outside 0–40 °C, cabin air 0–50 °C), excluding starts where interior mass and cabin air differ by more than 30 °C (§3.3). It explains why no terminal state ends the episode: reaching comfort is not sufficient, the agent must also maintain it efficiently (§3); out-of-bounds states are absorbing with the worst-case penalty (§3.6). Actions: vent flow in {1, 34, 67, 100} l/s, five vent temperatures over 7–60 °C, recirculation in {0, ½, 1} (§3.5). Our toy starts trips at ambient −10 to 10 °C with the cabin 0–10 °C above ambient, and the state does not include the minute of the trip, so the 30-minute end is treated as a time limit. γ = 0.95 is the learner's discount; the planner used later optimises the undiscounted 30-minute return.</p>
+</aside>
+</section>
+<section id="cc-observation">
+<h3>Observation Is Not State</h3>
+<div class="cols">
+<div>
+<p>Air warms in minutes; seats and dashboard take much longer.</p>
+<ul>
+<li>two cabins can both read 20 °C air</li>
+<li>a cold interior keeps pulling the air down</li>
+<li>the paper's state includes interior-mass temperature \(T_m\)</li>
+</ul>
+</div>
+<div>
+<div class="definition">
+<p>Equivalent temperature at low air speed (Madsen; Brusey et al., Eq. 6):
+\[T_e=\tfrac{1}{2}\,(T_c+T_r),\qquad T_r=T_m\]</p>
+</div>
+<p class="small">Comfort in the paper: \(T_e\) within \(24\pm1\) °C.</p>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.3 (Eq. 6), §3.6, §5.1</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §17.3</a></p>
+<aside class="notes">
+<p>Equation 6 has a second branch for occupant air speed above 0.1 m/s, which also depends on clothing insulation; the paper estimates occupant air speed as vent flow divided by 10, sets clothing to 0.7 clo, and assumes the mean radiant temperature T_r equals the interior-mass temperature T_m. ET is computed from the state, not part of it; it is given to the “et” variants of the hand-coded controllers but not to the RL controller (§3.3), and the conclusion notes that the RL controller still controls ET in a stable way. In a real car ET cannot be measured directly, which motivated the Virtual Thermal Comfort Sensor that estimates it from several cheaper sensors (§5.1). This is the deeper sense of “comfort, not temperature”: the comfort variable depends on a slow, hidden part of the state.</p>
+</aside>
+</section>
+<section id="cc-hidden-lab">
+<h3>Interactive: A Hidden Variable</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Separate two-node illustration: air 20 kJ/K, interior mass 70 kJ/K, coupled at 80 W/K; ambient −5 °C. Both cabins start with 20 °C air.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Same thermometer reading, different future. What must a controller that sees only air temperature assume?</p>
+<aside class="notes">
+<p>This is a separate illustration, not the single-zone toy: the air node (20 kJ/K) exchanges heat with the interior mass (70 kJ/K) at 80 W/K and with outside at 50 W/K, and the heater warms the air; explicit Euler with 0.1 s steps, which agrees with the exact two-node solution to 0.1 °C. Together the two nodes have the toy's C = 90 kJ/K and UA = 50 W/K. The values are anchored to the magnitudes in the paper's Table 1 (interior mass ≈ 71 kJ/K, 1/R_m = 81 W/K), but this is not the paper's model (no mixing chamber or vent flow). Defaults (2 kW, cabin B interior at −5 °C): after one minute cabin A reads 21.9 °C and cabin B 17.1 °C; after ten minutes 26.7 °C against 15.4 °C. ET for B starts at 7.5 °C although its air reads 20 °C. With the heater off, B falls to 12.1 °C in one minute and A to 16.9 °C; setting B's interior to 20 °C makes the two cabins identical. Answer to the prompt: a controller that sees only air temperature must assume some interior temperature, in effect the one typical of the situations it was designed or trained for; it applies the same action to A and B and is wrong for at least one of them. Cabin air temperature alone does not determine the next observation, so it is not a Markov state for this cabin. Options: add interior temperature to the state (as the paper does), estimate it from history, or add a sensor.</p>
+</aside>
+</section>
+<section id="cc-state-check">
+<h3>Quick Check: A Missing Variable</h3>
+<div class="cols">
+<div>
+<p>A state is Markov if</p>
+\[\mathbb{P}[S_{t+1}\mid S_t]=\mathbb{P}[S_{t+1}\mid S_1,\dots,S_t]\]
+<p class="small">Two trips both read 20 °C cabin air, with the same heater setting, but one cabin cools much faster.</p>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">What is the strongest conclusion?</p><div class="quiz-options"><button type="button" data-answer="0">The action set must be continuous</button><button type="button" data-answer="1">Cabin air temperature alone is not a Markov state here</button><button type="button" data-answer="2">Finer temperature bins will fix it</button></div><p class="quiz-feedback" aria-live="polite"></p><template>The next temperature also depends on the interior-mass temperature. Finer bins of the same observation cannot recover an unobserved variable: add it to the state, estimate it from history, or add a sensor.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer: the observation is not Markov. The history (for example how long the heater has been on) carries information about the interior temperature, which is why a history-based estimator can help; this is the partially observed setting of Sutton and Barto §17.3. A continuous action set does not address the problem, and finer bins of air temperature still alias cabins with different interiors. Ask why “use a recurrent network” is not an automatic answer: history helps only if it actually identifies the hidden variable and the training data cover the situations met in use.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-reward">
+<h2>Reward and Baselines</h2>
+</section>
+<section id="cc-reward">
+<h3>Reward with Explicit Units</h3>
+<div class="cols top">
+<div>
+<h4>This lecture</h4>
+\[R_{t+1}=-c_{t+1}-\frac{P_t}{w}\]
+<ul class="small">
+<li>\(c_{t+1}=1\) if \(T_{t+1}\notin[20,24]\) °C, else 0</li>
+<li>heater power \(P_t\) and weight \(w\) in kW</li>
+<li>\(w=5\) kW: a minute at 5 kW costs as much as one uncomfortable minute</li>
+</ul>
+</div>
+<div>
+<h4>Brusey et al. (2018), §3.6</h4>
+\[R(s,a)=R_C(s)-\frac{E(s,a)}{w}\]
+<ul class="small">
+<li>\(R_C=0\) if \(T_e\in 24\pm1\) °C, else \(-1\)</li>
+<li>\(E=\dot Q_E+2v_i\) (W): HVAC power plus a fan-flow term</li>
+<li>\(w=30\,000\): “a 1% improvement in comfort is equivalent to 300 W”</li>
+</ul>
+</div>
+</div>
+<div class="callout">Range: at an assumed 150 Wh/km, 1 kWh of heating costs about 6.7 km; one minute at 5 kW about 0.56 km.</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.6, §4.3.1, §6</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §17.4</a></p>
+<aside class="notes">
+<p>Both rewards have the same structure: a unit penalty per uncomfortable step and an energy term divided by a weight. With w = 5 kW, one minute at 5 kW (about 0.083 kWh, about 0.56 km at the assumed 150 Wh/km) costs one comfort unit, so 1 kWh costs 12 uncomfortable minutes. Our comfort band is on air temperature (20–24 °C), a teaching choice; the paper's is on equivalent temperature (24 ± 1 °C). The paper's divisor w = 30 000 is explained there as “a 1% improvement in comfort is equivalent to 300 W”, and it notes that w can be changed to favour comfort or efficiency (§4.3.1). A finite penalty is a trade-off, not a hard comfort constraint. The paper's conclusion stresses that this reward does not coach the agent: reward is given only when comfort is reached. The 150 Wh/km driving consumption is a stated assumption for converting energy to range, not a figure from the paper.</p>
+</aside>
+</section>
+<section id="cc-tradeoff-lab">
+<h3>Interactive: Energy Versus Comfort</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Planner: exact model, known ambient, cold-soak start. It maximises the trip return for the chosen \(w\).</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Lower w until the planner stops heating. Is “never heat” what the designer intended? Then try −15 °C.</p>
+<aside class="notes">
+<p>Defaults (w = 5 kW, −5 °C, 30 min): 22 of 30 minutes comfortable, 1.17 kWh (about 7.8 km at 150 Wh/km), return −22.0. In this toy the planner's choice is all or nothing: either the same full warm-up (about 9 minutes, mostly at 5 kW) followed by riding just above 20 °C, or no heating at all; above the threshold, raising w changes only the return. The readout gives the reason: the unheated cabin is never comfortable, so heating wins when its comfortable minutes N exceed its energy cost ΣP_t/w. At −5 °C heating buys 22 minutes for 70 kW·min, so it pays for w &gt; 70/22 = 3.18 kW; on the slider's 0.5 kW grid the planner heats for w ≥ 3.5 and not at w = 3. Answer to the prompt: “never heat” is the optimal response to the reward as written, not what a designer intends. The comfort penalty is all-or-nothing and the warm-up is a fixed cost paid before the first comfortable minute. At −15 °C heating buys 18 minutes for 95 kW·min (w &gt; 5.28), so at the default w = 5 the planner leaves the cabin cold and needs w ≥ 5.5; at +10 °C it buys 27 minutes for 30 kW·min and w ≥ 1.5 suffices. A 15-minute trip at −5 °C needs w ≥ 7.5, and a 10-minute trip is never heated, even at w = 20. This is the reward doing exactly what it says, which is why reward weights are design decisions. In the paper, sweeping the divisor (log10 w from 3 to 4.5 in 0.1 steps) traced a comfort–energy front (Fig. 9), with some backtracking (for example at w = 10^4.3) that the authors read as sub-optimal learned policies for some divisors.</p>
+</aside>
+</section>
+<section id="cc-baselines">
+<h3>Credible Baselines</h3>
+<table class="compact">
+<thead><tr><th>Controller</th><th>Rule (same six heater levels)</th><th>Knows</th></tr></thead>
+<tbody>
+<tr><td>Bang-bang</td><td>5 kW below 21 °C, off above 23 °C, else keep</td><td>cabin temperature</td></tr>
+<tr><td>Proportional</td><td>\(P_t=\operatorname{clip}\big(\operatorname{round}(K_p(22-T_t)),0,5\big)\)</td><td>cabin temperature</td></tr>
+<tr><td>Planner</td><td>dynamic programming over the trip</td><td>exact model, ambient (oracle)</td></tr>
+<tr><td>Learned</td><td>greedy in \(Q\) (Section 5)</td><td>cabin and ambient bins</td></tr>
+</tbody>
+</table>
+<div class="callout">State what each controller knows, and give all of them the same actions.</div>
+<p class="small">The paper's baselines (bang-bang, proportional, fuzzy logic, commercial) act on fan rate and vent temperature, each with three sensors: air, air–interior average, ET.</p>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §4–4.2</a></p>
+<aside class="notes">
+<p>Our bang-bang and proportional rules are heater-power analogues, not the paper's controllers. In the paper, bang-bang blows the maximum fan rate until within 1 °C of the target, then the minimum fan rate while trying to match the target; the proportional controller reduces fan speed exponentially as the sensed temperature nears 24 °C, v_i = 100 − 99 exp(−|T_s − 24|/10); the commercial controller follows a commercial specification with lower fan rates; the fuzzy controller uses the rules of Fig. 5 (§4.1–4.2). All controllers act through the same action representation (§4). Our planner is an oracle: it knows the model, the ambient temperature and the trip length, so it is a reference ceiling for the toy, not a deployable baseline. The learned controller sees only binned cabin and ambient temperatures.</p>
+</aside>
+</section>
+<section id="cc-compare-lab">
+<h3>Interactive: Same Trip, Three Controllers</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+</div>
+<div>
+<p class="small">Same start, same six heater levels, 30-minute trip, \(w=5\) kW.</p>
+<div data-controls class="demo-controls"></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Predict the ranking on comfort and on energy. Then lower K<sub>p</sub>: why does the proportional cabin settle below the band?</p>
+<aside class="notes">
+<p>Defaults (−5 °C cold soak, K_p = 1 kW/°C): bang-bang 19 comfortable minutes, 1.33 kWh, return −27.0; proportional 22 minutes, 1.20 kWh, −22.4; planner 22 minutes, 1.17 kWh, −22.0. Bang-bang overshoots: one 5 kW minute near 22 °C adds about 2.4 K, so it leaves the band at the top (peaking at 25.2 °C) and pays for heat nobody needed. Answer to the prompt: with K_p = 0.5 the cabin settles near 19.5 °C, where the heater power K_p(22 − T) balances the loss UA(T − T_amb), and is never comfortable (0 minutes for 1.13 kWh): a steady-state offset that depends on the weather. Larger gains remove the offset but hold the cabin a little warmer and use slightly more energy (K_p = 3: 22 minutes, 1.23 kWh). The planner rides just above 20 °C. At −15 °C the planner does not heat at all: its return of −30.0 beats both baselines (−35.0), the cliff of the trade-off slide again. In this one-node, one-actuator toy a well-tuned proportional controller is already close to the oracle, so do not expect learning to win by much here; the paper's problem has 60 actions and a comfort variable that depends on hidden interior temperature.</p>
+</aside>
+</section>
+<section id="cc-kpi-check">
+<h3>Quick Check: Reward and Performance</h3>
+<div class="cols">
+<div>
+<p>Table 3 of the paper reports, for every controller:</p>
+<ul>
+<li>average reward</li>
+<li>% time spent in comfort</li>
+<li>average HVAC power</li>
+</ul>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">Controller A earns a higher average reward than B on the same scenarios. What else do you need before calling A better?</p><div class="quiz-options"><button type="button" data-answer="0">Nothing: reward is the complete evaluation</button><button type="button" data-answer="1">Comfort and energy separately, and the weight \(w\) used</button><button type="button" data-answer="2">Only more training episodes</button></div><p class="quiz-feedback" aria-live="polite"></p><template>The scalar reward depends on \(w\) and hides the trade-off. A controller can raise the reward by giving up comfort when energy is weighted heavily; the separate columns show what was traded.</template></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), Table 3</a></p>
+<aside class="notes">
+<p>Answer: report comfort and energy separately, with the weight. In the trade-off demo the planner improves its return at −15 °C and w = 5 by not heating at all; that may or may not meet the design requirement. Ask what units each column has (dimensionless reward per step, percentage of time, kW) and which of them a passenger, a range engineer and a learning algorithm each care about.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-planning">
+<h2>Planning and Pre-conditioning</h2>
+</section>
+<section id="cc-planning">
+<h3>Planning with the Model</h3>
+<p>With a model and a known trip length, solve the trip backwards:</p>
+\[V_N(s)=0,\qquad V_t(s)=\max_a\big[r(s,a)+V_{t+1}(s')\big],\quad s'=f(s,a)\]
+<ul>
+<li>\(s\): cabin temperature on a 0.1 °C grid, interpolated</li>
+<li>30 steps × 701 temperatures × 6 actions</li>
+<li>act greedily: \(A_t=\arg\max_a\big[r(S_t,a)+V_{t+1}(f(S_t,a))\big]\)</li>
+</ul>
+<div class="callout">Here the planner is an oracle: exact model, known ambient, known trip length.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), Chapter 4 and §8.1</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8: Integrating Learning and Planning</a></p>
+<aside class="notes">
+<p>This is dynamic programming (Lecture 3) on a deterministic model with a finite horizon, so no discount is needed. The grid runs from −20 to 50 °C; values between grid points are interpolated linearly, and the policy looks one step ahead from the exact temperature. It takes milliseconds in the browser. The paper uses its model differently: as a fast simulator that generates experience for Sarsa(λ) (“learning in simulation first”, §3), so that the learned policy can run without the model or a forecast. Lecture 8's Dyna combines both uses. Any real planner inherits the model's errors and needs forecasts of ambient conditions and trip length.</p>
+</aside>
+</section>
+<section id="cc-precondition">
+<h3>Pre-conditioning</h3>
+<div class="cols">
+<div>
+<ul>
+<li>before departure the car is often plugged in</li>
+<li>heat from the grid, not the battery</li>
+<li>needs a model and the departure time</li>
+<li>too early: grid energy spent holding temperature</li>
+</ul>
+</div>
+<div>
+<div class="definition">
+<p>Decision: how long before departure should heating start?</p>
+<p>Goal: comfortable from the first minute, with the least battery energy.</p>
+</div>
+<p class="small">Toy model at −5 °C: start 9 minutes before departure; battery energy for the 30-minute trip falls from 1.20 to 0.65 kWh.</p>
+<p class="small">Brusey et al. note that time of day in the state (Fazenda et al., 2014) lets a learner pre-heat.</p>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §2.2</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Pre-conditioning moves heating energy from the battery to the grid; it does not reduce the total energy and can increase it. The paper's related-work section notes that Fazenda et al. (2014) included time of day in a Q-learning state for building HVAC, which provides for pre-heating, and suggests the approach could be used for the car cabin. With a known departure time, planning is simple: simulate candidate start times with the model and pick the latest that is comfortable at departure. Worked example with the toy model, the proportional controller (K_p = 1 kW/°C) running both parked and driving, 5 kW available from the charger and the same heat loss parked as driving (usually lower at standstill): at −5 °C the latest start is 9 minutes before departure. The cabin departs at 20.3 °C and all 30 driving minutes are comfortable (22 without pre-conditioning); the grid supplies 0.73 kWh and the battery 0.65 kWh instead of 1.20 kWh (4.3 km of range instead of 8.0 km at the assumed 150 Wh/km). Starting 30 minutes early raises grid energy to 1.20 kWh with no further battery saving: the extra only holds the temperature. The latest start is 16 minutes at −15 °C and 4 minutes at +10 °C. Without a known departure time this becomes a prediction problem as well as a control problem.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-learning">
+<h2>Learning a Controller</h2>
+</section>
+<section id="cc-sarsa">
+<h3>Sarsa(λ) on a Discretised Cabin</h3>
+<div class="eq-sm">\[\delta_t=R_{t+1}+\gamma Q(S_{t+1},A_{t+1})-Q(S_t,A_t)\]
+\[E_t(s,a)=\gamma\lambda E_{t-1}(s,a)+\mathbf{1}(S_t=s,A_t=a)\]
+\[Q(s,a)\leftarrow Q(s,a)+\alpha\,\delta_t\,E_t(s,a)\quad\text{for all } s,a\]</div>
+<div class="cols top">
+<div>
+<h4>Representation</h4>
+<ul class="small">
+<li>cabin temperature: 1 °C bins, −12 to 36 °C</li>
+<li>ambient: five 4 °C bands</li>
+<li>48 × 5 × 6 = 1440 action values</li>
+</ul>
+</div>
+<div>
+<h4>Training</h4>
+<ul class="small">
+<li>\(\alpha=0.1,\ \gamma=0.95,\ \lambda=0.9,\ \varepsilon=0.1\)</li>
+<li>\(Q=0\) at the start: optimistic, as no reward is positive</li>
+<li>a time limit, not a terminal state: keep bootstrapping</li>
+</ul>
+</div>
+</div>
+<p class="small">Paper (§3.4, §3.7): tile coding over state and action; \(\alpha=0.01,\ \gamma=0.99,\ \lambda=0.98,\ \varepsilon=0.16\).</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §2.6, §6.4, §12.7</a>; <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.4, §3.7</a></p>
+<aside class="notes">
+<p>The update applies to every state–action pair with a non-zero trace; traces are accumulating, as in Lecture 4's backward view, and are reset to zero at the start of each trip. Behaviour is ε-greedy; evaluation is greedy with ties broken towards lower power. Temperatures outside −12 to 36 °C are clipped to the end bins. Training trips draw ambient uniformly from −10 to 10 °C and start the cabin 0 to 10 °C above ambient, from a seeded generator. Optimistic zeros (no reward is positive, and almost every return is negative) make the greedy policy try other actions in a bin before settling. In the paper, ε = 0.16 for the first 190 000 episodes and zero thereafter, and α, λ and ε were chosen by looking at performance over the first 2000 episodes (§3.7, §4.3.1).</p>
+</aside>
+</section>
+<section id="cc-train-lab">
+<h3>Interactive: Learning from Simulated Trips</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Sarsa(λ) with λ = 0.9 and with λ = 0, three agents each (seeds 1–3; thin lines). Every 250 training trips, each greedy policy is tested on the 200 test trips (seed 2018).</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Predict first: which λ learns faster when reward only arrives once the cabin is comfortable? Then train to 6000 trips.</p>
+<aside class="notes">
+<p>Both learners use the same seeds (1–3) and the same 200 test trips. The demo opens after 500 training trips per seed; Reset returns to that view, and the buttons stop at 6000 trips. Mean test comfort with λ = 0.9: 0% before training (the all-zero table chooses 0 kW everywhere, ties going to the lower power), 15% after 250 trips, 32% after 500, 58% after 1000, 78% after 2000 and 80% after 6000 (1.84 kW, return −17.1). With λ = 0 the same budgets give 19%, 23%, 25%, 22% and 59%. Answer to the prompt: λ = 0.9 learns much faster. The comfort reward only arrives at the end of the warm-up; one-step Sarsa passes it back one bin per visit, whereas the trace sends it back along the whole warm-up in one update. The dashed lines are the proportional controller (82.6%) and bang-bang (76.1%) on the same test trips; the oracle planner reaches 83.5%. With traces the learner passes bang-bang by 2000 trips but does not beat the proportional controller in this toy. Curves are noisy and need not be monotonic: a greedy policy can get worse after more training (λ = 0.9 dips to 73% at 3750 trips). Training is incremental and deterministic: the λ = 0.9 agents give exactly the tables of seeds 1–3 in the evaluation demo, so at 4000 trips their mean, 78.4%, matches those three seeds there.</p>
+</aside>
+</section>
+<section id="cc-state-design">
+<h3>How Much State Can We Afford?</h3>
+<div class="cols">
+<div>
+<h4>Table growth</h4>
+<p>Add interior-mass temperature (10 bins) and solar load (4 bins):</p>
+\[48\times5\times10\times4\times6=57\,600\]
+<p>Most cells are rarely visited.</p>
+</div>
+<div>
+<h4>Function approximation (Lecture 6)</h4>
+<ul>
+<li>the paper uses tile coding over state and action (30 tilings)</li>
+<li>nearby states share what they learn</li>
+</ul>
+<div class="callout">Generalisation also shares errors: check the states the controller will actually visit.</div>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.3–3.4 and Table 2</a>; <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), §9.5.4</a></p>
+<aside class="notes">
+<p>The paper uses function approximation “to avoid having to discretise the state and also to support a large state space” (§3.3). Its tile coding (§3.4, Table 2) spans state and action together: cabin air 0–50 °C in 26 intervals, interior mass 10–40 °C and outside 0–40 °C in 7 each, and vent temperature, vent flow and recirculation in 3 each; 10 tilings cover all six variables and 20 tilings cover cabin air with the three action variables (the paper calls each tiling a “tile”). More state is not automatically better: each extra variable multiplies the table and the data needed to fill it. The toy shows this at small scale (Sarsa(λ) as on the previous slides, 1 °C cabin bins, mean of seeds 1–3 on the 200 test trips): with cabin temperature alone (288 action values) the greedy policy is comfortable 62% of the time after 250 training trips; adding the five ambient bands (1440 values) gives only 15% after 250 trips, and both reach about 80% after 8000 trips. Ambient adds little here because cabin-temperature feedback already compensates for the weather. Approximation trades that data cost for bias where nearby states should behave differently.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-evaluation">
+<h2>Safety and Evaluation</h2>
+</section>
+<section id="cc-exploration">
+<h3>Exploration Belongs in the Simulator</h3>
+<div class="cols top">
+<div>
+<ul>
+<li>a random action is an experiment on the passengers</li>
+<li>learn in simulation first; the paper evaluates in simulation only</li>
+<li>after deployment: explore little or not at all</li>
+</ul>
+</div>
+<div>
+<h4>Safeguards</h4>
+<ul>
+<li>the RL agent sits on top of existing low-level controllers and keeps their safety mechanisms</li>
+<li>out-of-bounds states are absorbing, with the worst-case penalty</li>
+<li>beyond the paper: a model-based action filter (next slide)</li>
+</ul>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §2.2, §3, §3.6, §5.1</a>; <a href="https://doi.org/10.1016/j.buildenv.2006.07.010">Dalamagkidis et al. (2007)</a></p>
+<aside class="notes">
+<p>Brusey et al. summarise Dalamagkidis et al. (2007): taking random actions, even briefly, is unacceptable for a system deployed in a real environment, so they recommend training exhaustively before deployment and allowing minimal or no exploration afterwards (§2.2). The paper follows prior work in learning in simulation first; the learnt policy could later run in the car as a fixed policy or as a starting point for further learning, and in-car implementation is left to future work (§3). Illegal states, where component values are out of bounds, are not penalised explicitly but act as absorbing states with the worst-case penalty (§3.6). The agent is designed to sit on top of existing low-level controllers, which keeps it generic and retains existing low-level safety mechanisms (§5.1). The action filter is not part of the paper: it is a common safeguard added on top of a learned policy, examined on the next slide.</p>
+</aside>
+</section>
+<section id="cc-filter-check">
+<h3>Quick Check: What Does a Safety Filter Prove?</h3>
+<div class="cols">
+<div>
+<p>A safety filter checks each action the controller proposes against</p>
+<ul>
+<li>a nominal model (\(UA=50\) W/K)</li>
+<li>one step ahead</li>
+<li>an envelope of 16–28 °C</li>
+</ul>
+<p class="small">A rejected action is replaced by the nearest heater power that the model predicts stays inside.</p>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">Every applied action was predicted to stay inside the envelope. Which claim follows?</p><div class="quiz-options"><button type="button" data-answer="0">The cabin will always stay inside the envelope</button><button type="button" data-answer="1">For this model and state, the next step is predicted inside</button><button type="button" data-answer="2">The filtered policy is optimal</button></div><p class="quiz-feedback" aria-live="polite"></p><template>Model error, disturbances and later steps are not covered. A one-step nominal check is a limited statement, and filtering changes the policy without making it optimal.</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer: only the one-step nominal prediction. A worked example with the toy model at −5 °C outside: with the cabin at 16.4 °C, the filter rejects 0 kW (predicted 15.70 °C) and applies 1 kW (predicted 16.35 °C). If the true heat loss is 80 W/K instead of 50 W/K, the same 1 kW gives 15.94 °C, and at 150 W/K (for example at speed) 15.00 °C: the cabin leaves the envelope although every check passed. The guarantee was only as good as the model; the paper's model does not take vehicle velocity into account either (§3.1). The envelope is an illustrative number, not a health limit. Ask what extra assumptions a stronger statement would need: bounded uncertainty in UA and ambient, a margin inside the envelope, reliable sensing, and an invariant set from which a safe action always exists. Also note that a filter interacts with learning: the agent never experiences the rejected actions, so its value estimates for them stay uninformed.</p>
+</aside>
+</section>
+<section id="cc-evaluation">
+<h3>Fair Evaluation</h3>
+<ul>
+<li>freeze the controller before testing</li>
+<li>unseen test scenarios, the same for every controller</li>
+<li>several training seeds: report the spread</li>
+<li>report comfort <em>and</em> energy, not only reward</li>
+<li>tune on separate development scenarios</li>
+</ul>
+<div class="callout">Brusey et al.: 200 randomly pre-selected start states, the same test set for every controller.</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.8, §4.3, Table 3</a></p>
+<aside class="notes">
+<p>The paper's test scenario set is 200 randomly pre-selected start states, used at regular intervals during learning and for all controllers, so that the comparison is fair and reasonably comprehensive (§3.8). Its Table 3 reports reward, comfort and energy for every controller and sensor. A point for discussion rather than criticism: the learning parameters were chosen from early performance on that same test scenario set (§3.7, Fig. 8); a stricter protocol today would tune on a separate development set and report the test set once. In our toy, training scenarios come from each agent's seed, the 200 test trips come from seed 2018 and are never used for training or tuning, and learned controllers are reported over five seeds.</p>
+</aside>
+</section>
+<section id="cc-eval-lab">
+<h3>Interactive: Evaluate on Unseen Trips</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+</div>
+<div>
+<p class="small">200 test trips (seed 2018). Learned: Sarsa(λ), seeds 1–5. Line: the oracle planner for \(w\) from 2 to 5 kW.</p>
+<div data-controls class="demo-controls"></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Which controllers are dominated: worse on comfort and on energy? Is a lower-energy point automatically better?</p>
+<aside class="notes">
+<p>At w = 5: bang-bang 76.1% comfort at 1.95 kW (return −18.9); proportional with K_p = 1, 82.6% at 1.81 kW (−16.1); planner 83.5% at 1.75 kW (−15.5). The learned controller (mean ± standard deviation over seeds 1–5) after 4000 trips per seed: 78.2 ± 1.5% at 1.80 kW (−17.3); after 1000 trips 59.5 ± 9.8% at 1.54 kW (−21.4); after 16 000 trips 80.6 ± 0.4% at 1.84 kW (−16.8). Answer to the prompt: bang-bang is dominated by the proportional controller and by the planner; the learned controller is dominated by the planner and is within 0.01 kW of being dominated by the proportional controller. A lower-energy point is not automatically better: the under-trained learner uses less energy only because it is less comfortable, and the planner line shows that any amount of energy can be saved by giving up comfort (w = 2: 42% at 0.58 kW); even the oracle cannot exceed about 84% because warming from a cold soak takes time. K_p = 0.75 gives 69.1% at 1.78 kW, far above the planner line at the same comfort (about 1.24 kW at w = 3); gains above 1 reach 83.5% for slightly more power (1.83–1.88 kW). In the paper, by contrast, the learned controller improved both comfort and energy over every hand-coded controller; the toy is not expected to reproduce that ranking.</p>
+</aside>
+</section>
+<section id="cc-study">
+<h3>What the Real Study Did</h3>
+<table class="compact">
+<tbody>
+<tr><td>Model</td><td>three heat-balance equations; validated on warm-up and cool-down runs of a Jaguar XJ in a climatic wind tunnel</td></tr>
+<tr><td>State</td><td>\(T_c,\ T_m,\ T_{\text{amb}}\); comfort through equivalent temperature</td></tr>
+<tr><td>Actions</td><td>60: vent flow × vent temperature × recirculation</td></tr>
+<tr><td>Learning</td><td>Sarsa(\(\lambda\)) with tile coding; 200 000 episodes of 500 steps, about 6.3 simulated years, 85 minutes of computing</td></tr>
+<tr><td>Test</td><td>200 random start states; bang-bang, proportional, fuzzy and commercial controllers, each with three sensors</td></tr>
+</tbody>
+</table>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.1–3.8, §4, §4.3</a>; <a href="https://doi.org/10.1016/j.mechatronics.2017.04.010">Mechatronics 50:413–421</a></p>
+<aside class="notes">
+<p>Model: cabin air, interior mass and a mixing chamber, with constants chosen to match the target car (Table 1); validation compares simulated and measured head-rest-height temperatures (Figs. 3–4). The authors state that energy use is modelled on reasonable assumptions but was not validated against data (§3.2), that the hand-coded controllers may not match state-of-the-art HVAC controllers, that humidity and other comfort factors are not modelled, and that side-by-side in-car comparison is future work (§5–6). Learning took 85 minutes for 200 000 episodes on a 2.9 GHz Intel Core i7 (§4.3).</p>
+</aside>
+</section>
+<section id="cc-results">
+<h3>Reported Results</h3>
+<table class="compact">
+<thead><tr><th>Agent (selected rows)</th><th>Average reward</th><th>Time in comfort</th><th>Average HVAC power</th></tr></thead>
+<tbody>
+<tr><td>rl</td><td>−1.2</td><td>67%</td><td>0.77 kW</td></tr>
+<tr><td>bang-bang-avg</td><td>−1.6</td><td>55%</td><td>0.88 kW</td></tr>
+<tr><td>fuzzy-et</td><td>−2.1</td><td>42%</td><td>1.2 kW</td></tr>
+<tr><td>proportional-avg</td><td>−2.2</td><td>17%</td><td>0.7 kW</td></tr>
+<tr><td>commercial-air</td><td>−2.8</td><td>6.6%</td><td>1.3 kW</td></tr>
+</tbody>
+</table>
+<ul class="small">
+<li>reward performance above bang-bang, proportional, fuzzy, commercial: 23%, 43%, 40%, 56%</li>
+<li>against the next best: energy 13% lower, time in comfort 23% higher</li>
+<li>simulation only; the energy model was not validated against data</li>
+</ul>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), Abstract, Table 3, §3.2, §6</a></p>
+<aside class="notes">
+<p>The rows are the best-reward sensor variant of each controller type, copied from Table 3 (proportional-air ties proportional-avg at −2.2 with 12% and 0.59 kW). The percentages in the first bullet are the abstract's reward-performance increases, not comfort percentages. The conclusion states the headline comparison directly: 67% time in comfort versus 55% for bang-bang with the averaged sensor, and 0.77 kW versus 0.88 kW; the authors add that the exact energy use may vary in practice because the energy side of the simulation has not been fully validated. They also suggest the commercial controller's poor comfort may reflect a deliberate design decision to constrain fan noise (§5). Do not compare these numbers with the toy's: different model, actions, comfort measure and step length.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-summary">
+<h2>Summary</h2>
+</section>
+<section id="cc-exercise">
+<h3>Exercise (5 mins): Design a Fair Comparison</h3>
+<div class="cols top">
+<div>
+<blockquote>“Our learned controller used 20% less energy than the thermostat, so it is better.”</blockquote>
+<p class="small">In pairs: list what you need to know before accepting this claim, then design the test.</p>
+</div>
+<div>
+<ol class="steps small">
+<li>Same test scenarios, unseen in training?</li>
+<li>Comfort reported for the same runs?</li>
+<li>What did each controller know?</li>
+<li>How many seeds, and what spread?</li>
+</ol>
+<details><summary class="small">Debrief</summary><p class="small">Energy alone proves nothing: the planner line shows energy can always be cut by giving up comfort. Report comfort and energy on the same unseen scenarios, over several seeds, with each controller's information stated.</p></details>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.8 and Table 3</a></p>
+<aside class="notes">
+<p>Allow three minutes, then collect one missing condition from each pair. Support answers with numbers from the evaluation demo: after 1000 trips the learned controllers use 1.54 kW against bang-bang's 1.95 kW, about 21% less, but are comfortable only 59.5% of the time against 76.1%. A sound claim states the scenario distribution, the test set size, comfort and energy with their spread over seeds, the information and actions available to each controller, and the reward weight.</p>
+</aside>
+</section>
+<section id="cc-recap">
+<h3>Lectures 6–9 in One Cabin</h3>
+<table class="compact">
+<thead><tr><th>Lecture</th><th>Question for cabin comfort control</th></tr></thead>
+<tbody>
+<tr><td>6 Function approximation</td><td>Which cabin states should share a value estimate?</td></tr>
+<tr><td>7 Policy gradient</td><td>How could continuous vent temperature or fan speed be learned?</td></tr>
+<tr><td>8 Learning and planning</td><td>When should the model plan, and when should it generate experience?</td></tr>
+<tr><td>9 Exploration</td><td>Which experiments are acceptable, and where: simulator or car?</td></tr>
+<tr><td>10 This case study</td><td>What evidence justifies confidence in a controller?</td></tr>
+</tbody>
+</table>
+<p class="sources">Sources: <a href="https://jbrusey.github.io/7043scn/">7043SCN lectures 6–9</a>; <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §3.4, §3</a></p>
+<aside class="notes">
+<p>Connect each row to today: tile coding in the paper (Lecture 6); the paper's actions are discrete, but a Gaussian policy could set vent temperature directly (Lecture 7); our planner used the model to plan each trip, and could plan pre-conditioning, while the paper used its model as a simulator for learning (Lecture 8); ε-greedy exploration happened only in simulation (Lecture 9). Close by asking each learner for the most fragile assumption in today's toy: candidates include the Markov state, the calibrated model, the comfort proxy, the reward weight and the test distribution.</p>
+</aside>
+</section>
+<section id="cc-summary">
+<h3>Summary</h3>
+<ul>
+<li>comfort control: the state needs the slow interior temperature, not only the air</li>
+<li>the reward weight sets the comfort–range trade-off: a design decision</li>
+<li>credible baselines and an oracle show how much learning can add; a model also enables pre-conditioning</li>
+<li>explore in simulation, filter actions, and evaluate on unseen scenarios with several seeds, reporting comfort and energy</li>
+</ul>
+<p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), §6</a></p>
+<aside class="notes">
+<p>The paper's contribution, in its own words, is to raise the designer's level of abstraction from coding boolean or fuzzy rule sets to deciding how to model occupant comfort and how to weigh it against noise, screen clarity and energy efficiency (§6). Today's demos showed each ingredient at small scale: a hidden thermal state, an explicit-units reward whose weight can switch heating off, baselines with stated information and an oracle planner, Sarsa(λ) on a table with and without eligibility traces, and a seeded evaluation on held-out trips. The pre-conditioning and safety-filter slides gave worked numbers from the same toy model.</p>
+</aside>
+</section>
+<section id="cc-references">
+<h3>References</h3>
+<ul class="small">
+<li>Brusey, J., Hintea, D., Gaura, E. &amp; Beloe, N. (2018). <a href="https://doi.org/10.1016/j.mechatronics.2017.04.010">Reinforcement learning-based thermal comfort control for vehicle cabins</a>. <em>Mechatronics</em> 50, 413–421. Preprint: <a href="https://arxiv.org/abs/1704.07899">arXiv:1704.07899</a>.</li>
+<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/RLbook2020.pdf"><em>Reinforcement Learning: An Introduction</em></a>, Chapters 3, 4, 6, 8, 9, 12 and 17.</li>
+<li>Silver, D. <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-8-integrating-learning-and-planning.pdf">Lecture 8: Integrating Learning and Planning</a>, UCL RL course.</li>
+<li>Dalamagkidis, K., Kolokotsa, D., Kalaitzakis, K. &amp; Stavrakakis, G. (2007). <a href="https://doi.org/10.1016/j.buildenv.2006.07.010">Reinforcement learning for energy conservation and comfort in buildings</a>. <em>Building and Environment</em> 42(7), 2686–2698.</li>
+</ul>
+<aside class="notes">
+<p>The toy cabin model, interactive examples and explanatory wording in this deck were written for this course; the structure follows the course's earlier lectures. Numbers attributed to Brusey et al. are copied from the arXiv preprint (v2), which corresponds to the Mechatronics article. Works mentioned only as cited by Brusey et al. (Farrington and Rugh 2000, Fazenda et al. 2014, Madsen 1978) are referenced through the paper. Source links need an internet connection.</p>
+</aside>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/zoom.js"></script>
+<script src="interactive.js"></script>
+<script src="demos.js"></script>
+<script>
+Demos.mountAll();
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+keyboardCondition: DeckKeyboard,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'slide',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>

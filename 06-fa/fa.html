@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Function Approximation</title>
+<meta name="author" content="James Brusey"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.css"/>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/theme/serif.css" id="theme"/>
+
+<link rel="stylesheet" href="custom.css"/>
+<link rel="stylesheet" href="interactive.css"/>
+<meta name="description" content="J Brusey - Function Approximation">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide">
+<h1 class="title">Function Approximation</h1><h2 class="author">James Brusey</h2>
+<aside class="notes">
+<p>Suggested duration: 75–90 minutes including the interactive slides. Two examples run through the lecture: Mountain Car (Sutton and Barto, Example 10.1) for representation and control, and a 100-state random walk (a scaled version of Example 9.1) for prediction. Every simulation runs in the browser; random runs use fixed, disclosed seeds. Values and rewards are in arbitrary reward units and normalised coordinates are dimensionless. The examples illustrate mechanisms and make no empirical performance claim. Press S for the speaker view.</p>
+</aside>
+</section>
+<section>
+<section id="slide-overview">
+<h2>Overview</h2>
+<ol>
+<li>Introduction</li>
+<li>Linear Function Approximation</li>
+<li>Prediction with Approximation</li>
+<li>Choosing Features</li>
+<li>Control with Approximation</li>
+<li>Batch and Deep Value Methods</li>
+<li>Summary</li>
+</ol>
+</section>
+</section>
+<section>
+<section id="slide-introduction">
+<h2>Introduction</h2>
+</section>
+<section id="fa-objectives">
+<h3>Learning Outcomes</h3>
+<div class="cols top">
+<div>
+<p>By the end of this lecture you should be able to:</p>
+<ol>
+<li>explain why large state spaces need generalisation</li>
+<li>calculate a linear value estimate and its update</li>
+<li>connect MC, TD and Sarsa to approximation</li>
+<li>explain how features shape what is learned</li>
+</ol>
+</div>
+<div>
+<p>Prerequisites:</p>
+<ul>
+<li>return \(G_t\), TD error \(\delta_t\), Sarsa</li>
+<li>dot products and the derivative of a square</li>
+</ul>
+<div class="callout">Recurring question: <em>how can one update improve predictions for states we have never visited?</em></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), Chapters 9–10</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6: Value Function Approximation</a></p>
+<aside class="notes">
+<p>Ask where a table becomes impractical: continuous temperature, position and velocity, camera observations. The key shift is shared parameters, not simply a smaller data structure. The lecture first makes sharing visible, then derives one reusable update whose target is supplied by the RL algorithm. Prediction assumes a fixed policy until the control section. Quick recall check: G_t = R_{t+1} + γG_{t+1}, and the TD error replaces the tail of the return by a current estimate.</p>
+</aside>
+</section>
+<section id="fa-scale">
+<h3>Large State Spaces</h3>
+<div class="cols">
+<div>
+<table class="compact">
+<thead><tr><th>State description</th><th>States</th></tr></thead>
+<tbody>
+<tr><td>10 binary variables</td><td>\(2^{10}=1{,}024\)</td></tr>
+<tr><td>30 binary variables</td><td>\(2^{30}\approx 1.07\times 10^{9}\)</td></tr>
+<tr><td>Position and velocity</td><td>continuous</td></tr>
+<tr><td>Camera image</td><td>vast</td></tr>
+</tbody>
+</table>
+<p class="small">A table cannot predict a state it has never seen.</p>
+</div>
+<div>
+<div class="definition">
+<p>Replace the table by a function with \(d\) weights:
+\[\hat v(s,\mathbf w)\approx v_\pi(s)\]
+\[\hat q(s,a,\mathbf w)\approx q_\pi(s,a)\]</p>
+</div>
+<ul>
+<li>\(d\) is much smaller than the number of states</li>
+<li>one update changes many predictions</li>
+</ul>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.1</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Memory: one 8-byte value for each of 2^30 states is exactly 8 GiB, before actions are counted; an action-value table multiplies this. Storage is not the only problem: an unvisited table entry has no evidence at all. A function transfers evidence through shared weights, so an update at one state changes the prediction at others. Whether that transfer helps depends on the representation, which is the subject of most of this lecture. Compression helps storage; generalisation helps learning. Modern neural networks may have more parameters than samples; the point is to exploit structure in the mapping from states to returns, not merely to be small.</p>
+</aside>
+</section>
+<section id="fa-car-lab">
+<h3>Interactive: Mountain Car</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">State \(s=(x,\dot x)\): position and velocity. Actions: push left, coast, push right. Reward \(-1\) per step until \(x=0.5\).</p>
+<p class="small">Lower plot: the same run in the \((x,\dot x)\) plane; shading marks where the policy pushes left.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Predict first: can full throttle reach the goal? Drag t to watch, then find a rule that works.</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), Example 10.1</a></p>
+<aside class="notes">
+<p>Dynamics (Sutton and Barto, Example 10.1): ẋ ← bound[ẋ + 0.001A − 0.0025 cos 3x] with |ẋ| ≤ 0.07, then x ← bound[x + ẋ] with x ≥ −1.2 (velocity reset to 0 at the left wall); reaching x = 0.5 ends the episode. Both plots and the readout show the run only up to step t, so the outcome appears as t is dragged and a prediction made first is not spoiled. The engine (0.001) is weaker than gravity on the steep slope (up to 0.0025), so from x₀ = −0.5 always pushing right swings between −0.500 and −0.267 for all 200 steps: a closed loop in the lower plot. Pushing in the direction of motion pumps energy, an outward spiral, and reaches the goal at step 124 (113 from −0.6, 115 from −0.55, 121 from −0.45, 122 from −0.4). The position-only rule (push uphill, away from the valley floor at x = −π/6 ≈ −0.524) never reaches the goal. From −0.5, −0.45 and −0.4 the car never crosses the floor, so the rule pushes right throughout and reproduces the full-throttle run exactly (the readout says so at t = 200); from −0.6 and −0.55 it pushes left and the car rocks on the left slope (between −0.723 and −0.600 from −0.6). Intuition: a position-only rule is a fixed force field, so a back-and-forth swing gains no energy from it (up to discretisation and the left wall). An offline sweep of every single-threshold position-only rule (thresholds −1.1 to 0.4, either direction, starts −0.6 to −0.4) found none that reached the goal within 1000 steps. The shading shows each policy as a function of the state: the position-only rule has a vertical boundary, the working rule a horizontal one at ẋ = 0. Position alone does not say whether the car is moving usefully, which is why the state, and later the features, must include ẋ; the same (x, ẋ) plane reappears in the Sarsa demonstration. Three fixed rules over 200 steps; no learning yet.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-linear">
+<h2>Linear Function Approximation</h2>
+</section>
+<section id="fa-features">
+<h3>Feature Vectors</h3>
+<div class="definition">
+<p>A feature vector describes state \(s\) with \(d\) numbers:
+\[\mathbf x(s)=\big(x_1(s),\,x_2(s),\,\dots,\,x_d(s)\big)^{\!\top}\]</p>
+</div>
+<p>Simple Mountain Car features:</p>
+\[\mathbf x(s)=\big(1,\ \text{scaled position},\ \text{scaled velocity}\big)^{\!\top}\]
+<ul>
+<li>the constant 1 lets the approximator learn an intercept</li>
+<li>features may be nonlinear in \(s\): polynomials, tiles, radial basis functions</li>
+<li>scale features to comparable ranges</li>
+</ul>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.4–9.5</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Features are the only thing the approximator sees about the state. Scaling matters because one step size multiplies every feature: if position is in metres and velocity in metres per second with very different ranges, the weights of the larger feature dominate the update. Normalising both coordinates to about [−1, 1] keeps the features dimensionless. With dimensionless features, weights carry reward units. A one-hot feature for every state recovers the table as a special case, so linear approximation is a strict generalisation of the tabular methods from Lectures 4 and 5.</p>
+</aside>
+</section>
+<section id="fa-linear">
+<h3>Linear Value Function</h3>
+<div class="definition">
+<p>A weighted sum of features:
+\[\hat v(s,\mathbf w)=\mathbf w^{\top}\mathbf x(s)=\sum_{i=1}^{d}w_i\,x_i(s),\qquad \nabla_{\mathbf w}\hat v(s,\mathbf w)=\mathbf x(s)\]</p>
+</div>
+<div class="cols">
+<div>
+<h4>Example</h4>
+<p>\(\mathbf x(s)=(1,\ 0.5,\ {-1})^{\top}\)<br>\(\mathbf w=(2,\ {-1},\ 0.5)^{\top}\)</p>
+</div>
+<div>
+\[\hat v(s,\mathbf w)=2-0.5-0.5=1\]
+<p class="small">Two length-3 vectors give one scalar.</p>
+</div>
+</div>
+<p class="small">“Linear” refers to the weights. The features may be any functions of the state.</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.4</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Calculate each contribution aloud and check the signs: 2×1 = 2, (−1)×0.5 = −0.5, 0.5×(−1) = −0.5. The third feature is negative but its weight is positive, so that term lowers the prediction; do not interpret a weight without knowing its feature convention. Both vectors are d-by-1; the gradient has d entries, one partial derivative per weight. Because the gradient is exactly the feature vector, linear methods are easy to inspect and have the strongest theory. These numbers are reused in the weight-update check. Linear in the weights is not linear in the state: polynomial features x(s) = (1, x, x²) draw a bowl or an inverted bowl, yet ∇v̂ = (1, x, x²) whatever the weights are. For Mountain Car with s = (p, v), a quadratic basis is x(s) = (1, p, v, p², pv, v²); higher orders add flexibility but amplify scaling problems and extrapolate badly outside the visited region.</p>
+</aside>
+</section>
+<section id="fa-objective">
+<h3>Mean Squared Value Error</h3>
+<div class="definition">
+<p>\[\overline{\mathrm{VE}}(\mathbf w)=\sum_{s}\mu(s)\big[v_\pi(s)-\hat v(s,\mathbf w)\big]^2,\qquad \mu(s)\ge 0,\ \ \sum_s\mu(s)=1\]</p>
+</div>
+<div class="cols">
+<div>
+<ul>
+<li>\(\mu(s)\): how much state \(s\) counts</li>
+<li>on-policy: the fraction of time \(\pi\) spends in \(s\)</li>
+</ul>
+</div>
+<div>
+<p class="small">One constant \(w\); \(v_\pi(A)=0\), \(v_\pi(B)=10\)</p>
+<table class="compact">
+<thead><tr><th>\(\mu(A)\)</th><th>\(\mu(B)\)</th><th>Best \(w\)</th></tr></thead>
+<tbody><tr><td>0.9</td><td>0.1</td><td>1</td></tr><tr><td>0.5</td><td>0.5</td><td>5</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="callout">A low average error can hide a large error in a rare state.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.2</a></p>
+<aside class="notes">
+<p>Differentiate 0.9w² + 0.1(10 − w)² to get w = 1; its squared error at B is 81 even though it is optimal for this model and weighting. Equal weights give w = 5. Neither repairs the missing capacity: one parameter is trying to represent two different values. The weighting defines what is optimised, not what is acceptable in a safety-sensitive application. v_π is the true expected return under the fixed policy, not a sampled return or a bootstrap estimate, so VE cannot be computed during learning; it is the yardstick used in the random-walk demonstration, where the true values are known.</p>
+</aside>
+</section>
+<section id="fa-sgd">
+<h3>Stochastic Gradient Descent</h3>
+<p>For a target \(U_t\), reduce the sample error \(\tfrac12\big[U_t-\hat v(S_t,\mathbf w_t)\big]^2\):</p>
+\[\mathbf w_{t+1}=\mathbf w_t+\alpha\big[U_t-\hat v(S_t,\mathbf w_t)\big]\nabla_{\mathbf w}\hat v(S_t,\mathbf w_t)\]
+<div class="definition">
+<p>Linear case:
+\[\mathbf w_{t+1}=\mathbf w_t+\alpha\big[U_t-\hat v(S_t,\mathbf w_t)\big]\,\mathbf x(S_t)\]
+step size \(\times\) prediction error \(\times\) features</p>
+</div>
+<ul>
+<li>the RL method supplies the target \(U_t\); the approximator supplies the gradient</li>
+<li>weights of inactive (zero) features do not change</li>
+</ul>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.3–9.4</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Hold U_t fixed while differentiating. The ½ cancels the 2 from the square. The derivative of the error is −(U_t − v̂)∇v̂; gradient descent subtracts it, so a positive error moves the prediction up. If U_t is an unbiased sample of v_π(S_t), for example a Monte Carlo return, this is true SGD on VE and converges to a local optimum under the usual decreasing step-size conditions. A TD target depends on w itself; treating it as fixed gives a semi-gradient, discussed in the next section. With dimensionless features, α is dimensionless.</p>
+</aside>
+</section>
+<section id="fa-update-check">
+<h3>Quick Check: Weight Update</h3>
+<div class="cols">
+<div>
+<p>Continue: \(\hat v=1\), target \(U=3\), \(\alpha=0.1\), \(\mathbf x=(1,\ 0.5,\ {-1})^{\top}\).</p>
+\[\delta=3-1=2,\qquad \alpha\delta=0.2\]
+\[\Delta\mathbf w=(0.2,\ 0.1,\ {-0.2})^{\top}\]
+\[\mathbf w'=(2.2,\ {-0.9},\ 0.3)^{\top}\]
+</div>
+<div>
+<div class="quiz" data-correct="2"><p class="question">What is the new prediction at this state?</p><div class="quiz-options"><button type="button" data-answer="0">0.55, because one weight decreased</button><button type="button" data-answer="1">1.20, because \(\alpha\delta=0.2\)</button><button type="button" data-answer="2">1.45, because the features scale the change</button></div><p class="quiz-feedback" aria-live="polite"></p><template>\(\hat v'=2.2-0.45-0.3=1.45\). In general \(\Delta\hat v(s)=\alpha\delta\,\lVert\mathbf x(s)\rVert^2\); here \(\lVert\mathbf x\rVert^2=2.25\).</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Give thirty seconds before revealing. Answer 1.45. The third weight falls, yet because its feature is negative the prediction rises. At the same state a linear update changes the prediction by α·δ·‖x‖² (0.2 × 2.25 = 0.45), a quick unit test, and a warning that the same α behaves differently under different representations. At another state s′ the change is α·δ·x(s′)ᵀx(s), which may be negative: a positive error raises the current prediction but need not raise every prediction. The next slide shows that footprint.</p>
+</aside>
+</section>
+<section id="fa-footprint-lab">
+<h3>Interactive: Where Does One Update Travel?</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Nine states, \(\mathbf w=\mathbf 0\), target 1 at \(x=0\), \(\alpha=0.5\). Every state changes by \(\Delta\hat v(s')=0.5\,\mathbf x(s')^{\top}\mathbf x(0)\).</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Predict the footprint before switching representation. Which states change, and by how much?</p>
+<aside class="notes">
+<p>One genuine linear update from zero weights with a unit target, so δ = 1 and αδ = 0.5; the bars show 0.5 x(s′)ᵀx(0) for each of the nine states. Table (one-hot): only x = 0 changes, by 0.500, because one-hot vectors are orthogonal. Aggregation (three regions: x &lt; −1/3, middle, x &gt; 1/3): the whole middle region (−0.25, 0, 0.25) changes by 0.500 and nothing else. Radial basis: three Gaussians centred at −0.65, 0 and 0.65; moving the width slider selects them. At σ = 0.35, x(0) = (0.18, 1, 0.18), ‖x(0)‖² = 1.06, so the centre changes by 0.532 and x = 0.25 by 0.437, falling to 0.063 at the ends. At σ = 1, x(0) = (0.81, 1, 0.81) and the centre change grows to 1.155 (x = 0.25: 1.128) because ‖x(0)‖² = 2.31. At σ = 0.1 the features barely overlap and the footprint is almost the table's (0.500 at the centre, 0.022 at x = 0.25). Wider features spread the change further and enlarge the effective step, another reason step sizes are not representation-invariant (next slide). The nine states are discrete; a table does not cover a continuum.</p>
+</aside>
+</section>
+<section id="fa-step-size">
+<h3>Choosing the Step Size</h3>
+<div class="cols top">
+<div>
+<p>Repeated updates at one state towards a fixed target \(U\):</p>
+\[U-\hat v'=\big(1-\alpha\lVert\mathbf x(s)\rVert^2\big)\big(U-\hat v\big)\]
+<ul>
+<li>the error shrinks only if \(0&lt;\alpha\lVert\mathbf x(s)\rVert^2&lt;2\)</li>
+<li>Quick Check state: \(\lVert\mathbf x\rVert^2=2.25\), so \(\alpha&lt;0.89\)</li>
+</ul>
+</div>
+<div>
+<p class="small">Five fixed targets \(U=1+x\) at \(x=-1,\,-0.5,\,0,\,0.5,\,1\). Model \(\hat v=w_0+w_1x\) from \(\mathbf w=\mathbf 0\), samples visited in a fixed cycle.</p>
+<table class="compact">
+<thead><tr><th>\(\alpha\)</th><th>After 20 updates</th><th>After 200 updates</th></tr></thead>
+<tbody>
+<tr><td>0.1</td><td>MSE 0.074</td><td><b>w</b> = (1.00, 1.00)</td></tr>
+<tr><td>1.5</td><td>MSE 8.06</td><td>MSE 4.3 × 10⁷</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="callout">Too small learns slowly; too large diverges, even with fixed targets. Scale \(\alpha\) to the features.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.3 and §9.6</a></p>
+<aside class="notes">
+<p>Derivation: after one update the prediction at the same state moves by αδ‖x(s)‖², so the remaining error U − v̂ is multiplied by 1 − α‖x(s)‖². It shrinks monotonically for α‖x‖² ≤ 1, oscillates but shrinks between 1 and 2, and grows beyond 2. For the Quick Check state (‖x‖² = 2.25) that means α &lt; 2/2.25 ≈ 0.89. The table is deterministic cyclic SGD on a perfectly representable data set, with no environment and no TD targets: at α = 0.1, 20 updates give w ≈ (0.923, 0.632), MSE 0.0738, and 200 updates reach (1.000, 1.000); at α = 1.5, 20 updates give w ≈ (−1.26, −1.44), MSE 8.06, and 200 updates give w ≈ (−3621, −7730), MSE ≈ 4.3×10⁷. For this cycle the boundary lies between α = 1.4 (converges) and α = 1.45 (grows); with several samples the limit depends on how their features overlap, not only on one ‖x‖². Sutton and Barto (§9.6) suggest α = 1/(τ E[xᵀx]) to learn from about τ similar experiences; tile coding's α = η/m is that rule with ‖x‖² = m. Moving TD targets make the choice more delicate, not less.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-prediction">
+<h2>Prediction with Approximation</h2>
+</section>
+<section id="fa-targets">
+<h3>Monte Carlo and TD Targets</h3>
+<div class="cols top">
+<div>
+<h4>Gradient Monte Carlo</h4>
+\[U_t=G_t\]
+<p class="small">An unbiased sample of \(v_\pi(S_t)\); wait until the episode ends.</p>
+</div>
+<div>
+<h4>Semi-gradient TD(0)</h4>
+\[U_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf w_t)\]
+<p class="small">Learn after one step; bootstrap from the current estimate.</p>
+</div>
+</div>
+<div class="definition">
+<p>TD error and linear TD(0) update:
+\[\delta_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf w_t)-\hat v(S_t,\mathbf w_t),\qquad \mathbf w_{t+1}=\mathbf w_t+\alpha\,\delta_t\,\mathbf x(S_t)\]</p>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.3</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Both methods use the same parameterised prediction and the same gradient; they differ only in how the target is built. For a fixed policy a complete return is an unbiased sample of the value, but it can have high variance and needs the end of the episode. TD substitutes an approximate next value and can update immediately; its target is generally biased by the approximation and usually less variable. Do not claim TD always has smaller total error. A worked check: v̂(S_t) = 0.8, R = 0, v̂(S_{t+1}) = 1.1, γ = 0.9 gives δ = 0.19, so with α = 0.1 every active weight moves by 0.019 times its feature.</p>
+</aside>
+</section>
+<section id="fa-target-lab">
+<h3>Interactive: Two Targets from One Trajectory</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Observed rewards \(R_{t+1}=1\), \(R_{t+2}=2\), \(R_{t+3}=4\), then the episode ends. Current estimate \(\hat v(S_t,\mathbf w)=2\).</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Find the next-state estimate that makes the two targets equal. Why that value?</p>
+<aside class="notes">
+<p>Defaults: G_t = 1 + 0.9×2 + 0.81×4 = 6.04 and the TD target is 1 + 0.9×3 = 3.70, errors 4.04 and δ_t = 1.70 against the current 2. The targets agree when the next-state estimate is 5.6 = 2 + 0.9×4, the actual discounted return from S_{t+1}; the slider reaches it exactly (both bars 6.04). In general they agree at 2 + 4γ, for example 4.0 at γ = 0.5 and 6.0 at γ = 1, always on the 0.1 grid. With γ = 0 both targets are the immediate reward 1 and the next-state slider has no effect, which the readout points out. At γ = 1 the MC target is the undiscounted sum 7. Changing the next-state estimate changes TD; it cannot change the observed return. The bootstrap at a true termination is covered on the Terminal Transitions slide.</p>
+</aside>
+</section>
+<section id="fa-semi-gradient">
+<h3>Why “Semi-Gradient”?</h3>
+<div class="cols">
+<div>
+<p>The TD target also depends on \(\mathbf w\). The full gradient of \(\tfrac12\delta_t^2\) is</p>
+<div class="eq-sm">\[\delta_t\big[\gamma\nabla_{\mathbf w}\hat v(S_{t+1},\mathbf w)-\nabla_{\mathbf w}\hat v(S_t,\mathbf w)\big]\]</div>
+<p class="small">Semi-gradient TD keeps only the current-state term: it treats the target as a constant.</p>
+</div>
+<div>
+<div class="quiz" data-correct="0"><p class="question">Which quantity is held fixed inside the TD update?</p><div class="quiz-options"><button type="button" data-answer="0">The target \(R_{t+1}+\gamma\hat v(S_{t+1},\mathbf w)\)</button><button type="button" data-answer="1">The current prediction \(\hat v(S_t,\mathbf w)\)</button><button type="button" data-answer="2">The feature vector \(\mathbf x(S_t)\), set to zero</button></div><p class="quiz-feedback" aria-live="polite"></p><template>The target is treated as a constant during the update; we do not differentiate through its next-state value. That is why the update is a semi-gradient.</template></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.3 and Chapter 11</a></p>
+<aside class="notes">
+<p>The current weights influence both predictions, so the full derivative has two terms; semi-gradient TD keeps only the derivative of the current prediction. That does not mean the target never changes: the next update recomputes it with the new weights. Semi-gradient methods are not true gradient descent on any objective, yet linear on-policy TD(0) still converges (to the TD fixed point, later in this lecture), often faster than MC. Distinguish the gradient of this sampled squared TD error from the gradient of the squared expected Bellman error: in stochastic environments these are different objectives, and the latter raises a double-sampling problem. Residual-gradient methods are not obtained by relabelling ordinary TD.</p>
+</aside>
+</section>
+<section id="fa-walk-lab">
+<h3>Interactive: Table or State Aggregation?</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">100-state random walk from state 50: jump 1–10 states left or right; exit left \(-1\), right \(+1\); \(\gamma=1\). Aggregation: 10 groups of 10.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Add 10 episodes at a time. Which representation is ahead early, and which after 2000 episodes?</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.3, Example 9.1</a></p>
+<aside class="notes">
+<p>A scaled version of Sutton and Barto's 1000-state walk; a group is one binary feature, so aggregation is linear approximation with 10 weights. Both learners see the same episodes (seed 6, mean length about 72 steps); the true values and the on-policy distribution μ are computed exactly, and √VE is μ-weighted (0.405 with all weights zero). The demonstration opens after 10 episodes so that every control change is visible; Reset returns to that view. Semi-gradient TD(0), α = 0.05: after 10 episodes table 0.402 vs aggregation 0.373; after 20, 0.400 vs 0.340; after 100, 0.375 vs 0.143; after 500, 0.228 vs 0.093; after 1010, 0.100 vs 0.180; after 2000, 0.030 vs 0.086. So aggregation is ahead early because one update moves a whole group; the lead changes hands between about 670 and 900 episodes, and from 910 on the table stays ahead. Aggregation cannot beat its floor of 0.054 (the best staircase), and constant-α noise keeps it fluctuating above that. The table has no approximation error but must visit every state many times. Gradient MC with aggregation needs a much smaller α: each episode updates a group many times towards the same return. At α = 0.002 MC gives aggregation 0.174 vs table 0.351 after 100 episodes and 0.069 vs 0.109 after 2000; at α = 0.05 MC aggregation stays mostly between 0.3 and 0.9 (0.612 after 100, 0.831 after 2000). Changing the method or α recomputes the same number of episodes from scratch, so comparisons are like-for-like. The episode buttons stop at 2000 (+1000 from 1010 adds 990) and are then disabled, with the reason in the readout. One seed illustrates; it is not a statistical comparison.</p>
+</aside>
+</section>
+<section id="fa-termination">
+<h3>Terminal Transitions</h3>
+<div class="cols top">
+<div>
+<h4>True termination</h4>
+<p class="small">No future return remains (the car reaches the goal).</p>
+\[U_t=R_{t+1}\]
+\[\delta_t=R_{t+1}-\hat v(S_t,\mathbf w)\]
+</div>
+<div>
+<h4>Time limit</h4>
+<p class="small">Recording stopped, but the task would continue.</p>
+\[U_t=R_{t+1}+\gamma\hat v(S_{t+1},\mathbf w)\]
+<p class="small">Bootstrap from the observed \(S_{t+1}\).</p>
+</div>
+</div>
+<div class="callout">A finite-horizon task is different: put the remaining time in the state; its horizon is a true termination.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §3.3 and §10.1</a></p>
+<aside class="notes">
+<p>This prevents a common implementation error: treating every data-collection boundary as a zero-value absorbing state. For an artificial cutoff in a continuing task, zeroing the bootstrap invents an ending that is not part of the problem. For an explicitly finite-horizon task, reaching the horizon is a real termination and the remaining time may be needed for a Markov state. The choice follows the task definition, not the name of a library flag. At true termination Sarsa selects no next action. A useful unit test: give the final transition a deliberately huge fake next value and check that it cannot leak into the target.</p>
+</aside>
+</section>
+<section id="fa-traces">
+<h3>Eligibility Traces</h3>
+<div class="definition">
+<p>Semi-gradient TD(\(\lambda\)) keeps a trace of recently active features, \(\mathbf z_{-1}=\mathbf 0\):
+\[\mathbf z_t=\gamma\lambda\,\mathbf z_{t-1}+\mathbf x(S_t),\qquad \mathbf w_{t+1}=\mathbf w_t+\alpha\,\delta_t\,\mathbf z_t\]</p>
+</div>
+<div class="cols top wide-right">
+<div>
+<p class="small">One-hot states A → B → A → C; \(\gamma=0.9\), \(\lambda=0.8\), so \(\gamma\lambda=0.72\).</p>
+<table class="compact">
+<thead><tr><th>\(t\)</th><th>\(S_t\)</th><th>\(z_A\)</th><th>\(z_B\)</th><th>\(z_C\)</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>A</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>1</td><td>B</td><td>0.72</td><td>1</td><td>0</td></tr>
+<tr><td>2</td><td>A</td><td>1.52</td><td>0.72</td><td>0</td></tr>
+<tr><td>3</td><td>C</td><td>1.09</td><td>0.52</td><td>1</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<p class="small">Suppose only the last TD error is nonzero: \(\delta_3=+1\), \(\alpha=0.1\).</p>
+\[\Delta\mathbf w=\alpha\,\delta_3\,\mathbf z_3=(0.109,\ 0.052,\ 0.100)^{\top}\]
+<ul class="small">
+<li>\(\lambda=0\): \((0,\ 0,\ 0.100)^{\top}\), only C, as in TD(0)</li>
+<li>\(\lambda=1\): \((0.163,\ 0.081,\ 0.100)^{\top}\), decay by \(\gamma\) only, as in Monte Carlo</li>
+<li>a revisited state accumulates: \(z_A&gt;1\)</li>
+</ul>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §12.1–12.2</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>The example isolates the trace bookkeeping: the intermediate TD errors are stipulated to be zero and only the final one is +1. With γλ = 0.72 the trace after A, B, A, C is (0.72³ + 0.72, 0.72², 1) = (1.093248, 0.5184, 1), so Δw = 0.1 × z₃ = (0.109, 0.052, 0.100). With λ = 0 only the current feature remains, (0, 0, 0.1); with λ = 1 the trace still decays by γ, giving (1.629, 0.81, 1) and Δw = (0.163, 0.081, 0.100). In the linear case the trace is a sum of past feature vectors, so the same equations apply to any features, not only one-hot states. An accumulating trace can exceed 1 after repeated visits (z_A = 1.52 at t = 2). Forward view: λ blends n-step returns, so λ = 0 is TD(0) and λ = 1 behaves like Monte Carlo. The exact forward–backward equivalence with changing weights needs true online TD(λ) (Chapter 12); this illustration is not that algorithm.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-features">
+<h2>Choosing Features</h2>
+</section>
+<section id="fa-tiles">
+<h3>Tile Coding</h3>
+<p>Overlay \(m\) offset grids (tilings). Each state activates one tile in each tiling:</p>
+\[\hat v(s,\mathbf w)=\sum_{i\,\in\,\text{active}(s)}w_i\]
+<ul>
+<li>binary features, exactly \(m\) active: cheap to compute</li>
+<li>nearby states share some tiles, distant states none</li>
+<li>one tiling is state aggregation</li>
+</ul>
+<div class="definition">
+<p>With \(\lVert\mathbf x(s)\rVert^2=m\), choosing \(\alpha=\eta/m\) moves the visited prediction by \(\eta\,\delta\).</p>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.5.4</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>If the active tile indices are 7, 42, 81 and 116, then v̂(s) = w_7 + w_42 + w_81 + w_116 and each transition updates only those four weights. Without dividing by m, one sample changes the visited prediction about m times more than intended. The offsets give a resolution finer than one tile while keeping broad generalisation; Sutton and Barto recommend asymmetric offsets in more than one dimension. The statement about η assumes no hash collisions. For Mountain Car the tilings cover position and velocity together, as in the control demonstration later.</p>
+</aside>
+</section>
+<section id="fa-tiles-lab">
+<h3>Interactive: Tile Coding</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Four tilings of a position \(x\in[0,1]\). Tile width ¼; offsets of 0, ¼, ½ and ¾ of a tile. Each of the 19 tiles is one binary feature.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Move x slowly across 0.5. How many tiles change at once, and how much is shared with x′?</p>
+<aside class="notes">
+<p>The tiles are numbered 1–19 across the four tilings (tiling 1 has four tiles, the shifted tilings five, with part-tiles at the ends); each number is one binary feature, as on the previous slide. Defaults: x = 0.49 activates features 2, 7, 12 and 17, so v̂(x, w) = w₂ + w₇ + w₁₂ + w₁₇, and shares 7, 12 and 17 (3 of 4) with x′ = 0.55. Moving x across 0.50 switches only the unshifted tiling first (feature 2 → 3); x and x′ then share all four tiles. Moving further, one tiling switches at a time: tiling 4 at 0.5625 (x = 0.57 shares 3), tiling 3 at 0.625 (0.63 shares 2), tiling 2 at 0.6875 (0.69 shares 1). Because all features are binary, an update at x changes v̂(x′) by (shared tiles)/4 of the change at x: with x = 0.49, 1/4 at x′ = 0.3, 2/4 at 0.62, none at 0.75. Generalisation therefore falls off gradually with distance instead of all-or-nothing, at a resolution of 1/16 although each tile is 1/4 wide. The right endpoint x = 1 belongs to the last tile in each tiling (features 4, 9, 14, 19).</p>
+</aside>
+</section>
+<section id="fa-limits">
+<h3>Sharing Is an Assumption</h3>
+<div class="cols top">
+<div>
+<h4>Aliasing</h4>
+<ul>
+<li>same position, opposite velocity: different best actions</li>
+<li>drop velocity and they merge; more training cannot separate them</li>
+</ul>
+</div>
+<div>
+<h4>Smoothness</h4>
+<ul>
+<li>nearby states can lie either side of a cliff or a goal</li>
+<li>broad features blur the boundary; narrow ones stop transfer</li>
+</ul>
+</div>
+</div>
+<div class="callout">The best representation supports the distinctions the policy needs to make.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.5 and §10.1</a></p>
+<aside class="notes">
+<p>Separate two failures. Aliasing loses information: genuinely different decision situations get the same features, which the Mountain Car position-only rule illustrated. Capacity is different: the input may be informative but the function class too coarse. Feature engineering or learned features can fix capacity, but cannot recover information that is absent unless history supplies it. Smoothness is a modelling choice, not a fact about value functions: collisions, checkmate or constraint violations create sharp changes. Rough guide: too few broad features give nearly equal values to different states; useful local features transfer to relevant neighbours; too many narrow features approach a sparse table; flexible nonlinear models can fit complex structure but may be unstable. Low training loss does not distinguish these.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-control">
+<h2>Control with Approximation</h2>
+</section>
+<section id="fa-action-values">
+<h3>Approximate Action Values</h3>
+<div class="definition">
+<p>One weight vector per discrete action:
+\[\hat q(s,a,\mathbf W)=\mathbf w_a^{\top}\mathbf x(s),\qquad \hat{\mathbf q}(s)=\mathbf W\mathbf x(s)\]</p>
+</div>
+<div class="cols">
+<div>
+<ul>
+<li>\(\mathbf W\): one row per action</li>
+<li>\(\varepsilon\)-greedy acts on \(\hat{\mathbf q}(s)\) as it did on a table</li>
+</ul>
+</div>
+<div>
+<p class="small">Example with \(\mathbf x(s)=(1,\ 0.5)^{\top}\):</p>
+<table class="compact">
+<thead><tr><th>Action</th><th>\(\mathbf w_a\)</th><th>\(\hat q\)</th></tr></thead>
+<tbody><tr><td>Left</td><td>\((1,\ 2)\)</td><td>2.0</td></tr><tr><td>Right</td><td>\((2,\ {-1})\)</td><td>1.5</td></tr></tbody>
+</table>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §10.1</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>For |A| discrete actions and d features, W is |A|-by-d, x is d-by-1 and the output has one entry per action. Left: 1 + 2×0.5 = 2.0; right: 2 − 0.5 = 1.5; greedy chooses Left. With separate linear rows, updating the chosen action's row changes that action's predictions across states but leaves the other rows unchanged. A neural network with shared hidden layers does not have that property. Joint state–action features x(s, a) with a single weight vector are an equivalent general form; one row per action is the most transparent.</p>
+</aside>
+</section>
+<section id="fa-sarsa">
+<h3>Semi-Gradient Sarsa</h3>
+<div class="definition">
+<p>\[\delta_t=R_{t+1}+\gamma\,\hat q(S_{t+1},A_{t+1},\mathbf W)-\hat q(S_t,A_t,\mathbf W)\]
+\[\mathbf w_{A_t}\leftarrow\mathbf w_{A_t}+\alpha\,\delta_t\,\mathbf x(S_t)\]</p>
+</div>
+<ol class="steps">
+<li>Take \(A_t\); observe \(R_{t+1}\) and \(S_{t+1}\)</li>
+<li>Choose \(A_{t+1}\) \(\varepsilon\)-greedily from \(\hat{\mathbf q}(S_{t+1})\)</li>
+<li>Compute \(\delta_t\); update row \(A_t\) only</li>
+<li>Continue from \((S_{t+1},A_{t+1})\)</li>
+</ol>
+<p class="small">At termination: \(\delta_t=R_{t+1}-\hat q(S_t,A_t,\mathbf W)\), and no next action.</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §10.1</a></p>
+<aside class="notes">
+<p>The next action must be chosen before the target is formed, because its value is part of the target. If exploration picks a poor action, Sarsa evaluates that exploratory behaviour: the target is on-policy. Replacing the selected action's value by a maximum gives a Q-learning target and makes the method off-policy, which matters for the deadly triad later. As the policy improves the prediction target moves, so fixed-policy convergence results do not automatically carry over to control: with linear features Sarsa can chatter near a good solution rather than converge.</p>
+</aside>
+</section>
+<section id="fa-sarsa-check">
+<h3>Quick Check: One Sarsa Update</h3>
+<div class="cols">
+<div>
+<p>Left row \(\mathbf w=(1,\ 2)^{\top}\), \(\mathbf x=(1,\ 0.5)^{\top}\), so \(\hat q=2\).</p>
+<p>Reward \(-1\). The selected next action has \(\hat q=4\). \(\gamma=0.9\), \(\alpha=0.1\).</p>
+</div>
+<div>
+<div class="quiz" data-correct="1"><p class="question">What is \(\Delta\mathbf w_{\text{Left}}\)?</p><div class="quiz-options"><button type="button" data-answer="0">\((-0.3,\ {-0.15})^{\top}\)</button><button type="button" data-answer="1">\((0.06,\ 0.03)^{\top}\)</button><button type="button" data-answer="2">\((0.06,\ 0.06)^{\top}\)</button></div><p class="quiz-feedback" aria-live="polite"></p><template>\(\delta=-1+0.9\times 4-2=0.6\), so \(\Delta\mathbf w=0.1\times 0.6\times(1,\ 0.5)^{\top}\). The prediction rises by \(0.06\times 1.25=0.075\). Treating the step as terminal would give \(\delta=-3\).</template></div>
+</div>
+</div>
+<aside class="notes">
+<p>Answer (0.06, 0.03). δ = −1 + 0.9×4 − 2 = 0.6; αδ = 0.06; multiply by the features. The current prediction rises by 0.075 because ‖x‖² = 1.25. Distractors: (−0.3, −0.15) wrongly treats the transition as terminal (δ = −3); (0.06, 0.06) forgets to multiply by the features. Only the Left row changes; the Right row (2, −1) is untouched.</p>
+</aside>
+</section>
+<section id="fa-sarsa-lab">
+<h3>Interactive: Sarsa on Mountain Car</h3>
+<div class="cols wide-left">
+<div>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<p class="small">Semi-gradient Sarsa, greedy, \(\mathbf w=\mathbf 0\), \(\alpha=\eta/m\). Tiles cover position and velocity.</p>
+<div data-controls class="demo-controls"></div>
+</div>
+</div>
+<p class="caption">Add 10 episodes at a time and watch the cost-to-go. Then compare one tiling with eight.</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §10.1, Example 10.1</a></p>
+<aside class="notes">
+<p>Real semi-gradient Sarsa on the Mountain Car dynamics from the first slide, after Sutton and Barto's Example 10.1 (simplified: plain offset grids instead of their hashed tile coder). Each tiling is 8 × 8 over position and velocity, the m tilings offset by (1, 3)/m of a tile; ε = 0, weights start at 0, which is optimistic because every true value is negative, so untried actions look attractive and drive exploration. Start positions are uniform in [−0.6, −0.4), seed 10; episodes stop at 10,000 steps without a terminal update. Eight tilings, η = 0.5: the first episode takes 1577 steps, the mean of episodes 2–11 is 474, of episodes 52–61 is 175 and of 102–111 is 120. One 8 × 8 tiling (state aggregation): the first episode takes 8013 steps, the last-10 mean is 345 after 61 episodes and still 212 after 411 (eight tilings: 175 and 138). The cost-to-go −max q̂ develops a spiral matching the energy-pumping trajectories. Changing the features or η recomputes the same number of episodes from scratch. The step-count view draws episodes longer than 2000 at 2000; the readout gives exact numbers. One seed; not a statistical comparison.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-batch-deep">
+<h2>Batch and Deep Value Methods</h2>
+</section>
+<section id="fa-least-squares">
+<h3>Least Squares and LSTD</h3>
+<div class="cols top">
+<div>
+<h4>Fixed targets</h4>
+\[\min_{\mathbf w}\tfrac12\lVert\mathbf X\mathbf w-\mathbf y\rVert^2\]
+\[\mathbf X^{\top}\mathbf X\,\mathbf w=\mathbf X^{\top}\mathbf y\]
+<p class="small">\(\mathbf X\): one feature row per sample; \(\mathbf y\): targets. Solve with QR or SVD.</p>
+<p class="small">Example: \(x=(-1,0,1)\), \(y=(0,1,2)\), \(\mathbf x=(1,x)^{\top}\) give \(\mathbf X^{\top}\mathbf X=\operatorname{diag}(3,2)\), \(\mathbf X^{\top}\mathbf y=(3,2)^{\top}\), \(\mathbf w=(1,1)^{\top}\).</p>
+</div>
+<div>
+<h4>TD fixed point (LSTD)</h4>
+\[\mathbf A=\sum_t\mathbf x_t\big(\mathbf x_t-\gamma\mathbf x_{t+1}\big)^{\!\top}\]
+\[\mathbf b=\sum_t R_{t+1}\,\mathbf x_t,\qquad \mathbf A\mathbf w=\mathbf b\]
+<p class="small">\(\mathbf x_t=\mathbf x(S_t)\); set \(\mathbf x_{t+1}=\mathbf 0\) at termination.</p>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.8</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>For fixed targets, setting the gradient Xᵀ(Xw − y) to zero gives the normal equations; the example fits y = 1 + x exactly. A unique solution needs full rank: redundant or never-observed features make XᵀX singular. QR or SVD is preferable to forming an explicit inverse, and regularisation changes the objective. Complete returns can serve as Monte Carlo targets. LSTD is not ordinary regression with frozen TD targets: substitute the weight-dependent bootstrap into the expected TD update, set it to zero, and obtain A w = b. It uses the data efficiently, costs O(d²) per step with incremental updates, and its quality still depends on coverage and conditioning.</p>
+</aside>
+</section>
+<section id="fa-replay-target">
+<h3>Replay and Target Networks</h3>
+<div class="cols top">
+<div>
+<h4>Experience replay</h4>
+<p class="small">A buffer of eight stored positions, oldest first: \(-0.9,\,-0.8,\,-0.7,\,-0.6,\,0.6,\,0.7,\,0.8,\,0.9\).</p>
+<table class="compact">
+<thead><tr><th>Minibatch of four</th><th>Mean</th></tr></thead>
+<tbody>
+<tr><td>Most recent: 0.6, 0.7, 0.8, 0.9</td><td>0.75</td></tr>
+<tr><td>Uniform draw: −0.6, 0.6, 0.8, 0.9</td><td>0.425</td></tr>
+</tbody>
+</table>
+<p class="small">Mixing old and new samples breaks up correlated sequences.</p>
+</div>
+<div>
+<h4>Target network</h4>
+<p class="small">One replayed transition: \(R=0\), \(x(s)=1\), \(x(s')=2\), \(\gamma=0.9\), \(\alpha=0.1\), start \(w=w^{-}=1\). Live target \(1.8w\), so \(w\leftarrow 1.08w\); copied target \(1.8w^{-}\).</p>
+<table class="compact">
+<thead><tr><th>Updates</th><th>Live target</th><th>Copied target</th></tr></thead>
+<tbody>
+<tr><td>0</td><td>1</td><td>1</td></tr>
+<tr><td>10</td><td>2.159</td><td>1.521</td></tr>
+<tr><td colspan="3">copy \(w^{-}\leftarrow w\)</td></tr>
+<tr><td>20</td><td>4.661</td><td>2.314</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="callout">Replay changes which data are used; a copied target slows the feedback loop but does not remove it.</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1038/nature14236">Mnih et al. (2015)</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §11.2</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Replay: consecutive RL samples are strongly related, and the policy changes the data distribution while it learns. The most recent four positions (0.6–0.9) all come from one region, mean 0.75; a uniform draw such as (−0.6, 0.6, 0.8, 0.9) mixes both regions, mean 0.425. Any single random batch can still be unbalanced; uniform sampling only removes the systematic recency. Replay reuses data but cannot sample what was never collected, and old transitions come from old policies, so replay makes learning off-policy. Target network: a single-transition feedback model, not a complete DQN or a convergence proof. One weight predicts w at s and 2w at s′, and nothing anchors the next-state value (the w → 2w example of Sutton and Barto §11.2). With the live target the update is w ← w + 0.1(1.8w − w) = 1.08w, so 10 updates give 1.08¹⁰ = 2.159 and 20 give 4.661. With a frozen copy w⁻ = 1 the learner approaches the fixed target 1.8: 1.8 − 0.8 × 0.9¹⁰ = 1.521 after 10 updates. Copying then and running 10 more gives 2.314. Repeated copying still grows, only more slowly, which motivates the deadly triad on the next slide.</p>
+</aside>
+</section>
+<section id="fa-triad">
+<h3>The Deadly Triad</h3>
+<div class="cols">
+<div>
+<p>Instability can arise when all three are combined:</p>
+<ol class="steps">
+<li>function approximation</li>
+<li>bootstrapping</li>
+<li>off-policy training</li>
+</ol>
+<p class="small">Any two are usually manageable. All three can diverge; not every run does.</p>
+</div>
+<div>
+<div class="quiz" data-correct="2"><p class="question">Which setup contains all three ingredients?</p><div class="quiz-options"><button type="button" data-answer="0">Tabular on-policy Monte Carlo</button><button type="button" data-answer="1">Linear on-policy TD prediction</button><button type="button" data-answer="2">Neural Q-learning from an old replay buffer</button></div><p class="quiz-feedback" aria-live="polite"></p><template>Neural weights are shared, Q-learning bootstraps, and replayed behaviour differs from the greedy target policy. Stabilising tools help but do not remove the three ingredients.</template></div>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §11.2–11.3</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Be precise about the quantifier: counterexamples (Baird's, Sutton and Barto §11.2) show that convergence is not guaranteed; they do not show that every such combination fails. Remove any one ingredient and the danger recedes: Monte Carlo removes bootstrapping, a table removes shared approximation, on-policy sampling removes the distribution mismatch. Linear on-policy TD prediction has convergence results under assumptions on sampling, features and decreasing step sizes. Neither a small observed TD loss nor a finite toy run is evidence of general stability.</p>
+</aside>
+</section>
+<section id="fa-convergence">
+<h3>Convergence of Prediction Algorithms</h3>
+<table class="compact">
+<thead><tr><th>Sampling</th><th>Algorithm</th><th>Table</th><th>Linear</th><th>Nonlinear</th></tr></thead>
+<tbody>
+<tr><td>On-policy</td><td>MC</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>On-policy</td><td>TD</td><td>✓</td><td>✓</td><td>✗</td></tr>
+<tr><td>Off-policy</td><td>MC</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Off-policy</td><td>TD</td><td>✓</td><td>✗</td><td>✗</td></tr>
+</tbody>
+</table>
+<p class="small">✓ converges under standard conditions; ✗ no general guarantee.</p>
+<div class="definition">
+<p>On-policy linear TD(0) converges to the TD fixed point \(\mathbf w_{\mathrm{TD}}\), and for \(\gamma&lt;1\)
+\[\overline{\mathrm{VE}}(\mathbf w_{\mathrm{TD}})\le\frac{1}{1-\gamma}\,\min_{\mathbf w}\overline{\mathrm{VE}}(\mathbf w)\]</p>
+</div>
+<p class="sources">Sources: <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §9.4</a></p>
+<aside class="notes">
+<p>The table follows Silver's Lecture 6; TD covers TD(0) and TD(λ). MC with nonlinear approximation converges to a local optimum of VE, because it is true SGD. ✗ means counterexamples exist, not that failure is certain; gradient-TD methods (Sutton and Barto, Chapter 11) restore guarantees for linear off-policy TD. The bound is Sutton and Barto's equation 9.14 for the on-policy distribution: TD's asymptotic error is within a factor 1/(1−γ) of the best possible, which can be large when γ is near 1. The TD fixed point solves a projected Bellman equation rather than minimising VE, which is why TD can end above the best achievable error, as the random-walk aggregation did. The conditions include decreasing step sizes; a constant step leaves noise.</p>
+</aside>
+</section>
+<section id="fa-dqn">
+<h3>Deep Q-Networks</h3>
+<div class="definition">
+<p>Fit \(\hat q(s,a,\mathbf w)\) towards targets from a frozen copy \(\mathbf w^{-}\):
+\[U_t=R_{t+1}+\gamma\,(1-d_{t+1})\max_{a'}\hat q(S_{t+1},a',\mathbf w^{-})\]
+\(d_{t+1}=1\) at true termination, otherwise 0.</p>
+</div>
+<div class="cols top">
+<div>
+<h4>Network</h4>
+<p class="small">Observation \(\to\) hidden layers \(\to\) one \(\hat q\) per action. The features are learned by backpropagation.</p>
+</div>
+<div>
+<h4>Training loop</h4>
+<ol class="steps small">
+<li>Store transitions in replay</li>
+<li>Sample a minibatch</li>
+<li>Step \(\mathbf w\) towards the fixed targets</li>
+<li>Every \(C\) steps copy \(\mathbf w^{-}\leftarrow\mathbf w\)</li>
+</ol>
+</div>
+</div>
+<p class="sources">Sources: <a href="https://doi.org/10.1038/nature14236">Mnih et al. (2015)</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">David Silver, Lecture 6</a></p>
+<aside class="notes">
+<p>Use the 2015 DQN paper as the historical reference for experience replay plus a periodically copied target network. The update still follows target minus prediction times a gradient, now found by backpropagation, and no gradient flows through the target. The maximum makes it a Q-learning target, so DQN is off-policy even when acting ε-greedily: it has all three triad ingredients. Replay changes the sampling and the target copy changes the timing of the target (both worked through on the Replay and Target Networks slide); neither guarantees stability. Neural features scale to images but bring nonconvex optimisation and generalisation problems. The slide deliberately quotes no Atari scores; later variants and implementation details matter in practice.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-summary">
+<h2>Summary</h2>
+</section>
+<section id="fa-exercise">
+<h3>Exercise (5 mins): Audit One Transition</h3>
+<div class="cols top">
+<div>
+<p>\(\mathbf x(s)=(1,\ {-0.5})^{\top}\), \(\mathbf w=(2,\ 1)^{\top}\)<br>\(R=-1\), \(\gamma=0.9\), \(\alpha=0.2\)<br>next-state estimate \(3\)</p>
+<ol class="steps small">
+<li>Find the prediction and the TD target.</li>
+<li>Compute \(\delta\) and the new weights.</li>
+<li>Repeat for a terminal transition.</li>
+</ol>
+</div>
+<div>
+<div class="callout">Predict first: should the value rise or fall in each case?</div>
+<details><summary class="small">Debrief</summary><p class="small">Non-terminal: \(\hat v=1.5\), target 1.7, \(\delta=0.2\), \(\mathbf w'=(2.04,\ 0.98)\), new \(\hat v=1.55\).<br>Terminal: target \(-1\), \(\delta=-2.5\), \(\mathbf w'=(1.5,\ 1.25)\), new \(\hat v=0.875\).</p></details>
+</div>
+</div>
+<aside class="notes">
+<p>Pairs, about three minutes, then take answers. v̂ = 2 − 0.5 = 1.5. Non-terminal: U = −1 + 0.9×3 = 1.7, δ = 0.2, αδ = 0.04, Δw = (0.04, −0.02), w′ = (2.04, 0.98), and the prediction rises by 0.04 × 1.25 = 0.05 to 1.55. Terminal: U = −1, δ = −2.5, Δw = (−0.5, 0.25), w′ = (1.5, 1.25), new prediction 1.5 − 0.625 = 0.875. Each case starts from the original weights. The negative feature reverses its weight's direction while the prediction still moves the right way.</p>
+</aside>
+</section>
+<section id="fa-recap">
+<h3>Summary</h3>
+\[\mathbf w\leftarrow\mathbf w+\alpha\big[\underbrace{U_t}_{\text{target}}-\hat v(S_t,\mathbf w)\big]\underbrace{\nabla_{\mathbf w}\hat v(S_t,\mathbf w)}_{\text{representation}}\]
+<ul>
+<li>features decide which states share what is learned</li>
+<li>MC, TD and Sarsa differ in the target \(U_t\)</li>
+<li>semi-gradient methods treat a bootstrapped target as fixed</li>
+<li>approximation + bootstrapping + off-policy data can diverge</li>
+<li>check terminal bootstraps, feature scales and coverage</li>
+</ul>
+<aside class="notes">
+<p>Return to the opening question: an update changes unseen states through shared weights, by an amount set by feature similarity, x(s′)ᵀx(s) in the linear case. Ask for one failure at each layer: aliasing in the representation, accidental terminal bootstrapping in the target, a wrong sign or an excessive step in the update. Checks worth automating: W x(s) gives one value per action; a positive error raises the current prediction; inactive weights stay unchanged; the terminal bootstrap is zero; reported errors use states the policy visits; features are scaled and updates finite. Practical: compare a Q-table, simple linear features and tile-coded linear Sarsa on Mountain Car with the same interaction budget and evaluation across seeds. Next lecture: approximate the policy directly.</p>
+</aside>
+</section>
+<section id="fa-references">
+<h3>References</h3>
+<ul class="small">
+<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/the-book-2nd.html"><em>Reinforcement Learning: An Introduction</em></a>, 2nd ed., Chapters 9–12.</li>
+<li>Silver, D. <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-6-value-function-approximation-.pdf">Lecture 6: Value Function Approximation</a>, UCL RL course.</li>
+<li>Mnih et al. (2015). <a href="https://doi.org/10.1038/nature14236">Human-level control through deep reinforcement learning</a>. <em>Nature</em> 518.</li>
+<li>Brusey, J. <a href="https://jbrusey.github.io/7043scn/06-fa/lecture-06-function-approximation.html">7043SCN Lecture 06: Function Approximation</a> (companion slides).</li>
+</ul>
+<aside class="notes">
+<p>Core reading: Sutton and Barto Chapter 9 (prediction and features), Chapter 10 (on-policy control, Mountain Car), Chapter 11 (off-policy approximation and the deadly triad) and Chapter 12 (eligibility traces). Silver's slides cover incremental and batch methods, least squares, replay and DQN. The DQN paper is cited for its algorithm, not for performance claims. The interactive examples and explanatory wording were written for this course; the structure follows the course's earlier lectures and Silver's Lecture 6. Source links need an internet connection.</p>
+</aside>
+</section>
+</section>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/search.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.2/dist/plugin/zoom.js"></script>
+<script src="interactive.js"></script>
+<script src="demos.js"></script>
+<script>
+Demos.mountAll();
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+keyboardCondition: DeckKeyboard,
+mouseWheel: false,
+fragmentInURL: false,
+hashOneBasedIndex: false,
+pdfSeparateFragments: true,
+overview: true,
+margin: 0.10,
+minScale: 0.10,
+maxScale: 2.50,
+
+transition: 'slide',
+transitionSpeed: 'default',
+
+// Plugins with reveal.js 4.x
+plugins: [ RevealMarkdown, RevealNotes, RevealSearch, RevealZoom ],
+
+// Optional libraries used to extend reveal.js
+dependencies: [
+]
+
+});
+</script>
+</body>
+</html>
