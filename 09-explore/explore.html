@@ -22,7 +22,7 @@
 <section id="sec-title-slide">
 <h1 class="title">Exploration and Exploitation</h1><h2 class="author">James Brusey</h2>
 <aside class="notes">
-<p>Suggested duration: 75–90 minutes including the interactive slides. The through-line is a three-armed Bernoulli bandit with success probabilities 0.35, 0.50 and 0.65, so every interactive number can be checked by hand or from the browser console (window.ExploreModel). All calculations run in the browser and random runs use fixed, disclosed seeds. The demonstrations are teaching experiments on toy instances: they illustrate mechanisms and make no empirical performance claim. The sequence follows David Silver's Lecture 9 (the copy in the 7043SCN repository) and the course's earlier lectures; the interactive examples and wording were written for this course. Press S for the speaker view.</p>
+<p>Suggested duration: about 90 minutes including the interactive slides, of which about 20 go to the last section on Dyna. The through-line is a three-armed Bernoulli bandit with success probabilities 0.35, 0.50 and 0.65, so every bandit number can be checked by hand or from the browser console (window.ExploreModel). The last section returns to MDPs: Dyna, moved here from Lecture 8 because it combines a learned model with exploration, and Dyna-Q+ on Sutton and Barto's mazes (the maze simulations are also on window.ExploreModel). All calculations run in the browser and random runs use fixed, disclosed seeds. The demonstrations are teaching experiments on toy instances: they illustrate mechanisms and make no empirical performance claim. The sequence follows David Silver's Lecture 9 (the copy in the 7043SCN repository's history) and the course's earlier lectures; the interactive examples and wording were written for this course. Press S for the speaker view.</p>
 </aside>
 </section>
 <section>
@@ -35,6 +35,7 @@
 <li>Bayesian Bandits</li>
 <li>Information State Search</li>
 <li>Beyond Stationary Bandits</li>
+<li>Exploring with a Learned Model</li>
 <li>Summary</li>
 </ol>
 </section>
@@ -53,6 +54,7 @@
 <li>compare \(\varepsilon\)-greedy, optimism, UCB and Thompson sampling</li>
 <li>update a Beta posterior from Bernoulli rewards</li>
 <li>explain when information is worth its cost</li>
+<li>plan with a learned model (Dyna) and keep it up to date (Dyna-Q+)</li>
 </ol>
 </div>
 <div>
@@ -61,11 +63,12 @@
 <li>\(\varepsilon\)-greedy action selection (Lecture 5)</li>
 <li>the incremental mean (Lecture 4)</li>
 <li>expectation and probability</li>
+<li>a learned model (Lecture 8)</li>
 </ul>
 <div class="callout">Recurring question: <em>is the information from this action worth its immediate cost?</em></div>
 </div>
 </div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), Chapter 2</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), Chapters 2 and 8</a></p>
 <aside class="notes">
 <p>Check prerequisite recall: what does ε-greedy do in Lecture 5, and what is the incremental form of a sample mean? The tension of the lecture is between immediate reward and gathering information that may improve later decisions. Exploration is not useful in itself: it is useful when what is learnt changes a future choice enough to justify its cost. We begin with independent Bernoulli arms, so uncertainty and action selection can be inspected directly, and later add context, change over time and state transitions. Rewards are dimensionless successes; nothing here is a recommendation to deploy an exploration rule in a particular real service.</p>
 </aside>
@@ -98,7 +101,7 @@
 </table>
 </div>
 </div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a></p>
 <aside class="notes">
 <p>Silver's five principles organise the rest of the lecture: naive exploration (add noise to a greedy policy, e.g. ε-greedy), optimistic initialisation (assume the best until proven otherwise), optimism in the face of uncertainty (prefer actions with uncertain values, e.g. UCB), probability matching (select actions according to the probability that they are best, e.g. Thompson sampling) and information state search (look ahead, including the value of information). Ask for one more example from the class and for its "cost" of exploring: a bad meal, a lost click, a dry well. In each example, exploring only pays if there are enough future decisions to use what is learnt.</p>
 </aside>
@@ -136,7 +139,7 @@
 <li>stationary: each arm's distribution is fixed; draws are independent</li>
 <li>no state: an action changes what we know, not what happens next</li>
 </ul>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.1</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.1</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>Notation follows Sutton and Barto: q*(a) is the true mean reward of arm a (Silver writes Q(a)), v* the best mean, T the number of available steps. The true means are properties of the environment; estimates are properties of the learner. In the standard stationary stochastic setting, pulling an arm does not change any arm's reward distribution. This separates a bandit from an MDP, where actions influence which states are reached. A bandit is still sequential in what the learner knows: past rewards change future choices. Bernoulli rewards are a convenient special case whose mean is the success probability; bounded, Gaussian and contextual models need their own assumptions. A bandit can be seen as an MDP with a single state.</p>
 </aside>
@@ -157,7 +160,7 @@
 </div>
 <p>\(N_t(a)\) and \(Q_t(a)\): the count and sample mean of arm \(a\) after \(t\) steps.</p>
 <p class="caption">Only the chosen arm's estimate changes: the other arms' rewards were not observed.</p>
-<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.4</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.4</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
 <aside class="notes">
 <p>This is the incremental mean of Lecture 4 applied to one arm. Derive it by separating the newest reward from the sum of the earlier ones. Increment the count before dividing. The sample mean weights every observation equally and needs only a count and an estimate per arm. When the initial count is zero, the initial value of Q does not matter after the first real observation, because the first step size is 1. If an optimistic initial value is meant to persist as evidence, a pseudocount or a constant step size changes the update; the Optimistic Initialisation slide uses a pseudocount. Independent arm models update only the chosen arm; structured bandits can share information across arms, but that needs an explicit model.</p>
 </aside>
@@ -174,7 +177,7 @@
 <li>a good algorithm keeps counts small for large gaps, but the gaps are unknown</li>
 </ul>
 <p class="small">Example: means \((0.35,\ 0.50,\ 0.65)\) give \(\Delta=(0.30,\ 0.15,\ 0)\); pulls \((20,\ 30,\ 50)\) give \(L_{100}=20\times0.30+30\times0.15=10.5\).</p>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>The example uses the three arms of the interactive slides. Its regret, 10.5 expected successes forgone in 100 pulls (an average gap of 0.105 per pull), does not depend on the outcomes: a failure on C adds nothing. The allocations (35, 0, 65) and (5, 60, 35) also give 10.5, with very different numbers of best-arm pulls. One pull of A costs as much as two pulls of B, so a good algorithm should spend its exploration where gaps are small, which it cannot do without estimating them. Gaps compare true means, not individual outcomes. A failure on the best arm adds zero regret, and a lucky success on a worse arm still adds its positive gap. L_t as written is the pathwise pseudo-regret: a sum of gaps along the actions actually taken. Silver defines total regret directly as the expectation, which is E[L_t] here: t·v* minus the expected total reward. Neither is the realised reward shortfall t·v* − ΣR, which is noisy and can be negative through luck. A simulation can compute gaps because it knows the means; a real learner cannot observe its own regret.</p>
 </aside>
@@ -191,7 +194,7 @@
 <div class="quiz" data-correct="1"><p class="question">Why can continuing greedily be a problem?</p><div class="quiz-options"><button type="button" data-answer="0">The first two rewards reveal the true means</button><button type="button" data-answer="1">B may never be tried again, even if it is better</button><button type="button" data-answer="2">A success should be discarded as luck</button></div><p class="quiz-feedback" aria-live="polite"></p><template>While A keeps a positive estimate, B stays at 0 and is never revisited. Greedy can lock onto a suboptimal arm, so its expected regret can grow linearly.</template></div>
 </div>
 </div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.2</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.2</a></p>
 <aside class="notes">
 <p>Answer: B may never be tried again. The question is about a possible failure, not a claim that greedy fails on every run. With Bernoulli rewards, A can keep a positive sample mean while B stays at zero and is never revisited. This event has positive probability even when B is better, which gives linear expected regret. Random tie-breaking does not help once the ordering is strict. Ask whether forcing one pull of each arm is enough: it avoids never-initialised estimates but does not prevent a noisy early misranking, as this example shows.</p>
 </aside>
@@ -205,7 +208,7 @@
 \[\pi(a)=\begin{cases}1-\varepsilon+\varepsilon/m &amp; \text{if } a=\operatorname{argmax}_{a'}Q_t(a')\\ \varepsilon/m &amp; \text{otherwise}\end{cases}\]
 <p>Example: \(m=3\) and \(\varepsilon=0.3\) give probabilities \(0.8,\ 0.1,\ 0.1\).</p>
 <div class="callout">An exploratory draw can also select the greedy arm.</div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.2</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.2</a></p>
 <aside class="notes">
 <p>This is the same rule as in Lecture 5, without a state. State the convention, because some implementations explore only among the non-greedy actions, which gives different probabilities; this deck samples uniformly from all arms, including the current winner. Ties in the greedy choice are broken uniformly at random in the simulations. The worked example: 1 − 0.3 + 0.3/3 = 0.8 for the greedy arm and 0.1 for each other arm. A fixed ε keeps every arm covered, but it keeps spending trials on arms already known to be poor, and it treats a well-measured arm and a barely tried arm alike. Those two weaknesses motivate the confidence-based and posterior-based methods later; they do not make ε-greedy useless.</p>
 </aside>
@@ -233,7 +236,7 @@
 </tbody>
 </table>
 <div class="callout">Optimism is an early push, not a lasting measure of uncertainty.</div>
-<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.6</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.6</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
 <aside class="notes">
 <p>Silver's second principle: assume the best until proven otherwise. Every arm looks worth trying until its own rewards pull its estimate down. The pseudocount makes Q₀ act as one unit of prior evidence; with an initial count of zero the first real pull would overwrite Q₀, because the first step size is 1. The worked run uses the three arms (0.35, 0.50, 0.65) with the reward streams of Try the Arms (seed 901) and random tie-breaking from a fixed stream. With Q₀ = 1 a success leaves an estimate at 1 and a failure lowers it: after A→1, C→1, A→0, Q(A) = 2/3 while B and C are still at 1, so B is tried next. All three arms are tried within four pulls; after 30 pulls N = (3, 5, 22) and the regret is 1.65. With Q₀ = 0 the first pull (a tie-break) is A, which succeeds: Q(A) = 1/2 &gt; 0 while B and C stay at exactly 0, so greedy pulls A for ever, N = (30, 0, 0), regret 9.0 after 30 pulls and 90 after 300. Optimism is an initial push, not a persistent measure of uncertainty: with other reward streams it can still lock onto a suboptimal arm, and it does not help if the means later change. Sutton and Barto show the same effect with Q₁ = 5 on their 10-armed testbed.</p>
 </aside>
@@ -257,7 +260,7 @@
 </div>
 </div>
 <div class="callout">Sublinear regret means \(\mathbb{E}[L_t]/t\to 0\). Total regret can still grow without bound.</div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://doi.org/10.1023/A:1013689704352">Auer, Cesa-Bianchi &amp; Fischer (2002), Theorem 3</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://doi.org/10.1023/A:1013689704352">Auer, Cesa-Bianchi &amp; Fischer (2002), Theorem 3</a></p>
 <aside class="notes">
 <p>The bound follows from the exploration branch alone: with probability ε the action is uniform, so each arm is chosen with probability at least ε/m and contributes its non-negative gap. The exploitation branch can only add loss. So a fixed positive ε gives regret linear in t whenever at least one gap is positive; if all means are equal every gap is zero and the statement is empty. Auer et al. show that the schedule ε_t = min{1, cm/(d²t)} with c > 5 and d no larger than the smallest positive gap has logarithmic regret, but it needs d in advance. A generic 1/t schedule is not a proof of logarithmic regret. Average regret can tend to zero while cumulative regret grows without bound.</p>
 </aside>
@@ -295,7 +298,7 @@
 \[\liminf_{t\to\infty}\frac{\mathbb{E}[L_t]}{\ln t}\ \ge\ \sum_{a:\Delta_a&gt;0}\frac{\Delta_a}{\mathrm{KL}\big(\mathcal{R}^a\,\|\,\mathcal{R}^{a^*}\big)}\]</p>
 </div>
 <p class="small">Goal: logarithmic regret on every bandit, without knowing the gaps.</p>
-<p class="sources">Sources: <a href="https://doi.org/10.1016/0196-8858(85)90002-8">Lai &amp; Robbins (1985)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://doi.org/10.1016/0196-8858(85)90002-8">Lai &amp; Robbins (1985)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>R^a is the reward distribution of arm a and a* an optimal arm. KL is the Kullback–Leibler divergence: it is small when the two distributions are hard to tell apart from samples. "Consistent" means that on every instance of the model class (for example all Bernoulli bandits) the expected regret grows more slowly than any power t^p, p > 0; this rules out an algorithm that simply guesses one arm and is lucky on some instances. Silver writes the limit without the liminf and with total regret as an expectation; the content is the same. For Bernoulli arms Pinsker's inequality gives KL ≥ 2Δ², so each term is at most 1/(2Δ_a): the lower bound is smaller than UCB1's upper bound on the next slides, as it must be. The theorem fixes the order, log t, not the constant.</p>
 </aside>
@@ -311,7 +314,7 @@
 <li>small \(N_t(a)\): large \(U_t(a)\), the estimate is uncertain</li>
 <li>large \(N_t(a)\): small \(U_t(a)\), the estimate is accurate</li>
 </ul>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.7</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.7</a></p>
 <aside class="notes">
 <p>Silver illustrates this with three belief distributions over action values: the arm with the widest distribution may have the highest plausible value even if its mean is not the highest. After picking it we are less uncertain about its value and more likely to pick another arm, until we home in on the best arm. Either the optimistic arm really is good (and choosing it costs little regret), or choosing it shrinks its bonus quickly; both outcomes are useful. The bonus is in reward units. Unlike ε-greedy, the rule does not keep spending a fixed fraction of pulls on an arm that is well measured and clearly worse: because the bonus grows like √(ln t) for a fixed count, such an arm is still revisited, but only about ln t times in t steps, rarely rather than never. That is where logarithmic regret comes from.</p>
 </aside>
@@ -334,7 +337,7 @@
 <p>UCB1: select each arm once, then
 \[A_{t+1}=\operatorname*{argmax}_a\Big[Q_t(a)+\sqrt{\frac{2\ln t}{N_t(a)}}\Big]\]</p>
 </div>
-<p class="sources">Sources: <a href="https://doi.org/10.1023/A:1013689704352">Auer, Cesa-Bianchi &amp; Fischer (2002)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
+<p class="sources">Sources: <a href="https://doi.org/10.1023/A:1013689704352">Auer, Cesa-Bianchi &amp; Fischer (2002)</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
 <aside class="notes">
 <p>Apply Hoeffding to the rewards of arm a: P[q*(a) > Q_t(a) + U] ≤ exp(−2N_t(a)U²). Choose the failure probability p and solve exp(−2NU²) = p, giving U = √(−ln p / 2N). Shrinking p over time, here p = t^(−4), makes the bonus grow slowly with t, so every arm is eventually re-examined; solving gives √(2 ln t / N). Here t is the number of pulls so far and the rule chooses pull t + 1, exactly as in Auer et al. The derivation is motivation, not proof: N_t(a) is random and depends on the data, which the full regret analysis has to handle. The theorem assumes independent, stationary rewards in [0, 1]. The index can exceed 1 even for Bernoulli arms; it is an optimistic index, not a clipped probability. Untried arms are selected explicitly rather than dividing by zero.</p>
 </aside>
@@ -399,7 +402,7 @@
 <ul>
 <li>\(\mathrm{Beta}(1,1)\) is uniform on \([0,1]\); \(\alpha\) and \(\beta\) are shapes, not step sizes</li>
 </ul>
-<p class="sources">Sources: <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018), A Tutorial on Thompson Sampling</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
+<p class="sources">Sources: <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018), A Tutorial on Thompson Sampling</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
 <aside class="notes">
 <p>The likelihood of s successes and f failures is θ^s (1 − θ)^f. Multiplying by the Beta prior density, proportional to θ^(α−1) (1 − θ)^(β−1), simply adds s and f to the exponents: the posterior is again Beta (conjugacy). The posterior mean includes the prior counts; with a uniform prior and no data it is 1/2. α and β here are shape parameters, not the step size α of earlier lectures. Silver's Bernoulli-bandit slide labels α as the count of zero rewards; we use the standard convention in which α grows with successes. Uncertainty about θ is epistemic and shrinks with data; a single Bernoulli reward stays random even when θ is known exactly. Independence across arms is an assumption of these examples, not a requirement of Bayesian methods.</p>
 </aside>
@@ -434,7 +437,7 @@
 <li>observe \(R_{t+1}\) and update that arm's posterior</li>
 </ol>
 <p class="small">Uncertain arms are more likely to be the maximum: optimism without an explicit bonus.</p>
-<p class="sources">Sources: <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018), A Tutorial on Thompson Sampling</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
+<p class="sources">Sources: <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018), A Tutorial on Thompson Sampling</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9</a></p>
 <aside class="notes">
 <p>Probability matching can be hard to compute analytically; Thompson sampling sidesteps the computation with one posterior sample per arm per step. Because the posteriors are continuous, ties have probability zero, so the arm with the largest sample is chosen with exactly its posterior probability of being best. That probability is not the arm's posterior mean, nor its chance of a successful reward. The sampled values are plausible mean parameters, not synthetic rewards. Silver notes that Thompson sampling attains the Lai–Robbins lower bound; for Bernoulli arms this has been proved, and the Russo et al. tutorial surveys such results and their limits. Like UCB, the exploration is driven by uncertainty, but no confidence level or bonus constant is chosen.</p>
 </aside>
@@ -501,7 +504,7 @@
 </table>
 <p>After the probe each pull is worth \(\tfrac12\times1+\tfrac12\times0.6=0.8\), so probing pays when \(H&gt;1.5\). A probe cost \(c\) moves this to \(H&gt;1.5+5c\).</p>
 <div class="callout">Information is worth more when there is more time left to use it.</div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a></p>
 <aside class="notes">
 <p>Two hidden worlds: the unknown arm always fails or always succeeds, each with prior probability 1/2. The probe's expected immediate reward is 0.5 and it reveals the world exactly. Afterwards the best mean is 0.6 or 1, so each later pull is worth 0.5 × 0.6 + 0.5 × 1 = 0.8 in expectation. Always safe gives 0.6H; probing first gives 0.5 + 0.8(H − 1). With H = 1 safe wins, 0.6 against 0.5: the probe gives up 0.1 now and there is no later pull to use what it reveals. With H = 2 probing wins, 1.3 against 1.2. If the probe also costs c, probing is strictly better when 0.5 − c + 0.8(H − 1) &gt; 0.6H, that is H &gt; 1.5 + 5c: from H = 2 at c = 0, H = 5 at c = 0.5 (H = 4 ties at 2.4) and H = 7 at c = 1. Equivalently, the most worth paying for the probe is 0.2H − 0.3, which grows with the horizon. Silver: the value of information is how much a decision-maker would pay for it before deciding, and it is higher when there is more time to use it. Perfect revelation is deliberate; a general Bernoulli arm is not known after one pull, so this formula is not a general value-of-information estimator. Ask the class for the answer at H = 1 before showing the table.</p>
 </aside>
@@ -524,7 +527,7 @@
 </div>
 </div>
 <div class="callout">Solving this MDP is Bayes-optimal for the assumed prior (Bayes-adaptive RL; Gittins indices), but exact solution is usually intractable.</div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018)</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018)</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>The bandit has no changing external state, but the learner's posterior changes as data arrive, so the Bellman equation can be written over beliefs and the remaining horizon. The expectation averages over predictive outcomes under the current belief; different actions reveal different information and lead to different next beliefs. When h = 1 the future term vanishes and the best action is the one with the largest predictive immediate reward. With a longer horizon the value of information can change the choice, as on the previous slide. For independent Beta–Bernoulli arms the shape parameters are sufficient statistics. Gittins indices solve the discounted, infinite-horizon version arm by arm; simulation-based search (Guez et al.) approximates larger problems. Bayes-optimality is relative to the prior and likelihood, not a guarantee for every fixed environment, and the number of information states grows quickly with arms and horizon.</p>
 </aside>
@@ -569,7 +572,7 @@
 <div class="quiz" data-correct="1"><p class="question">Which situation needs an MDP model of future consequences?</p><div class="quiz-options"><button type="button" data-answer="0">Choose an advert from the current visitor's context only</button><button type="button" data-answer="1">Choose a route that changes which junction you reach next</button><button type="button" data-answer="2">Pull a fixed arm whose reward distribution never changes</button></div><p class="quiz-feedback" aria-live="polite"></p><template>The route choice changes the next decision state. A contextual bandit ignores this action-dependent sequence of future opportunities.</template></div>
 </div>
 </div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.9</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §2.9</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>Answer: the route. A contextual bandit observes information about the current decision before acting and optimises the immediate reward given that context; contexts arrive from a distribution the action does not influence. The advert example fits only under that modelling assumption: real advertising can change future user behaviour and would then need a richer sequential model. Features x(s, a) share data between related decisions, using the same linear notation as the function approximation lecture. LinUCB estimates w by least squares and adds c√(xᵀA⁻¹x), so its bonus reflects uncertainty in feature directions rather than raw arm counts. Do not infer the problem class from the application's name; ask what the action changes and which future consequences enter the objective.</p>
 </aside>
@@ -611,9 +614,137 @@
 </div>
 </div>
 <div class="callout">Uncertainty about an action's immediate reward is only part of the uncertainty about its long-term value.</div>
-<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018)</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
+<p class="sources">Sources: <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">David Silver, Lecture 9: Exploration and Exploitation</a>; <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">Russo et al. (2018)</a>; <a href="https://tor-lattimore.com/downloads/book/book.pdf">Lattimore &amp; Szepesvári (2020)</a></p>
 <aside class="notes">
 <p>R_max/(1 − γ) is the geometric-series bound on any discounted return when every reward is at most R_max and γ &lt; 1; it is not a sensible unqualified initialiser for average-reward or undiscounted continuing tasks. Run any model-free method (Monte Carlo control, Sarsa, Q-learning) from it and unvisited state–action pairs look attractive. R-max (Brafman and Tennenholtz) builds an optimistic model in which unknown transitions lead to a maximally rewarding state, then plans in it. Optimism and posterior sampling make exploration valuable several transitions before new evidence arrives. Following one sampled MDP's policy for an episode gives the temporal consistency of the corridor example. Exact Bayesian planning reasons over the physical state and the information state together, which is generally far more expensive. UCB in MDPs must also account for uncertainty from policy improvement, not only from evaluating the current policy. None of this transfers a bandit regret bound unchanged to deep RL.</p>
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-dyna">
+<h2>Exploring with a Learned Model</h2>
+</section>
+<section id="ex-dyna">
+<h3>Dyna Architecture</h3>
+<div class="cols top">
+<div>
+<h4>Two kinds of experience</h4>
+<ul class="small">
+<li><strong>real</strong>: act in the environment and see what happens</li>
+<li><strong>simulated</strong>: ask the learned model \(\hat{\mathcal M}\) of Lecture 8 what would happen</li>
+</ul>
+<p class="small"><em>Example:</em> the agent moves right and lands one cell over, reward 0. Dyna stores this in its model, then replays it many times while planning.</p>
+</div>
+<div>
+<h4>Each real step</h4>
+<ol class="steps small">
+<li>act and observe a transition</li>
+<li>direct RL: update values</li>
+<li>model learning: update \(\hat{\mathcal M}\)</li>
+<li>planning: update values again from simulated transitions</li>
+</ol>
+</div>
+</div>
+<div class="definition">
+<p>Dyna: learn a model from real experience; learn <em>and</em> plan values from both real and simulated experience.</p>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Dyna is the integrated architecture of Silver's Lecture 8 (Integrating Learning and Planning). It sits in this lecture because it needs both halves of the course so far: a learned model (Lecture 8) and exploration (this lecture). Real experience samples the true dynamics, S′ ∼ P(· | s, a) with reward R(s, a); simulated experience samples the learned model, S′ ∼ P̂(· | s, a) with reward R̂(s, a). Model-free RL uses only real experience; pure sample-based planning uses only simulated experience. Dyna uses both. The same value update is applied to both kinds of transition, so planning gives each real transition extra work. Reusing a wrong model can reinforce a wrong answer, which is why direct RL from real data stays in the loop, and, as the end of this section shows, why exploration still matters once the model looks complete.</p>
+</aside>
+</section>
+<section id="ex-dynaq">
+<h3>Dyna-Q Algorithm</h3>
+<p class="small">For each real step from state \(S\):</p>
+<ol class="steps small">
+<li>\(A\leftarrow\varepsilon\)-greedy\((S,Q)\); take \(A\), observe \(R,S'\)</li>
+<li>\(Q(S,A)\leftarrow Q(S,A)+\alpha\big[R+\gamma\max_a Q(S',a)-Q(S,A)\big]\)</li>
+<li>\(\text{Model}(S,A)\leftarrow R,S'\) (deterministic world)</li>
+<li>repeat \(n\) times: pick an observed \((S,A)\), set \(R,S'\leftarrow\text{Model}(S,A)\), apply update 2</li>
+<li>\(S\leftarrow S'\)</li>
+</ol>
+<div class="callout">\(n\) planning updates per real step: computation is traded for real experience.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2</a>; <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/08-mcts/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8</a></p>
+<aside class="notes">
+<p>Tabular Dyna-Q: step 2 is direct RL (Q-learning), step 3 is model learning, step 4 is planning. Planning samples state–action pairs uniformly from those already observed; with n = 0 this is plain Q-learning. Uniform replay wastes updates on pairs whose successor values have not changed: on a stored path A → B → C → end with rewards 0, 0, 1, γ = 0.9 and α = 1, replaying C, B, A backwards reaches the exact values 1, 0.9, 0.81 in three backups, while forward sweeps A, B, C need seven. Prioritised sweeping (Sutton and Barto §8.4) backs up the predecessors of recently changed values first. The next slide runs this algorithm; the last three slides of this section ask what happens when the world changes and the model goes stale.</p>
+</aside>
+</section>
+<section id="ex-dyna-lab">
+<h3>Interactive: Dyna-Q Planning Steps</h3>
+<div class="cols wide-left">
+<div>
+<p class="small">Dyna maze: +1 on reaching G, else 0; \(\gamma=0.95,\ \alpha=0.1,\ \varepsilon=0.1\). Mean of 20 seeded runs.</p>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+<div data-maze></div>
+<div data-maze-note class="readout small" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Predict how many episodes n = 50 needs before episodes are short. What does each real step saved cost?</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.2, Example 8.1</a></p>
+<aside class="notes">
+<p>A complete tabular Dyna-Q on Sutton and Barto's 6 × 9 maze (shortest path 14 steps), 50 episodes per run, mean of 20 runs with seeds 1001–1020 (New seeds moves to 2001–2020, 3001–3020, …). Q starts at 0 and greedy ties are broken at random; acting and planning use separate seeded streams, so episode 1 is the same random walk for every n (no reward has been seen, so planning changes nothing): mean 800 steps. Episode 2 then takes 736 steps with n = 0, 149 with n = 5, 104 with n = 10 and 42 with n = 50. Answer to the prompt: with n = 50 the mean episode length stays at or below 25 steps from episode 3 (18 steps), against episode 4 for n = 10, 6 for n = 5 and 28 for n = 0; about 17 steps remain at the end because of ε-exploration. Cost: over 50 episodes n = 0 takes 4,908 real steps and 4,908 value updates; n = 50 takes 1,661 real steps but 84,693 value updates, about 24.6 extra updates per real step saved (n = 5: 1,831 steps, 10,987 updates, 2.0 per step saved; n = 10: 1,738 steps, 19,120 updates, 4.5 per step saved). Planning is worthwhile when real steps are expensive and computation is cheap; the returns diminish as n grows. The maze shows the greedy action after episode k for the first seed: after episode 2, n = 0 has values in 2 states, n = 5 in 31, n = 10 in 44, n = 50 in all 46. One-step Q-learning extends the chain by about one state per episode (episode k gives k valued states for n = 0). With seeds 2001–2020 the numbers change (episode 1: 844 steps; episode 2: 635 against 183 with n = 5) but the pattern does not. Values above 800 would be drawn at 800 (stated in the readout). Each setting is computed once in the browser (about 0.1 s at most) and cached.</p>
+</aside>
+</section>
+<section id="ex-model-wrong">
+<h3>When the Model Is Wrong</h3>
+<p>The world changes after the model has learned it. Two cases:</p>
+<table class="compact">
+<thead><tr><th>Change</th><th>What the agent does</th><th>Is the model corrected?</th></tr></thead>
+<tbody>
+<tr><td>the known route is <strong>blocked</strong></td><td>follows its plan into the new wall</td><td>yes: real experience shows the wall</td></tr>
+<tr><td>a <strong>shortcut</strong> opens</td><td>keeps using the old route, which still works</td><td>no: it never goes near the shortcut</td></tr>
+</tbody>
+</table>
+<div class="callout">A model is only corrected where the agent goes. Exploration has to send it where the model might be out of date.</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.3, Examples 8.2 and 8.3</a></p>
+<aside class="notes">
+<p>Sutton and Barto's blocking maze (Example 8.2) and shortcut maze (Example 8.3). When the environment gets worse, the out-of-date model leads the agent straight into the change, so ordinary experience corrects it, after a spell of poor performance. When the environment gets better, nothing in ordinary experience reveals it: the old route still works, the planned values stay consistent with the model, and ε-greedy exploration rarely makes the long, specific detour needed to find the opening (the dithering problem of the Deep Exploration slide). This is the model-based version of the non-stationary bandit: old data, here stored in the model, misleads, and the agent must keep testing actions that once looked poor. Ask the class which case they expect to be harder before revealing the last column.</p>
+</aside>
+</section>
+<section id="ex-dynaq-plus">
+<h3>Dyna-Q+</h3>
+<p>While planning, give each modelled transition a small bonus that grows with the time since it was last tried for real:</p>
+\[\text{simulated reward}=r+\kappa\sqrt{\tau}\]
+<p class="small">\(\tau\): steps since the agent last took this action in this state. Actions never tried in a visited state are modelled as “stay put, reward 0”, so they earn the bonus too.</p>
+<div class="cols top">
+<div>
+<p class="small"><em>Example</em>, \(\kappa=0.001\), goal reward 1:</p>
+<table class="compact">
+<thead><tr><th>Not tried for</th><th>Bonus</th></tr></thead>
+<tbody><tr><td>100 steps</td><td>0.01</td></tr><tr><td>10,000 steps</td><td>0.1</td></tr></tbody>
+</table>
+</div>
+<div>
+<div class="callout">Planning carries the bonus back along whole routes, so the agent sets off on purpose to re-test a distant corner.</div>
+</div>
+</div>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.3</a></p>
+<aside class="notes">
+<p>Dyna-Q+ (Sutton and Barto §8.3) changes only the planning step: a simulated transition from (s, a) uses the reward r + κ√τ, where r is the modelled reward and τ the number of real time steps since (s, a) was last tried. Worked: κ√100 = 0.001 × 10 = 0.01 and κ√10000 = 0.001 × 100 = 0.1, so with goal reward 1 a pair untested for 10,000 steps looks like a tenth of a goal. Sutton and Barto also let planning use actions never tried from a visited state, modelled as leading back to the same state with reward 0 (their footnote); the demo does the same, which is a second difference from plain Dyna-Q besides the bonus. Compare UCB1: its bonus shrinks as an action is tried more often; Dyna-Q+'s grows the longer an action goes untried, a recency bonus suited to a world that may change. Because planning backs the bonus up through the model, the agent forms a multi-step plan to reach the stale pair: the temporally consistent exploration the Deep Exploration slide asked for. κ must be small next to the real rewards, or the agent explores for ever (next slide, κ = 0.01).</p>
+</aside>
+</section>
+<section id="ex-shortcut-lab">
+<h3>Interactive: Finding a Shortcut</h3>
+<div class="cols wide-left">
+<div>
+<p class="small">The wall opens at its right end after 3000 steps. Both agents: \(n=50,\ \alpha=0.1,\ \varepsilon=0.1,\ \gamma=0.95\). Mean of 10 seeded runs.</p>
+<div data-plot></div>
+<div data-readout class="readout" aria-live="polite"></div>
+</div>
+<div>
+<div data-controls class="demo-controls"></div>
+<div data-maze></div>
+<div data-maze-note class="readout small" aria-live="polite"></div>
+</div>
+</div>
+<p class="caption">Predict: does either agent switch to the shortcut? Then try κ = 0.01. What goes wrong?</p>
+<p class="sources">Sources: <a href="http://incompleteideas.net/book/the-book-2nd.html">Sutton &amp; Barto (2018), §8.3, Example 8.3</a></p>
+<aside class="notes">
+<p>Plain Dyna-Q (dashed) against Dyna-Q+ (solid) on Sutton and Barto's shortcut maze, after their Example 8.3: these are our own runs and parameters, not the book's figure. Both agents are the Dyna-Q of the previous demonstration with n = 50, α = 0.1, ε = 0.1 and γ = 0.95, run for 6000 steps; each time the agent reaches G (reward 1) it restarts at S. For the first 3000 steps the only way round the wall is its left end (shortest route 16 steps); then the right end opens (shortest route 10). Dyna-Q+ differs in two ways: simulated rewards get the bonus κ√τ, and never-tried actions in visited states enter the model as “stay put, reward 0”. Mean of 10 runs, seeds 1001–1010 (New seeds moves to 2001–2010, 3001–3010, …); the plot shows cumulative goals every 50 steps. At κ = 0.001, in steps 1–3000 Dyna-Q reaches G 124.9 times on average and Dyna-Q+ 83.0: the bonus costs reward while the world is static, because Dyna-Q+ keeps re-testing old moves. In steps 3001–6000 Dyna-Q reaches G 169.4 times and Dyna-Q+ 220.1, the steeper solid line after the change. At step 6000 Dyna-Q+'s greedy route takes the shortcut in 10 of 10 runs, Dyna-Q's in 1 of 10 (seed 1009, found by ε-exploration, a 12-step route). Answer to the first prompt: Dyna-Q almost never switches, because its model says the right end is a wall and nothing sends it there to check; Dyna-Q+ re-tests the stale wall cell and switches. Over all 6000 steps the totals are close (294.3 against 303.1), which is why the readout splits them at the change. κ = 0.0001 is too small to find the shortcut within 3000 steps (0 of 10; 167.8 goals after the change) and still costs early reward (94.7). Answer to the second prompt: κ = 0.01 is too large. With goal reward 1, a pair untested for 10,000 steps would earn a bonus of 1, so the agent spends nearly all its time re-testing and reaches G only 4.0 and 3.2 times; at step 6000 its greedy move for seed 1001 is a move into the bottom edge, ringed on the maze. Seeds 2001–2010 give the same pattern (κ = 0.001: Dyna-Q 122.1 then 163.1 goals and 0 of 10 shortcuts; Dyna-Q+ 91.4 then 221.7 and 9 of 10, the tenth run, seed 2001, being in the middle of re-testing a wall move at step 6000). The greedy route follows the agent's current values from S, without exploration and without updating τ, for at most 40 steps; a move that leaves the state unchanged is ringed. With α = 1, which is possible here because the maze is deterministic, Dyna-Q+ is ahead before the change as well; with α = 0.1 the early cost of exploring is visible. The 20 runs take about 0.2 s in the browser and are cached.</p>
 </aside>
 </section>
 </section>
@@ -656,6 +787,7 @@
 <tr><td>Optimism in the face of uncertainty</td><td>UCB1</td><td>a confidence bonus</td></tr>
 <tr><td>Probability matching</td><td>Thompson sampling</td><td>sampling plausible means</td></tr>
 <tr><td>Information state search</td><td>Bayes-adaptive planning</td><td>valuing information explicitly</td></tr>
+<tr><td>Bonus inside planning</td><td>Dyna-Q+</td><td>re-testing what has not been tried lately</td></tr>
 </tbody>
 </table>
 <ul>
@@ -663,14 +795,14 @@
 <li>the same principles apply to MDPs: check stationarity, context and effects on future states</li>
 </ul>
 <aside class="notes">
-<p>Each principle was developed in the bandit setting, and the same principles carry over to MDPs (Silver's conclusion). The methods differ in what drives exploration: random coverage that ignores uncertainty; an initial optimism that is soon forgotten; a confidence bonus that shrinks with counts; posterior samples that explore in proportion to the chance of being best; and explicit planning over what will be learnt. Before ending, ask learners to name the mechanism behind one method in their own words, and one assumption it relies on.</p>
+<p>Each principle was developed in the bandit setting, and the same principles carry over to MDPs (Silver's conclusion). The methods differ in what drives exploration: random coverage that ignores uncertainty; an initial optimism that is soon forgotten; a confidence bonus that shrinks with counts; posterior samples that explore in proportion to the chance of being best; and explicit planning over what will be learnt. Dyna-Q+ adds a recency bonus inside planning, so that a learned model is re-tested where it may have gone stale. Before ending, ask learners to name the mechanism behind one method in their own words, and one assumption it relies on.</p>
 </aside>
 </section>
 <section id="ex-references">
 <h3>References</h3>
 <ul class="small">
-<li>Silver, D. <a href="https://raw.githubusercontent.com/jbrusey/7043scn/main/09-explore/lecture-9-exploration-and-exploitation.pdf">Lecture 9: Exploration and Exploitation</a>, UCL RL course (copy in the 7043SCN repository).</li>
-<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/the-book-2nd.html"><em>Reinforcement Learning: An Introduction</em></a>, 2nd ed., Chapter 2.</li>
+<li>Silver, D. <a href="https://raw.githubusercontent.com/jbrusey/7043scn/1cb758fffc341b6a0337d8ea9ee70671b8629182/09-explore/lecture-9-exploration-and-exploitation.pdf">Lecture 9: Exploration and Exploitation</a>, UCL RL course (copy in the 7043SCN repository's history).</li>
+<li>Sutton &amp; Barto (2018). <a href="http://incompleteideas.net/book/the-book-2nd.html"><em>Reinforcement Learning: An Introduction</em></a>, 2nd ed., Chapters 2 and 8.</li>
 <li>Lai &amp; Robbins (1985). <a href="https://doi.org/10.1016/0196-8858(85)90002-8">Asymptotically efficient adaptive allocation rules</a>. <em>Adv. Appl. Math.</em> 6.</li>
 <li>Auer, Cesa-Bianchi &amp; Fischer (2002). <a href="https://doi.org/10.1023/A:1013689704352">Finite-time analysis of the multiarmed bandit problem</a>. <em>Machine Learning</em> 47.</li>
 <li>Russo, Van Roy, Kazerouni, Osband &amp; Wen (2018). <a href="https://web.stanford.edu/~bvr/pubs/TS_Tutorial_FnT.pdf">A tutorial on Thompson sampling</a>. <em>Foundations and Trends in Machine Learning</em> 11.</li>

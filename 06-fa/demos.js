@@ -54,7 +54,7 @@
       if (mode === 'position') s += `<rect x="${f(X(-1.2))}" y="${top}" width="${f(X(FLOOR) - X(-1.2))}" height="${bot - top}" fill="${SHADE}"/>` +
         `<text x="${f((X(-1.2) + X(FLOOR)) / 2)}" y="${top + 20}" text-anchor="middle">push left</text><text x="${f((X(FLOOR) + X(0.5)) / 2)}" y="${top + 20}" text-anchor="middle">push right</text>`;
       else if (mode === 'momentum') s += `<rect x="${f(X(-1.2))}" y="${f(V(0))}" width="${f(X(0.6) - X(-1.2))}" height="${f(bot - V(0))}" fill="${SHADE}"/>` +
-        `<text x="${f(X(-0.35))}" y="${top + 20}" text-anchor="middle">push right (ẋ ≥ 0)</text><text x="${f(X(-0.35))}" y="${bot - 8}" text-anchor="middle">push left (ẋ &lt; 0)</text>`;
+        `<text x="${f(X(0.45))}" y="${f(V(0) - 6)}" text-anchor="end">push right (ẋ ≥ 0)</text><text x="${f(X(0.45))}" y="${f(V(0) + 18)}" text-anchor="end">push left (ẋ &lt; 0)</text>`;
       else s += `<text x="${f(X(-0.35))}" y="${top + 20}" text-anchor="middle">push right everywhere</text>`;
       [-0.07, 0, 0.07].forEach(v => { s += `<path d="M${ML},${f(V(v))}H${W - MR}" stroke="#d6d6cc"/><text x="${ML - 8}" y="${f(V(v) + 6)}" text-anchor="end">${v}</text>`; });
       [-1.2, -0.9, -0.6, -0.3, 0, 0.3, 0.6].forEach(x => { s += `<text x="${f(X(x))}" y="${bot + 22}" text-anchor="middle">${x}</text>`; });
@@ -94,16 +94,14 @@
   });
 
   // One linear update from w = 0 towards target 1 at x = 0 (alpha * delta = 0.5).
+  // One select: table, aggregation, or radial basis features at four widths.
   Demos.register('fa-footprint-lab', (root, H) => {
-    const xs = Array.from({length: 9}, (_, i) => -1 + i * .25), C = [-.65, 0, .65];
+    const xs = Array.from({length: 9}, (_, i) => -1 + i * .25), C = [-.65, 0, .65], WIDTHS = [0.1, 0.35, 0.5, 1];
     root.querySelector('[data-controls]').innerHTML =
-      H.select('fa-repr', 'Representation', [{value: 'table', label: 'Table (9 one-hot)'}, {value: 'bins', label: 'Aggregation (3 regions)'}, {value: 'rbf', label: 'Radial basis (3)'}], 'table') +
-      H.range('fa-width', 'Radial basis width σ', .35, .1, 1, .05) + H.button('Reset', 'reset');
-    const repr = root.querySelector('#fa-repr');
-    // The width only matters for radial basis features, so moving it selects them (registered before the redraw).
-    root.querySelector('#fa-width').addEventListener('input', () => { repr.value = 'rbf'; });
+      H.select('fa-repr', 'Representation', [{value: 'table', label: 'Table (9 one-hot features)'}, {value: 'bins', label: 'Aggregation (3 regions)'},
+        ...WIDTHS.map(w => ({value: String(w), label: `Radial basis, σ = ${w}`}))], 'table') + H.button('Reset', 'reset');
     const draw = () => {
-      const mode = repr.value, sigma = val(root, 'fa-width');
+      const mode = sel(root, 'fa-repr'), sigma = +mode;
       const x = s => mode === 'table' ? xs.map(c => (Math.abs(c - s) < .01 ? 1 : 0))
         : mode === 'bins' ? [0, 1, 2].map(i => (i === (s < -.33 ? 0 : s > .33 ? 2 : 1) ? 1 : 0))
         : C.map(c => Math.exp(-.5 * ((s - c) / sigma) ** 2));
@@ -116,7 +114,7 @@
           : mode === 'bins' ? '<b>x</b>(0) = (0, 1, 0), ‖<b>x</b>(0)‖² = 1: the middle region shares one weight.'
           : `<b>x</b>(0) = (${x0.map(f => H.fmt(f, 2)).join(', ')}), ‖<b>x</b>(0)‖² = ${H.fmt(dot(x0, x0), 2)}: ${dv[5] < .05 ? 'narrow features barely overlap' : 'overlap spreads the change'}.`);
     };
-    wire(root, {'fa-repr': 'table', 'fa-width': .35}, draw);
+    wire(root, {'fa-repr': 'table'}, draw);
   });
 
   // Rewards 1, 2, 4 then terminal; current estimate 2.
@@ -197,6 +195,7 @@
                  {label: 'Aggregation (10 weights)', points: wA.reduce((p, w, k) => p.concat([[k * 10 + .5, w], [k * 10 + 10.5, w]]), []), color: H.colors[1]}],
         xDomain: [0, 100], yDomain: [-1, 1], xTicks: 4, yTicks: 4, xLabel: 'State', yLabel: 'Value', height: 280});
       root.querySelector('[data-readout]').innerHTML = `After <strong>${episodes}</strong> episodes (seed ${SEED}), μ-weighted RMS error √VE:<br>table <strong>${H.fmt(rmsVE(s => wT[s]), 3)}</strong>, aggregation <strong>${H.fmt(rmsVE(s => wA[group(s)]), 3)}</strong> (best possible for aggregation ${H.fmt(bestVE, 3)})` +
+        (sel(root, 'fa-walk-method') === 'mc' && val(root, 'fa-walk-alpha') >= .01 ? '<br>Monte Carlo with a large α: each episode pushes a group many times towards one noisy return, so aggregation jumps around. Try α = 0.002.' : '') +
         (full ? `<br>Limit of ${MAXEP} episodes reached; Reset returns to ${INIT}.` : '');
       ['ten', 'hundred', 'thousand'].forEach(a => { root.querySelector(`[data-action="${a}"]`).disabled = full; });
     };
@@ -204,6 +203,11 @@
     on(root, 'ten', () => add(10));
     on(root, 'hundred', () => add(100));
     on(root, 'thousand', () => add(1000));
+    // Switching method also selects that method's usual step size (registered before
+    // wire, so it runs before the redraw): a Monte Carlo target is a whole return,
+    // and with aggregation one group is updated many times per episode.
+    const METHOD_ALPHA = {td: '0.05', mc: '0.002'};
+    root.querySelector('#fa-walk-method').addEventListener('input', e => { root.querySelector('#fa-walk-alpha').value = METHOD_ALPHA[e.target.value]; });
     wire(root, {'fa-walk-method': 'td', 'fa-walk-alpha': '0.05'}, draw, () => { episodes = INIT; });
   });
 

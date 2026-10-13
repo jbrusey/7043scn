@@ -47,7 +47,8 @@
   const proportional = kp => T => H.clamp(Math.round(kp * (22 - T)), 0, 5);
 
   // Planner (oracle): finite-horizon dynamic programming with the exact model and
-  // known ambient, on a 0.1 °C grid from -20 to 50 °C with linear interpolation.
+  // known ambient, on a 0.1 °C grid from -20 to 50 °C with linear interpolation,
+  // and an exact check of each trip's plan against leaving the heater off.
   const GMIN = -20, GSTEP = 0.1, GN = 701, GMAX = GMIN + (GN - 1) * GSTEP;
   const transCache = new Map(), planCache = new Map();
   function transitions(Tamb) {
@@ -86,11 +87,22 @@
     }
     // act greedily with a one-step lookahead from the exact (off-grid) temperature;
     // ties go to the lower power
-    const policy = (T, t) => {
+    const greedy = (T, t) => {
       const Vn = Vs[Math.min(t + 1, n)];
       let best = -Infinity, bp = 0;
       LEVELS.forEach(P => { const Tn = step(T, P, Tamb), v = reward(Tn, P, w) + interp(Vn, Tn); if (v > best + 1e-9) { best = v; bp = P; } });
       return bp;
+    };
+    // Interpolation smooths the value function where it jumps (whether the band is reached in
+    // time), so near a break-even the grid values can be slightly off. From the first state of
+    // each trip the planner therefore simulates its greedy plan exactly and leaves the heater
+    // off if that is at least as good (ties to the lower power, as above). Trips are rolled out
+    // one at a time, so the decision is kept in the closure until the next trip starts.
+    const tripReturn = (pol, T, t0) => { let G = 0; for (let t = t0; t < n; t++) { const P = pol(T, t), Tn = step(T, P, Tamb); G += reward(Tn, P, w); T = Tn; } return G; };
+    let off = null;
+    const policy = (T, t) => {
+      if (t === 0 || off === null) off = tripReturn(() => 0, T, t) >= tripReturn(greedy, T, t) - 1e-9;
+      return off ? 0 : greedy(T, t);
     };
     if (planCache.size > 300) planCache.clear();
     const out = {policy};
@@ -248,17 +260,15 @@
         series: [{label: 'Cabin under the planner', points: x.temps}, {label: 'Ambient', points: [[0, Tamb], [n, Tamb]], color: GREY, dashed: true, width: 2}],
         bands: band, xDomain: [0, n], yDomain: [-20, 30], xTicks: n <= 30 || n % 10 ? n / 5 : n / 10, yTicks: 5, xLabel: 'Minute of trip', yLabel: 'Cabin temperature (°C)', height: 280});
       // Why the planner heats or not: the unheated cabin (at ambient, at most 10 °C) is never
-      // comfortable, so heating wins exactly when its N comfortable minutes exceed its energy
-      // cost sum(P_t)/w. When the planner does not heat at this w, the heated trip shown in the
-      // text is the one it chooses at the largest w on the slider.
+      // comfortable, so heating pays when its N comfortable minutes exceed its energy cost
+      // sum(P_t)/w, measured like the comfort penalty in uncomfortable minutes. When the planner
+      // does not heat at this w, the text describes the trip it chooses at the largest w.
       const heat = x.kwh > 0 ? x : rollout(plan(Tamb, W_MAX, n).policy, sc, W_MAX, n);
-      const kwMin = Math.round(heat.kwh * 60), N = heat.comfort, cost = kwMin / w;   // sum of P_t over 1-minute steps, kW·min
-      const cmp = cost < N ? '&lt;' : cost > N ? '&gt;' : '=';
+      const kwMin = Math.round(heat.kwh * 60), N = heat.comfort;   // sum of P_t over 1-minute steps, kW·min
+      const cost = kwMin / w, cmp = cost < N ? '&lt;' : cost > N ? '&gt;' : '=';
       const why = heat.kwh === 0
         ? `Even at w = ${W_MAX} kW the planner does not heat: on a ${n}-minute trip the warm-up leaves too few comfortable minutes.`
-        : x.kwh > 0
-          ? `Heating buys <strong>${N} comfortable minutes</strong> for an energy cost ΣP<sub>t</sub>/w = ${kwMin}/${w} = ${H.fmt(cost, 1)} ${cmp} ${N}, so it pays (for any <strong>w &gt; ${H.fmt(kwMin / N, 2)} kW</strong>).`
-          : `Heating would buy <strong>${N} comfortable minutes</strong> for an energy cost ΣP<sub>t</sub>/w = ${kwMin}/${w} = ${H.fmt(cost, 1)} ${cmp} ${N}, so it does not pay (it would for <strong>w &gt; ${H.fmt(kwMin / N, 2)} kW</strong>).`;
+        : `Heating: <strong>${N} comfortable min</strong> for ${kwMin} kW·min, energy cost ${kwMin}/w = ${H.fmt(cost, 2)} ${cmp} ${N}; it pays ${x.kwh > 0 ? '' : 'only '}for <strong>w &gt; ${H.fmt(kwMin / N, 2)} kW</strong>.`;
       root.querySelector('[data-readout]').innerHTML = `<div class="metric-row">${metric('Comfortable', `${x.comfort} / ${n} min`)}${metric('Heater energy', H.fmt(x.kwh, 2) + ' kWh')}${metric('Range cost', H.fmt(x.kwh / KWH_PER_KM, 1) + ' km')}${metric('Return', signed(x.ret, 1))}</div>${why}`;
     };
     wire(root, {'cc-tr-w': W_DEF, 'cc-tr-amb': -5, 'cc-tr-n': TRIP}, draw);

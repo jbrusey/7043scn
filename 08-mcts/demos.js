@@ -21,9 +21,6 @@
   const on = (root, action, fn) => root.querySelector(`[data-action="${action}"]`).addEventListener('click', fn);
   const put = (root, sel, html) => { root.querySelector(sel).innerHTML = html; };
   const pick = (a, b) => Math.abs(a - b) < 1e-9 ? 'either (tie)' : a > b ? 'A' : 'B';
-  const int = x => Math.round(x).toLocaleString('en-GB');
-  // Score axes: 0–2 in steps of 0.5, otherwise whole numbers up to the next integer.
-  const axis = hi => { const m = Math.max(2, Math.ceil(hi - 1e-9)); return {max: m, ticks: m === 2 ? 4 : m}; };
   // Line chart with a legend whose swatches show solid and dashed lines (H.plot's legend draws solid blocks).
   const legend = lines => '<div class="legend">' + lines.map(l =>
     `<span><svg width="30" height="10" viewBox="0 0 30 10" aria-hidden="true"><path d="M1,5H29" stroke="${l.color}" stroke-width="${l.width || 3}"${l.dashed ? ' stroke-dasharray="6 4"' : ''}/></svg>${H.esc(l.label)}</span>`).join('') + '</div>';
@@ -70,62 +67,6 @@
   // 4. Backup: add one visit and the return G to every node on the stored path.
   function backup(S) { S.path.forEach(k => { S.stats[k].n += 1; S.stats[k].w += S.G; }); S.done += 1; }
   function simulate(S, c) { select(S, c); expand(S); rollout(S); backup(S); }
-
-  /* ---- Dyna maze (Sutton & Barto, Example 8.1): 6 x 9 grid, cells numbered row * 9 + col ---- */
-  const MAZE = {rows: 6, cols: 9, start: 18, goal: 8, walls: new Set([11, 20, 29, 41, 7, 16, 25])};
-  const MOVES = [[-1, 0], [1, 0], [0, -1], [0, 1]];   // up, down, left, right
-  function mazeStep(s, a) {
-    const r = Math.floor(s / MAZE.cols) + MOVES[a][0], c = s % MAZE.cols + MOVES[a][1], s2 = r * MAZE.cols + c;
-    return r < 0 || r >= MAZE.rows || c < 0 || c >= MAZE.cols || MAZE.walls.has(s2) ? s : s2;
-  }
-  // Tabular Dyna-Q; acting and planning use separate seeded streams. Returns episode lengths,
-  // the number of value updates and (optionally) a copy of Q after every episode.
-  function dynaQ(n, seed, keepQ) {
-    const EPISODES = 50, CAP = 10000, alpha = .1, gamma = .95, eps = .1;
-    const act = H.rng(seed), plan = H.rng(seed + 500000);
-    const Q = new Float64Array(MAZE.rows * MAZE.cols * 4), model = new Map(), seen = [];
-    const maxQ = s => Math.max(Q[4 * s], Q[4 * s + 1], Q[4 * s + 2], Q[4 * s + 3]);
-    const greedy = s => {
-      let best = -Infinity, ties = [];
-      for (let a = 0; a < 4; a++) { const q = Q[4 * s + a]; if (q > best + 1e-12) { best = q; ties = [a]; } else if (Math.abs(q - best) <= 1e-12) ties.push(a); }
-      return ties[Math.floor(act() * ties.length)];
-    };
-    const update = (k, r, s2) => { Q[k] += alpha * (r + (s2 === MAZE.goal ? 0 : gamma * maxQ(s2)) - Q[k]); };
-    const lens = [], snaps = [];
-    let updates = 0;
-    for (let e = 0; e < EPISODES; e++) {
-      let s = MAZE.start, t = 0;
-      while (s !== MAZE.goal && t < CAP) {
-        const a = act() < eps ? Math.floor(act() * 4) : greedy(s), s2 = mazeStep(s, a), r = s2 === MAZE.goal ? 1 : 0, k = 4 * s + a;
-        update(k, r, s2); updates++;
-        if (!model.has(k)) seen.push(k);
-        model.set(k, [r, s2]);
-        for (let i = 0; i < n; i++) { const kk = seen[Math.floor(plan() * seen.length)], m = model.get(kk); update(kk, m[0], m[1]); updates++; }
-        s = s2; t++;
-      }
-      lens.push(t);
-      if (keepQ) snaps.push(Float64Array.from(Q));
-    }
-    return {lens, updates, snaps};
-  }
-  function mazeSVG(Q) {
-    const C = 30, W = MAZE.cols * C, Ht = MAZE.rows * C;
-    let s = `<svg class="chart" viewBox="-2 -2 ${W + 4} ${Ht + 4}" role="img" aria-label="Dyna maze with the current greedy actions"><title>Dyna maze: greedy action in each state with a positive value</title>`;
-    for (let i = 0; i < MAZE.rows * MAZE.cols; i++) {
-      const x = (i % MAZE.cols) * C, y = Math.floor(i / MAZE.cols) * C, wall = MAZE.walls.has(i);
-      s += `<rect x="${x}" y="${y}" width="${C}" height="${C}" fill="${wall ? '#6b6359' : '#fafaf6'}" stroke="#c9c5bb"/>`;
-      if (wall) continue;
-      const q = Array.from(Q.slice(4 * i, 4 * i + 4)), best = Math.max(...q), valued = best > 0 && i !== MAZE.goal;
-      if (valued) s += `<rect x="${x}" y="${y}" width="${C}" height="${C}" fill="${H.colors[0]}" fill-opacity="0.12"/>`;
-      if (i === MAZE.start || i === MAZE.goal) { s += `<text x="${x + C / 2}" y="${y + C / 2 + 6}" text-anchor="middle" font-weight="bold">${i === MAZE.start ? 'S' : 'G'}</text>`; continue; }
-      if (!valued) continue;
-      // arrow for the greedy action: shaft plus triangular head
-      const [dy, dx] = MOVES[q.indexOf(best)], cx = x + C / 2, cy = y + C / 2, px = -dy, py = dx;
-      s += `<path d="M${cx - dx * 9},${cy - dy * 9}L${cx + dx * 4},${cy + dy * 4}" stroke="${H.colors[0]}" stroke-width="2.5"/>` +
-           `<path d="M${cx + dx * 11},${cy + dy * 11}L${cx + dx * 3 + px * 5},${cy + dy * 3 + py * 5}L${cx + dx * 3 - px * 5},${cy + dy * 3 - py * 5}Z" fill="${H.colors[0]}"/>`;
-    }
-    return s + '</svg>';
-  }
 
   /* ======================== Model-Based RL ======================== */
 
@@ -195,97 +136,173 @@
     wire(root, {'mcts-bias-p': .8, 'mcts-bias-n': 10}, draw);
   });
 
-  /* ======================== Integrated Architectures ======================== */
+  /* ======================== Simulation-Based Search ======================== */
 
-  // Dyna-Q on the Dyna maze: mean episode length over 20 seeded runs, n = 0 against the chosen n.
-  Demos.register('mcts-dyna-lab', (root, H) => {
-    const RUNS = 20, TOP = 800, SHORT = 25, cache = new Map();
-    let seedSet = 1;
-    put(root, '[data-controls]', H.select('mcts-dyna-n', 'Planning steps n', [0, 5, 10, 50].map(v => ({value: String(v), label: String(v)})), '5') +
-      H.range('mcts-dyna-k', 'Maze after episode', 2, 1, 10, 1) + H.button('New seeds', 'seeds') + H.button('Reset', 'reset'));
-    const runs = n => {
-      const key = n + '|' + seedSet;
-      if (!cache.has(key)) {
-        const mean = new Array(50).fill(0);
-        let steps = 0, updates = 0, first = null;
-        for (let i = 0; i < RUNS; i++) {
-          const res = dynaQ(n, 1000 * seedSet + i + 1, i === 0);
-          if (i === 0) first = res.snaps;
-          res.lens.forEach((l, j) => { mean[j] += l / RUNS; });
-          steps += res.lens.reduce((a, b) => a + b, 0) / RUNS; updates += res.updates / RUNS;
-        }
-        // first episode from which the mean length stays at or below SHORT steps
-        let from = 51;
-        for (let j = 49; j >= 0 && mean[j] <= SHORT; j--) from = j + 1;
-        cache.set(key, {mean, steps, updates, first, from});
+  // Static figure: the planning tree from "now", with the best line of play (A then A2) highlighted.
+  Demos.register('mcts-forward', (root, H) => {
+    const POS = {R: [190, 24], A: [95, 112], B: [285, 112], A1: [46, 200], A2: [144, 200], B1: [238, 200], B2: [336, 200]};
+    const BW = 88, BH = 40, best = ['R', 'A', 'A2'];
+    const onBest = (a, b) => best.includes(a) && best.includes(b);
+    let s = '<svg class="chart" viewBox="0 0 382 222" role="img" aria-label="Search tree from the current state: moves A and B, then A1 0.2, A2 0.8, B1 0.55, B2 0.65">' +
+      '<title>Search tree from the current state; the best line of play is A then A2, worth 0.8</title>';
+    Object.entries(TREE).forEach(([p, d]) => (d.children || []).forEach(k => {
+      s += `<path d="M${POS[p][0]},${POS[p][1] + BH / 2}L${POS[k][0]},${POS[k][1] - BH / 2}" stroke="${onBest(p, k) ? H.colors[0] : '#b8b3a8'}" stroke-width="${onBest(p, k) ? 4 : 2}"/>`;
+    }));
+    Object.entries(POS).forEach(([k, [x, y]]) => {
+      const label = k === 'R' ? 'now' : TREE[k].children ? k : `${k}: ${TREE[k].reward}`;
+      s += `<rect x="${x - BW / 2}" y="${y - BH / 2}" width="${BW}" height="${BH}" rx="6" fill="${best.includes(k) ? H.colors[0] : '#fafaf6'}"${best.includes(k) ? ' fill-opacity="0.14"' : ''} stroke="#51483d" stroke-width="1.5"/>` +
+           `<text x="${x}" y="${y + 6}" text-anchor="middle"${TREE[k].children ? ' font-weight="bold"' : ''}>${label}</text>`;
+    });
+    put(root, '[data-figure]', s + '</svg>');
+  });
+
+  /* ======================== UCB1 ======================== */
+
+  /* Three Bernoulli arms with means hidden from the algorithm. Each arm has its own seeded reward
+     stream, so the k-th pull of an arm pays the same whatever c is: c changes only which arm is pulled. */
+  const BANDIT = {means: [.3, .5, .7], seed: 846};
+  const newBandit = seed => ({streams: BANDIT.means.map((m, a) => { const r = H.rng(seed * 10 + a); return () => (r() < m ? 1 : 0); }),
+                              n: [0, 0, 0], w: [0, 0, 0], t: 0, last: null});
+  // Index of the largest value; ties go to the lowest-numbered arm.
+  const argmax = v => v.reduce((b, x, i) => (x > v[b] + 1e-12 ? i : b), 0);
+  // UCB1 score Q(a) + c √(ln t / N(a)); an untried arm scores Infinity, so every arm is tried once first.
+  const ucbScores = (B, c) => B.n.map((n, a) => (n === 0 ? Infinity : B.w[a] / n + c * Math.sqrt(Math.log(B.t) / n)));
+  function pull(B, c) {
+    const sc = ucbScores(B, c), a = argmax(sc), r = B.streams[a]();
+    B.last = {t: B.t + 1, arm: a, r, q: B.n.map((n, i) => (n ? B.w[i] / n : null))};
+    B.n[a] += 1; B.w[a] += r; B.t += 1;
+  }
+  // Stacked bars: solid = mean Q(a), light = bonus, total height = score. The arm pulled next is outlined.
+  function ucbChart(B, sc, next, truth) {
+    const w = 560, h = 300, L = 62, top = 44, base = h - 56, bw = (w - L - 10) / 3;
+    const hiF = Math.max(1, ...sc.filter(Number.isFinite)), step = hiF <= 2.5 ? .5 : 1, ymax = step * Math.ceil(hiF / step - 1e-9);
+    const Y = v => base - Math.min(v, ymax) / ymax * (base - top), ink = '#51483d';
+    let s = `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="UCB1 score of each arm: mean plus exploration bonus">` +
+      `<title>UCB1 score of each arm: mean Q(a) (solid) plus bonus (light)</title>` +
+      `<rect x="${L}" y="8" width="16" height="16" fill="${ink}"/><text x="${L + 22}" y="22">mean Q(a)</text>` +
+      `<rect x="${L + 134}" y="8" width="16" height="16" fill="${ink}" fill-opacity="0.22" stroke="${ink}"/><text x="${L + 156}" y="22">+ bonus = score</text>` +
+      (truth ? `<path d="M${L + 318},16H${L + 348}" stroke="#222" stroke-width="2.5" stroke-dasharray="6 4"/><text x="${L + 354}" y="22">true mean</text>` : '');
+    for (let v = 0; v <= ymax + 1e-9; v += step) s += `<path d="M${L} ${Y(v)}H${w - 6}" stroke="#d6d6cc"/><text x="${L - 8}" y="${Y(v) + 6}" text-anchor="end">${+v.toFixed(1)}</text>`;
+    B.n.forEach((n, a) => {
+      const x = L + a * bw + 24, bwid = bw - 48, cx = x + bwid / 2, col = H.colors[a], isNext = a === next, bold = isNext ? ' font-weight="bold"' : '';
+      if (n === 0) {
+        s += `<rect x="${x}" y="${top}" width="${bwid}" height="${base - top}" fill="${col}" fill-opacity="0.06" stroke="${isNext ? '#222' : col}" stroke-width="${isNext ? 2.5 : 1.5}" stroke-dasharray="6 4"/>` +
+             `<text x="${cx}" y="${(top + base) / 2 - 4}" text-anchor="middle"${bold}>untried</text><text x="${cx}" y="${(top + base) / 2 + 18}" text-anchor="middle"${bold}>score ∞</text>`;
+      } else {
+        const q = B.w[a] / n;
+        s += `<rect x="${x}" y="${Y(q)}" width="${bwid}" height="${Math.max(1, base - Y(q))}" fill="${col}"/>` +
+             `<rect x="${x}" y="${Y(sc[a])}" width="${bwid}" height="${Math.max(0, Y(q) - Y(sc[a]))}" fill="${col}" fill-opacity="0.22" stroke="${col}"/>`;
+        if (isNext) s += `<rect x="${x - 5}" y="${Y(sc[a]) - 5}" width="${bwid + 10}" height="${base - Y(sc[a]) + 5}" fill="none" stroke="#222" stroke-width="2.5"/>`;
+        s += `<text x="${cx}" y="${Y(sc[a]) - 11}" text-anchor="middle"${bold}>${H.fmt(sc[a], 3)}</text>`;
       }
-      return cache.get(key);
-    };
+      if (truth) s += `<path d="M${x - 12},${Y(BANDIT.means[a])}H${x + bwid + 12}" stroke="#222" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+      s += `<text x="${cx}" y="${base + 24}" text-anchor="middle"${bold}>Arm ${a + 1}${isNext ? ' (next)' : ''}</text>` +
+           `<text x="${cx}" y="${base + 46}" text-anchor="middle">N(${a + 1}) = ${n}</text>`;
+    });
+    return s + `<path d="M${L},${top - 8}V${base}H${w - 6}" fill="none" stroke="#444"/></svg>`;
+  }
+
+  // UCB1 step by step on the three arms. Changing c replays the run from t = 0 to the same t.
+  Demos.register('mcts-ucb-lab', (root, H) => {
+    const MAX = 200;
+    let B, truth = false;
+    put(root, '[data-controls]', H.range('mcts-ucb-c', 'Exploration c', 1, 0, 3, .1) + H.button('Pull 1', 'one') + H.button('Pull 10', 'ten') +
+      H.button('Show true means', 'truth') + H.button('Reset', 'reset'));
+    const cIn = root.querySelector('#mcts-ucb-c'), c = () => +cIn.value, f3 = x => H.fmt(x, 3);
+    const replay = t => { B = newBandit(BANDIT.seed); while (B.t < t) pull(B, c()); };
     const draw = () => {
-      const n = val(root, 'mcts-dyna-n'), k = val(root, 'mcts-dyna-k'), base = runs(0), cur = runs(n);
-      const s0 = 1000 * seedSet + 1, seeds = `seeds ${s0}–${s0 + RUNS - 1}`;
-      const pts = m => m.slice(1).map((v, j) => [j + 2, Math.min(TOP, v)]);
-      const lines = [{label: `n = ${n}`, points: pts(cur.mean), color: H.colors[0]}];
-      if (n !== 0) lines.push({label: 'n = 0 (Q-learning)', points: pts(base.mean), color: H.colors[1], dashed: true});
-      put(root, '[data-plot]', plotWithLegend({xDomain: [0, 50], yDomain: [0, TOP], xTicks: 5, xLabel: 'Episode (from 2)', yLabel: 'Steps per episode', height: 270,
-        title: 'Mean steps per episode against episode'}, lines));
-      const clipped = cur.mean.slice(1).concat(base.mean.slice(1)).some(v => v > TOP) ? ' Values above 800 are drawn at 800.' : '';
-      const short = r => r.from <= 50 ? `episode ${r.from}` : 'never within 50 episodes';
-      const saved = base.steps - cur.steps, cost = saved > 0 ? `${H.fmt((cur.updates - base.updates) / saved, 1)} extra value updates per real step saved` : 'no real steps saved';
-      put(root, '[data-readout]', n === 0
-        ? `Mean of ${seeds}. Episode 1, a random walk: ${int(cur.mean[0])} steps; episode 2: <strong>${int(cur.mean[1])}</strong>.<br>` +
-          `Mean stays ≤ ${SHORT} steps from <strong>${short(cur)}</strong> (shortest path 14). Real steps in 50 episodes: ${int(cur.steps)}, one value update each.${clipped}`
-        : `Mean of ${seeds}. Episode 1 is the same random walk for every n (${int(cur.mean[0])} steps). Episode 2: ${int(base.mean[1])} (n = 0), <strong>${int(cur.mean[1])}</strong> (n = ${n}).<br>` +
-          `Mean stays ≤ ${SHORT} steps from ${short(base)} (n = 0), <strong>${short(cur)}</strong> (n = ${n}); shortest path 14.<br>` +
-          `50 episodes: ${int(base.steps)} vs ${int(cur.steps)} real steps, ${int(base.updates)} vs ${int(cur.updates)} value updates: <strong>${cost}</strong>.${clipped}`);
-      const Q = cur.first[k - 1];
-      let valued = 0;
-      for (let s = 0; s < MAZE.rows * MAZE.cols; s++) if (s !== MAZE.goal && !MAZE.walls.has(s) && Math.max(Q[4 * s], Q[4 * s + 1], Q[4 * s + 2], Q[4 * s + 3]) > 0) valued++;
-      put(root, '[data-maze]', mazeSVG(Q));
-      put(root, '[data-maze-note]', `Greedy actions after episode ${k}, n = ${n}, seed ${s0}: ${valued} of 46 states have a positive value.`);
+      const sc = ucbScores(B, c()), next = argmax(sc), L = B.last, done = B.t >= MAX;
+      const ties = sc.filter(v => Math.abs(v - sc[next]) < 1e-12 || v === sc[next]).length > 1;
+      put(root, '[data-plot]', ucbChart(B, sc, next, truth));
+      put(root, '[data-table] tbody', B.n.map((n, a) => {
+        const cell = x => (a === next ? `<strong>${x}</strong>` : x), q = n ? B.w[a] / n : null;
+        return `<tr><td>${cell('Arm ' + (a + 1))}</td><td>${n}</td><td>${q === null ? '–' : f3(q)}</td><td>${q === null ? '∞' : f3(sc[a] - q)}</td><td>${cell(q === null ? '∞' : f3(sc[a]))}</td></tr>`;
+      }).join(''));
+      let last = 'No pulls yet. Every arm is untried (score ∞), so UCB1 tries each arm once, from Arm 1.';
+      if (L) {
+        const best = Math.max(...L.q.map(q => (q === null ? -Infinity : q))), q = L.q[L.arm];
+        const why = q === null ? 'it was untried' : q >= best - 1e-9 ? 'highest score and highest mean: <em>exploit</em>'
+                  : `highest score, although its mean ${f3(q)} was not the highest: <em>explore</em>`;
+        last = `Pull ${L.t}: Arm ${L.arm + 1} (${why}). It paid <strong>${L.r}</strong>.`;
+      }
+      const nextTxt = done ? `Budget of ${MAX} pulls reached: Reset, or move c to replay the run.`
+        : `t = ${B.t}${B.t ? `, ln t = ${f3(Math.log(B.t))}` : ''}. Next pull: <strong>Arm ${next + 1}</strong>` +
+          (sc[next] === Infinity ? ' (untried)' : ties ? ' (a tie: the lower-numbered arm)' : '') + '.';
+      put(root, '[data-readout]', last + '<br>' + nextTxt + (truth ? '<br>True means 0.3, 0.5 and 0.7, hidden from UCB1.' : ''));
+      root.querySelectorAll('[data-action="one"],[data-action="ten"]').forEach(b => { b.disabled = done; });
+      root.querySelector('[data-action="truth"]').textContent = truth ? 'Hide true means' : 'Show true means';
     };
-    on(root, 'seeds', () => { seedSet += 1; draw(); });
-    on(root, 'reset', () => { seedSet = 1; });
-    wire(root, {'mcts-dyna-n': '5', 'mcts-dyna-k': 2}, draw);
+    on(root, 'one', () => { if (B.t < MAX) pull(B, c()); draw(); });
+    on(root, 'ten', () => { for (let i = 0; i < 10 && B.t < MAX; i++) pull(B, c()); draw(); });
+    on(root, 'truth', () => { truth = !truth; draw(); });
+    cIn.addEventListener('input', () => { replay(B.t); draw(); });
+    on(root, 'reset', () => { truth = false; cIn.value = cIn.dataset.default; cIn.dispatchEvent(new Event('input', {bubbles: true})); replay(0); draw(); });
+    replay(0); draw();
   });
 
   /* ======================== Monte-Carlo Tree Search ======================== */
 
-  Demos.register('mcts-uct-lab', (root, H) => {
-    put(root, '[data-controls]', H.range('mcts-uct-c', 'Exploration c', 1, 0, 3, .1) + H.range('mcts-uct-nb', 'Visits to B, N(s,B)', 3, 1, 30, 1) + H.button('Reset', 'reset'));
-    const draw = () => {
-      const c = val(root, 'mcts-uct-c'), nb = val(root, 'mcts-uct-nb'), N = 12 + nb;
-      const ba = c * Math.sqrt(Math.log(N) / 12), bb = c * Math.sqrt(Math.log(N) / nb), a = .55 + ba, b = .45 + bb, ax = axis(Math.max(a, b));
-      put(root, '[data-plot]', H.bars({labels: ['Q(A)', 'Score A', 'Q(B)', 'Score B'], values: [.55, a, .45, b], min: 0, max: ax.max, ticks: ax.ticks,
-        colors: [H.colors[3], H.colors[0], H.colors[3], H.colors[1]], yLabel: 'Mean and UCT score', title: 'UCT score of each root action'}));
-      put(root, '[data-readout]', `N(s) = 12 + ${nb} = ${N}. A: 0.55 + ${H.fmt(ba, 3)} = ${H.fmt(a, 3)}; B: 0.45 + ${H.fmt(bb, 3)} = ${H.fmt(b, 3)}.<br>Next simulation: <strong>${pick(a, b)}</strong>.`);
-    };
-    wire(root, {'mcts-uct-c': 1, 'mcts-uct-nb': 3}, draw);
+  // Static figure: the four phases of one simulation on a small generic tree.
+  Demos.register('mcts-phases', (root, H) => {
+    const PW = 225, VH = 346, P = {R: [112, 64], L: [62, 128], Rt: [162, 128], LL: [37, 192], LR: [87, 192]};
+    const TITLES = ['1 Select', '2 Expand', '3 Evaluate', '4 Back up'];
+    const CAPS = [['UCT picks a child', 'at each stored node'], ['store one new', 'child node'], ['roll out at random', 'to the end: return G'], ['N + 1 and W + G', 'on every path node']];
+    const blue = H.colors[0], red = H.colors[1], green = H.colors[2], ink = '#51483d';
+    let s = `<svg class="chart" viewBox="0 0 ${4 * PW} ${VH}" role="img" aria-label="The four phases of one MCTS simulation: select, expand, evaluate by rollout, back up">` +
+      `<title>Four phases of one MCTS simulation</title>` +
+      `<defs><marker id="mcts-phase-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0L10,5L0,10z" fill="${blue}"/></marker></defs>`;
+    TITLES.forEach((title, i) => {
+      const ox = i * PW, X = k => ox + P[k][0], Y = k => P[k][1];
+      const edge = (a, b, attrs) => `<path d="M${X(a)},${Y(a) + 16}L${X(b)},${Y(b) - 16}" ${attrs}/>`;
+      const node = (k, attrs) => `<circle cx="${X(k)}" cy="${Y(k)}" r="16" ${attrs}/>`;
+      s += `<rect x="${ox + 5}" y="4" width="${PW - 10}" height="${VH - 8}" rx="8" fill="#fafaf6" stroke="#d6d6cc"/>` +
+           `<text x="${ox + PW / 2}" y="32" text-anchor="middle" font-weight="bold">${title}</text>`;
+      const sel = i === 0, stored = `fill="#fafaf6" stroke="${ink}" stroke-width="1.5"`;
+      s += edge('R', 'L', sel ? `stroke="${blue}" stroke-width="4" marker-end="url(#mcts-phase-arrow)"` : `stroke="#b8b3a8" stroke-width="2"`) +
+           edge('R', 'Rt', 'stroke="#b8b3a8" stroke-width="2"') + edge('L', 'LL', 'stroke="#b8b3a8" stroke-width="2"') +
+           (i === 0 ? edge('L', 'LR', 'stroke="#b8b3a8" stroke-width="1.5" stroke-dasharray="5 4"') : edge('L', 'LR', 'stroke="#b8b3a8" stroke-width="2"'));
+      ['R', 'L', 'Rt', 'LL'].forEach(k => { s += node(k, sel && (k === 'R' || k === 'L') ? `fill="${blue}" fill-opacity="0.18" stroke="${blue}" stroke-width="2.5"` : stored); });
+      if (i === 0) s += node('LR', 'fill="#f0f1eb" stroke="#9b9488" stroke-width="1.5" stroke-dasharray="4 3"') + `<text x="${X('LR') + 22}" y="${Y('LR') + 6}">untried</text>`;
+      if (i === 1) s += node('LR', `fill="${green}" fill-opacity="0.18" stroke="${green}" stroke-width="3"`) + `<text x="${X('LR') + 22}" y="${Y('LR') + 6}" font-weight="bold">new</text>`;
+      if (i >= 2) s += node('LR', stored);
+      if (i === 2) {
+        const x = X('LR'), y = Y('LR') + 16;
+        s += `<path d="M${x},${y}L${x + 12},${y + 14}L${x - 6},${y + 28}L${x + 10},${y + 42}" fill="none" stroke="${red}" stroke-width="3" stroke-dasharray="6 4"/>` +
+             `<rect x="${x + 3}" y="${y + 44}" width="14" height="14" fill="${red}"/><text x="${x + 24}" y="${y + 57}" font-weight="bold">G</text>`;
+      }
+      if (i === 3) {
+        const up = (a, b) => `<path d="M${X(b)},${Y(b) - 18}L${X(a)},${Y(a) + 20}" stroke="${blue}" stroke-width="3.5" marker-end="url(#mcts-phase-arrow)"/>`;
+        s += up('L', 'LR') + up('R', 'L') +
+             `<text x="${X('R') + 22}" y="${Y('R') - 8}">+1, +G</text><text x="${X('L') + 20}" y="${Y('L') + 2}">+1, +G</text><text x="${X('LR') + 22}" y="${Y('LR') + 6}">+1, +G</text>`;
+      }
+      s += CAPS[i].map((line, j) => `<text x="${ox + PW / 2}" y="${304 + 22 * j}" text-anchor="middle">${line}</text>`).join('');
+    });
+    put(root, '[data-figure]', s + '</svg>');
   });
 
   // Phase-by-phase MCTS on TREE, drawn as an SVG tree. The state is a function of (c, phases taken):
   // changing c replays the search from the start with the new c to the same point.
   Demos.register('mcts-tree-lab', (root, H) => {
     const SEED = 808, BUDGET = 200, NAMES = ['Select', 'Expand', 'Evaluate', 'Back up'];
-    const POS = {R: [294, 40], A: [146, 150], B: [442, 150], A1: [72, 262], A2: [220, 262], B1: [368, 262], B2: [516, 262]};
-    const BW = 138, BH = 72, VW = 590, VH = 300;
+    const DY = 38, POS = {R: [294, 40 + DY], A: [146, 150 + DY], B: [442, 150 + DY], A1: [72, 262 + DY], A2: [220, 262 + DY], B1: [368, 262 + DY], B2: [516, 262 + DY]};
+    const BW = 138, BH = 72, VW = 590, VH = 370;
     const READY = 'Ready: no simulations yet. Step 1 selects from the root R.';
-    let S, phase, msg, note;
+    let S, phase, msg, note, expanded;
     put(root, '[data-controls]', H.range('mcts-tree-c', 'Exploration c', 1, 0, 3, .1) + H.button('Step 1: Select', 'phase') +
-      H.button('Run 10 simulations', 'ten') + H.button('Reset', 'reset'));
+      H.button('Run 1 simulation', 'one') + H.button('Run 10', 'ten') + H.button('Reset', 'reset'));
     const cIn = root.querySelector('#mcts-tree-c'), c = () => +cIn.value;
     const f3 = x => H.fmt(x, 3);
+    const uctText = p => `UCT ${p.ch.map((k, i) => `${k} ${f3(p.sc[i])}`).join(' vs ')} → ${p.choice}${p.tie ? ' (tie: left)' : ''}`;
     function advance() {
       const cc = c();
       if (phase === 0) {
         const node = select(S, cc);
-        const parts = S.picks.map(p => `at ${p.node}, ${p.ch.map((k, i) => `${k} ${f3(p.sc[i])}`).join(' vs ')} → ${p.choice}${p.tie ? ' (tie: left)' : ''}`);
-        msg = `<strong>Select</strong>: ` + (parts.length ? `UCT ${parts.join('; ')}. ` : '') +
+        msg = `<strong>Select</strong>: ` + (S.picks.length ? `${S.picks.map(p => `at ${p.node}, ${uctText(p)}`).join('; ')}. ` : '') +
               (TREE[node].children ? `${node} has an untried child, so selection stops at ${node}.` : `${node} is a leaf, so selection stops there.`);
       } else if (phase === 1) {
-        const child = expand(S);
-        msg = child ? `<strong>Expand</strong>: store ${child} as a new node; its N stays 0 until the backup.`
-                    : `<strong>Expand</strong>: ${S.path[S.path.length - 1]} is a leaf, so nothing is added.`;
+        expanded = expand(S);
+        msg = expanded ? `<strong>Expand</strong>: store ${expanded} as a new node; its N stays 0 until the backup.`
+                       : `<strong>Expand</strong>: ${S.path[S.path.length - 1]} is a leaf, so nothing is added.`;
       } else if (phase === 2) {
         rollout(S);
         const end = S.trail[S.trail.length - 1];
@@ -297,17 +314,30 @@
       }
       phase = (phase + 1) % 4;
     }
-    const replay = steps => { S = newSearch(SEED); phase = 0; msg = READY; for (let i = 0; i < steps; i++) advance(); };
+    // One line for a whole simulation, built from the search state after its backup.
+    const summary = () => `<strong>Simulation ${S.done}</strong>: ` + (S.picks.length ? S.picks.map(uctText).join('; ') : 'the root has an untried move') +
+      `; expand ${expanded || 'nothing (leaf)'}; ` + (S.trail.length > 1 ? `rollout ${S.trail.join(' → ')}` : `${S.trail[0]} is a leaf`) +
+      `, G = ${S.G}; back up along ${S.path.join(' → ')}.`;
+    const replay = steps => { S = newSearch(SEED); phase = 0; msg = READY; expanded = null; for (let i = 0; i < steps; i++) advance(); };
     function tree() {
       const onPath = (a, b) => S.path.indexOf(b) > 0 && S.path[S.path.indexOf(b) - 1] === a;
       const onTrail = (a, b) => S.trail.indexOf(b) > 0 && S.trail[S.trail.indexOf(b) - 1] === a;
+      const lastDone = S.done === 0 && phase === 0 ? -1 : (phase + 3) % 4;
       let s = `<svg class="chart" viewBox="0 0 ${VW} ${VH}" role="img" aria-label="MCTS tree with visits N, total return W and mean Q"><title>Search tree: leaf payoffs A1 0.2, A2 0.8, B1 0.55, B2 0.65</title>`;
-      s += `<path d="M6,14H34" stroke="${H.colors[0]}" stroke-width="4"/><text x="40" y="20">tree path</text>` +
-           `<path d="M6,40H34" stroke="${H.colors[1]}" stroke-width="3" stroke-dasharray="6 4"/><text x="40" y="46">rollout</text>` +
-           `<text x="${VW - 4}" y="20" text-anchor="end">simulations: ${S.done}</text>`;
+      // phase strip: the phase just completed is filled
+      NAMES.forEach((name, i) => {
+        const x = 6 + i * 146, on = i === lastDone;
+        s += `<rect x="${x}" y="4" width="140" height="30" rx="5" fill="${on ? H.colors[0] : '#fafaf6'}"${on ? ' fill-opacity="0.16"' : ''} stroke="${on ? H.colors[0] : '#b8b3a8'}" stroke-width="${on ? 2.5 : 1.2}"/>` +
+             `<text x="${x + 70}" y="25" text-anchor="middle"${on ? ' font-weight="bold"' : ''}>${i + 1} ${name}</text>`;
+      });
       Object.entries(TREE).forEach(([p, d]) => (d.children || []).forEach(k => {
         const path = onPath(p, k), roll = !path && onTrail(p, k);
         s += `<path d="M${POS[p][0]},${POS[p][1] + BH / 2}L${POS[k][0]},${POS[k][1] - BH / 2}" stroke="${path ? H.colors[0] : roll ? H.colors[1] : '#b8b3a8'}" stroke-width="${path ? 4 : roll ? 3 : 2}"${roll ? ' stroke-dasharray="6 4"' : ''}/>`;
+      }));
+      // UCT scores compared in the latest selection, written beside each edge
+      S.picks.forEach(p => p.ch.forEach((k, i) => {
+        const [px, py] = POS[p.node], [kx, ky] = POS[k], mx = (px + kx) / 2, my = (py + BH / 2 + ky - BH / 2) / 2, left = kx < px;
+        s += `<text x="${mx + (left ? -12 : 12)}" y="${my + 2}" text-anchor="${left ? 'end' : 'start'}" font-size="15"${k === p.choice ? ' font-weight="bold"' : ''}>UCT ${f3(p.sc[i])}</text>`;
       }));
       Object.entries(POS).forEach(([k, [x, y]]) => {
         const st = S.stats[k], active = S.path.includes(k), leaf = S.trail.length && S.trail[S.trail.length - 1] === k;
@@ -321,6 +351,9 @@
                           `<text x="${x}" y="${y + 26}" text-anchor="middle">Q ${st.n ? H.fmt(st.w / st.n) : '–'}</text>`
                         : `<text x="${x}" y="${y + 14}" text-anchor="middle"${dim}>not stored</text>`);
       });
+      s += `<path d="M6,${VH - 18}H34" stroke="${H.colors[0]}" stroke-width="4"/><text x="40" y="${VH - 12}">tree path</text>` +
+           `<path d="M150,${VH - 18}H178" stroke="${H.colors[1]}" stroke-width="3" stroke-dasharray="6 4"/><text x="184" y="${VH - 12}">rollout</text>` +
+           `<text x="${VW - 4}" y="${VH - 12}" text-anchor="end">simulations: ${S.done}</text>`;
       return s + '</svg>';
     }
     const draw = () => {
@@ -331,20 +364,24 @@
         (full ? `<br>Budget of ${BUDGET} simulations reached; Reset to start again.` : ''));
       const step = root.querySelector('[data-action="phase"]');
       step.textContent = `Step ${phase + 1}: ${NAMES[phase]}`;
-      step.disabled = full;
-      root.querySelector('[data-action="ten"]').disabled = full;
+      root.querySelectorAll('[data-action="phase"],[data-action="one"],[data-action="ten"]').forEach(b => { b.disabled = full; });
+    };
+    // Complete k simulations; a simulation already in progress is finished first and counts as one.
+    const run = k => {
+      const start = S.done, partial = phase !== 0, target = Math.min(BUDGET, S.done + k);
+      while (S.done < target) advance();            // at most 40 phases
+      const ran = S.done - start;
+      if (k === 1) { note = partial ? 'Finished the simulation in progress.' : ''; msg = summary(); }
+      else { note = partial ? `Finished the simulation in progress and ran ${ran - 1} more (${S.done} in total). Last one:` : `Ran ${ran} simulations (${S.done} in total). Last one:`; msg = summary(); }
+      draw();
     };
     on(root, 'phase', () => { if (!(S.done >= BUDGET && phase === 0)) { note = ''; advance(); } draw(); });
-    on(root, 'ten', () => {
-      const start = S.done, partial = phase !== 0, target = Math.min(BUDGET, S.done + 10);
-      while (S.done < target) advance();            // at most 40 phases
-      const ran = target - start;
-      note = partial ? `Finished the simulation in progress and ran ${ran - 1} more (${S.done} in total).` : `Ran ${ran} simulation${ran === 1 ? '' : 's'} (${S.done} in total). Last one:`;
-      draw();
-    });
+    on(root, 'one', () => run(1));
+    on(root, 'ten', () => run(10));
     cIn.addEventListener('input', () => {
       const steps = 4 * S.done + phase;
       replay(steps);
+      if (steps && phase === 0) msg = summary();
       note = steps ? `c = ${c()}: the search was replayed from the start with this c to the same point.` : `c = ${c()}.`;
       draw();
     });

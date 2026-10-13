@@ -292,4 +292,244 @@
     };
     wire(root, {'ex-instance': 'wide'}, draw);
   });
+
+  /* ======================== Exploring with a Learned Model ========================
+     Dyna (moved here from Lecture 8) and Dyna-Q+ on two of Sutton and Barto's mazes. A block scope keeps
+     these helpers apart from the bandit code above. */
+  {
+  const H = window.H;
+  const put = (root, sel, html) => { root.querySelector(sel).innerHTML = html; };
+  const int = x => Math.round(x).toLocaleString('en-GB');
+  // Line chart with a legend whose swatches show solid and dashed lines (H.plot's legend draws solid blocks).
+  const legend = lines => '<div class="legend">' + lines.map(l =>
+    `<span><svg width="30" height="10" viewBox="0 0 30 10" aria-hidden="true"><path d="M1,5H29" stroke="${l.color}" stroke-width="${l.width || 3}"${l.dashed ? ' stroke-dasharray="6 4"' : ''}/></svg>${H.esc(l.label)}</span>`).join('') + '</div>';
+  const plotWithLegend = (o, lines) => H.plot(Object.assign({}, o, {series: lines.map(l => Object.assign({}, l, {label: ''}))})) + legend(lines);
+
+  /* ---- Dyna maze (Sutton & Barto, Example 8.1): 6 x 9 grid, cells numbered row * 9 + col ---- */
+  const MAZE = {rows: 6, cols: 9, start: 18, goal: 8, walls: new Set([11, 20, 29, 41, 7, 16, 25])};
+  const MOVES = [[-1, 0], [1, 0], [0, -1], [0, 1]];   // up, down, left, right
+  function mazeStep(s, a) {
+    const r = Math.floor(s / MAZE.cols) + MOVES[a][0], c = s % MAZE.cols + MOVES[a][1], s2 = r * MAZE.cols + c;
+    return r < 0 || r >= MAZE.rows || c < 0 || c >= MAZE.cols || MAZE.walls.has(s2) ? s : s2;
+  }
+  // Tabular Dyna-Q; acting and planning use separate seeded streams. Returns episode lengths,
+  // the number of value updates and (optionally) a copy of Q after every episode.
+  function dynaQ(n, seed, keepQ) {
+    const EPISODES = 50, CAP = 10000, alpha = .1, gamma = .95, eps = .1;
+    const act = H.rng(seed), plan = H.rng(seed + 500000);
+    const Q = new Float64Array(MAZE.rows * MAZE.cols * 4), model = new Map(), seen = [];
+    const maxQ = s => Math.max(Q[4 * s], Q[4 * s + 1], Q[4 * s + 2], Q[4 * s + 3]);
+    // Greedy action with random tie-breaking: every action within 1e-12 of the maximum counts as tied.
+    const greedy = s => {
+      const best = maxQ(s), ties = [];
+      for (let a = 0; a < 4; a++) if (best - Q[4 * s + a] <= 1e-12) ties.push(a);
+      return ties[Math.floor(act() * ties.length)];
+    };
+    const update = (k, r, s2) => { Q[k] += alpha * (r + (s2 === MAZE.goal ? 0 : gamma * maxQ(s2)) - Q[k]); };
+    const lens = [], snaps = [];
+    let updates = 0;
+    for (let e = 0; e < EPISODES; e++) {
+      let s = MAZE.start, t = 0;
+      while (s !== MAZE.goal && t < CAP) {
+        const a = act() < eps ? Math.floor(act() * 4) : greedy(s), s2 = mazeStep(s, a), r = s2 === MAZE.goal ? 1 : 0, k = 4 * s + a;
+        update(k, r, s2); updates++;
+        if (!model.has(k)) seen.push(k);
+        model.set(k, [r, s2]);
+        for (let i = 0; i < n; i++) { const kk = seen[Math.floor(plan() * seen.length)], m = model.get(kk); update(kk, m[0], m[1]); updates++; }
+        s = s2; t++;
+      }
+      lens.push(t);
+      if (keepQ) snaps.push(Float64Array.from(Q));
+    }
+    return {lens, updates, snaps};
+  }
+  function mazeSVG(Q) {
+    const C = 30, W = MAZE.cols * C, Ht = MAZE.rows * C;
+    let s = `<svg class="chart" viewBox="-2 -2 ${W + 4} ${Ht + 4}" role="img" aria-label="Dyna maze with the current greedy actions"><title>Dyna maze: greedy action in each state with a positive value</title>`;
+    for (let i = 0; i < MAZE.rows * MAZE.cols; i++) {
+      const x = (i % MAZE.cols) * C, y = Math.floor(i / MAZE.cols) * C, wall = MAZE.walls.has(i);
+      s += `<rect x="${x}" y="${y}" width="${C}" height="${C}" fill="${wall ? '#6b6359' : '#fafaf6'}" stroke="#c9c5bb"/>`;
+      if (wall) continue;
+      const q = Array.from(Q.slice(4 * i, 4 * i + 4)), best = Math.max(...q), valued = best > 0 && i !== MAZE.goal;
+      if (valued) s += `<rect x="${x}" y="${y}" width="${C}" height="${C}" fill="${H.colors[0]}" fill-opacity="0.12"/>`;
+      if (i === MAZE.start || i === MAZE.goal) { s += `<text x="${x + C / 2}" y="${y + C / 2 + 6}" text-anchor="middle" font-weight="bold">${i === MAZE.start ? 'S' : 'G'}</text>`; continue; }
+      if (!valued) continue;
+      // arrow for the greedy action: shaft plus triangular head
+      const [dy, dx] = MOVES[q.indexOf(best)], cx = x + C / 2, cy = y + C / 2, px = -dy, py = dx;
+      s += `<path d="M${cx - dx * 9},${cy - dy * 9}L${cx + dx * 4},${cy + dy * 4}" stroke="${H.colors[0]}" stroke-width="2.5"/>` +
+           `<path d="M${cx + dx * 11},${cy + dy * 11}L${cx + dx * 3 + px * 5},${cy + dy * 3 + py * 5}L${cx + dx * 3 - px * 5},${cy + dy * 3 - py * 5}Z" fill="${H.colors[0]}"/>`;
+    }
+    return s + '</svg>';
+  }
+
+  // Dyna-Q on the Dyna maze: mean episode length over 20 seeded runs, n = 0 against the chosen n.
+  Demos.register('ex-dyna-lab', (root, H) => {
+    const RUNS = 20, TOP = 800, SHORT = 25, cache = new Map();
+    let seedSet = 1;
+    put(root, '[data-controls]', H.select('ex-dyna-n', 'Planning steps n', [0, 5, 10, 50].map(v => ({value: String(v), label: String(v)})), '5') +
+      H.range('ex-dyna-k', 'Maze after episode', 2, 1, 10, 1) + H.button('New seeds', 'seeds') + H.button('Reset', 'reset'));
+    const runs = n => {
+      const key = n + '|' + seedSet;
+      if (!cache.has(key)) {
+        const mean = new Array(50).fill(0);
+        let steps = 0, updates = 0, first = null;
+        for (let i = 0; i < RUNS; i++) {
+          const res = dynaQ(n, 1000 * seedSet + i + 1, i === 0);
+          if (i === 0) first = res.snaps;
+          res.lens.forEach((l, j) => { mean[j] += l / RUNS; });
+          steps += res.lens.reduce((a, b) => a + b, 0) / RUNS; updates += res.updates / RUNS;
+        }
+        // first episode from which the mean length stays at or below SHORT steps
+        let from = 51;
+        for (let j = 49; j >= 0 && mean[j] <= SHORT; j--) from = j + 1;
+        cache.set(key, {mean, steps, updates, first, from});
+      }
+      return cache.get(key);
+    };
+    const draw = () => {
+      const n = val(root, 'ex-dyna-n'), k = val(root, 'ex-dyna-k'), base = runs(0), cur = runs(n);
+      const s0 = 1000 * seedSet + 1;
+      const pts = m => m.slice(1).map((v, j) => [j + 2, Math.min(TOP, v)]);
+      const lines = [{label: `n = ${n}`, points: pts(cur.mean), color: H.colors[0]}];
+      if (n !== 0) lines.push({label: 'n = 0 (Q-learning)', points: pts(base.mean), color: H.colors[1], dashed: true});
+      put(root, '[data-plot]', plotWithLegend({xDomain: [0, 50], yDomain: [0, TOP], xTicks: 5, xLabel: 'Episode (from 2)', yLabel: 'Steps per episode', height: 270,
+        title: 'Mean steps per episode against episode'}, lines));
+      const clipped = cur.mean.slice(1).concat(base.mean.slice(1)).some(v => v > TOP) ? ' Values above 800 are drawn at 800.' : '';
+      const short = r => r.from <= 50 ? `episode ${r.from}` : 'never (within 50 episodes)';
+      const saved = base.steps - cur.steps, cost = saved > 0 ? `${H.fmt((cur.updates - base.updates) / saved, 1)} extra updates per real step saved` : 'no real steps saved';
+      put(root, '[data-readout]', n === 0
+        ? `Seeds ${s0}–${s0 + RUNS - 1}. Episode 1, a random walk: ${int(cur.mean[0])} steps; episode 2: <strong>${int(cur.mean[1])}</strong>.<br>` +
+          `Mean ≤ ${SHORT} steps from <strong>${short(cur)}</strong>; shortest path 14.<br>50 episodes: ${int(cur.steps)} real steps, one value update each.${clipped}`
+        : `Seeds ${s0}–${s0 + RUNS - 1}. Episode 1: ${int(cur.mean[0])} steps for every n. Episode 2: ${int(base.mean[1])} (n = 0) vs <strong>${int(cur.mean[1])}</strong> (n = ${n}).<br>` +
+          `Mean ≤ ${SHORT} steps from ${short(base)} (n = 0) vs <strong>${short(cur)}</strong> (n = ${n}); shortest path 14.<br>` +
+          `50 episodes: ${int(base.steps)} vs ${int(cur.steps)} real steps, ${int(base.updates)} vs ${int(cur.updates)} value updates: <strong>${cost}</strong>.${clipped}`);
+      const Q = cur.first[k - 1];
+      let valued = 0;
+      for (let s = 0; s < MAZE.rows * MAZE.cols; s++) if (s !== MAZE.goal && !MAZE.walls.has(s) && Math.max(Q[4 * s], Q[4 * s + 1], Q[4 * s + 2], Q[4 * s + 3]) > 0) valued++;
+      put(root, '[data-maze]', mazeSVG(Q));
+      put(root, '[data-maze-note]', `Greedy actions after episode ${k}, n = ${n}, seed ${s0}: ${valued} of 46 states have a positive value.`);
+    };
+    on(root, 'seeds', () => { seedSet += 1; draw(); });
+    wire(root, {'ex-dyna-n': '5', 'ex-dyna-k': 2}, draw, () => { seedSet = 1; });
+  });
+
+  /* ---- Shortcut maze (after Sutton & Barto, Example 8.3): same 6 x 9 numbering; the wall in row 3
+     runs from column 1 to 8 for the first 3000 steps, then its right end (cell 35) opens ---- */
+  const SHORTCUT = {start: 48, goal: 8, gap: 35, change: 3000, T: 6000,
+                    before: new Set([28, 29, 30, 31, 32, 33, 34, 35]), after: new Set([28, 29, 30, 31, 32, 33, 34])};
+  function shortcutStep(walls, s, a) {
+    const r = Math.floor(s / 9) + MOVES[a][0], c = s % 9 + MOVES[a][1], s2 = r * 9 + c;
+    return r < 0 || r >= 6 || c < 0 || c >= 9 || walls.has(s2) ? s : s2;
+  }
+  // Greedy route from S in the opened maze (first best action on ties), at most 40 steps.
+  function greedyRoute(Q) {
+    let s = SHORTCUT.start;
+    const path = [s];
+    for (let i = 0; i < 40 && s !== SHORTCUT.goal; i++) {
+      let b = 0;
+      for (let a = 1; a < 4; a++) if (Q[4 * s + a] > Q[4 * s + b]) b = a;
+      s = shortcutStep(SHORTCUT.after, s, b); path.push(s);
+    }
+    return path;
+  }
+  // Dyna-Q (kappa = 0) or Dyna-Q+ (kappa > 0) for 6000 steps, n = 50 planning updates per step; each
+  // episode restarts at S after reaching G (reward 1). Dyna-Q+ (Sutton & Barto §8.3) plans with reward
+  // r + kappa * sqrt(tau), tau = steps since (s, a) was last tried for real, and enters actions never tried
+  // from a visited state into the model as "stay put, reward 0", last tried at step 0.
+  function dynaQPlus(kappa, seed) {
+    const alpha = .1, gamma = .95, eps = .1, n = 50, plus = kappa > 0;
+    const act = H.rng(seed), plan = H.rng(seed + 500000);
+    const Q = new Float64Array(54 * 4), mR = new Float64Array(54 * 4), mS = new Int32Array(54 * 4).fill(-1), last = new Float64Array(54 * 4);
+    const seen = [], visited = new Uint8Array(54);
+    const maxQ = s => Math.max(Q[4 * s], Q[4 * s + 1], Q[4 * s + 2], Q[4 * s + 3]);
+    const greedy = s => {
+      const best = maxQ(s), ties = [];
+      for (let a = 0; a < 4; a++) if (best - Q[4 * s + a] <= 1e-12) ties.push(a);
+      return ties[Math.floor(act() * ties.length)];
+    };
+    const update = (k, r, s2) => { Q[k] += alpha * (r + (s2 === SHORTCUT.goal ? 0 : gamma * maxQ(s2)) - Q[k]); };
+    const cum = [[0, 0]];
+    let s = SHORTCUT.start, goals = 0, before = 0;
+    for (let t = 1; t <= SHORTCUT.T; t++) {
+      const walls = t <= SHORTCUT.change ? SHORTCUT.before : SHORTCUT.after;
+      if (plus && !visited[s]) {
+        visited[s] = 1;
+        for (let a = 0; a < 4; a++) { const k = 4 * s + a; if (mS[k] < 0) { mS[k] = s; mR[k] = 0; last[k] = 0; seen.push(k); } }
+      }
+      const a = act() < eps ? Math.floor(act() * 4) : greedy(s), s2 = shortcutStep(walls, s, a), r = s2 === SHORTCUT.goal ? 1 : 0, k = 4 * s + a;
+      update(k, r, s2);
+      if (mS[k] < 0) seen.push(k);
+      mS[k] = s2; mR[k] = r; last[k] = t;
+      for (let i = 0; i < n; i++) { const kk = seen[Math.floor(plan() * seen.length)]; update(kk, mR[kk] + (plus ? kappa * Math.sqrt(t - last[kk]) : 0), mS[kk]); }
+      if (s2 === SHORTCUT.goal) { goals++; s = SHORTCUT.start; } else s = s2;
+      if (t === SHORTCUT.change) before = goals;
+      if (t % 50 === 0) cum.push([t, goals]);
+    }
+    return {cum, before, after: goals - before, route: greedyRoute(Q)};
+  }
+  const usesShortcut = p => p[p.length - 1] === SHORTCUT.goal && p.includes(SHORTCUT.gap);
+  // The opened maze with routes drawn through cell centres; the new opening is shaded.
+  function shortcutSVG(routes) {
+    const C = 30, cx = i => (i % 9) * C + C / 2, cy = i => Math.floor(i / 9) * C + C / 2;
+    let s = `<svg class="chart" viewBox="-2 -2 274 184" role="img" aria-label="Shortcut maze after step 3000 with each agent's greedy route"><title>Shortcut maze after the change: greedy routes of Dyna-Q (dashed) and Dyna-Q+ (solid)</title>`;
+    for (let i = 0; i < 54; i++) {
+      const x = (i % 9) * C, y = Math.floor(i / 9) * C, wall = SHORTCUT.after.has(i), gap = i === SHORTCUT.gap;
+      s += `<rect x="${x}" y="${y}" width="${C}" height="${C}" fill="${wall ? '#6b6359' : gap ? '#e3eedf' : '#fafaf6'}" stroke="${gap ? H.colors[2] : '#c9c5bb'}"${gap ? ' stroke-width="2" stroke-dasharray="4 3"' : ''}/>`;
+    }
+    routes.forEach(r => {
+      // A route that stops short of G ends where its greedy move keeps it in place: mark that cell with a ring.
+      const cells = r.path.filter((c, i) => i === 0 || c !== r.path[i - 1]), end = cells[cells.length - 1];
+      if (cells.length > 1) s += `<polyline points="${cells.map(i => `${cx(i) + r.dx},${cy(i) + r.dx}`).join(' ')}" fill="none" stroke="${r.color}" stroke-width="3"${r.dashed ? ' stroke-dasharray="6 4"' : ''} stroke-linejoin="round"/>`;
+      if (end !== SHORTCUT.goal) s += `<circle cx="${cx(end) + r.dx}" cy="${cy(end) + r.dx}" r="9" fill="none" stroke="${r.color}" stroke-width="3"/>`;
+    });
+    [[SHORTCUT.start, 'S'], [SHORTCUT.goal, 'G']].forEach(([i, t]) => { s += `<text x="${cx(i)}" y="${cy(i) + 6}" text-anchor="middle" font-weight="bold">${t}</text>`; });
+    return s + '</svg>';
+  }
+  Object.assign(window.ExploreModel, {dynaQ, dynaQPlus, greedyRoute});
+
+  // Dyna-Q against Dyna-Q+ on the shortcut maze: cumulative goals over 6000 steps, mean of 10 seeded runs.
+  Demos.register('ex-shortcut-lab', (root, H) => {
+    const RUNS = 10, cache = new Map();
+    let seedSet = 1;
+    put(root, '[data-controls]', H.select('ex-shortcut-kappa', 'Dyna-Q+ bonus κ', ['0.0001', '0.001', '0.01'].map(v => ({value: v, label: v})), '0.001') +
+      H.button('New seeds', 'seeds') + H.button('Reset', 'reset'));
+    const runs = kappa => {
+      const key = kappa + '|' + seedSet;
+      if (!cache.has(key)) {
+        const cum = new Array(SHORTCUT.T / 50 + 1).fill(0);
+        let before = 0, after = 0, found = 0, route = null;
+        for (let i = 0; i < RUNS; i++) {
+          const res = dynaQPlus(kappa, 1000 * seedSet + i + 1);
+          res.cum.forEach(([, g], j) => { cum[j] += g / RUNS; });
+          before += res.before / RUNS; after += res.after / RUNS;
+          if (usesShortcut(res.route)) found++;
+          if (i === 0) route = res.route;
+        }
+        cache.set(key, {cum: cum.map((g, j) => [50 * j, g]), before, after, found, route});
+      }
+      return cache.get(key);
+    };
+    // A greedy move that leaves the state unchanged is a move into a wall or the edge, chosen for its bonus.
+    const stalled = p => p.some((c, i) => i > 0 && c === p[i - 1]);
+    const describe = p => p[p.length - 1] === SHORTCUT.goal ? `${p.length - 1} steps, ${usesShortcut(p) ? 'through the shortcut' : 'round the left end'}`
+      : stalled(p) ? 'stops to re-test a move into a wall or the edge (ringed): its bonus outweighs heading for G' : 'does not head for G (still exploring)';
+    const draw = () => {
+      const kappa = val(root, 'ex-shortcut-kappa'), q = runs(0), p = runs(kappa), s0 = 1000 * seedSet + 1;
+      const top = Math.max(100, Math.ceil(Math.max(q.cum[q.cum.length - 1][1], p.cum[p.cum.length - 1][1]) / 100) * 100);
+      put(root, '[data-plot]', plotWithLegend({xDomain: [0, SHORTCUT.T], yDomain: [0, top], xTicks: 6, yTicks: top / 100, xLabel: 'Time steps', yLabel: 'Cumulative goals', height: 270,
+        title: 'Cumulative goals reached against time steps'}, [
+        {label: `Dyna-Q+ (κ = ${kappa})`, points: p.cum, color: H.colors[0]},
+        {label: 'Dyna-Q', points: q.cum, color: H.colors[1], dashed: true},
+        {label: 'shortcut opens', points: [[SHORTCUT.change, 0], [SHORTCUT.change, top]], color: '#9b9488', width: 2, dashed: true}]));
+      const f = x => H.fmt(x, 1);
+      put(root, '[data-readout]', `Seeds ${s0}–${s0 + RUNS - 1}. Goals in steps 1–3000: Dyna-Q ${f(q.before)}, Dyna-Q+ <strong>${f(p.before)}</strong>. ` +
+        `Steps 3001–6000: Dyna-Q ${f(q.after)}, Dyna-Q+ <strong>${f(p.after)}</strong>.<br>` +
+        `Greedy route at step 6000 takes the shortcut in Dyna-Q ${q.found}/${RUNS} runs, Dyna-Q+ <strong>${p.found}/${RUNS}</strong> (old route 16 steps, shortcut 10).`);
+      put(root, '[data-maze]', shortcutSVG([{path: q.route, color: H.colors[1], dashed: true, dx: -3}, {path: p.route, color: H.colors[0], dx: 3}]));
+      put(root, '[data-maze-note]', `Greedy routes at step 6000, seed ${s0}: Dyna-Q (dashed) ${describe(q.route)}; Dyna-Q+ (solid) ${describe(p.route)}. Shaded: the new opening.`);
+    };
+    on(root, 'seeds', () => { seedSet += 1; draw(); });
+    wire(root, {'ex-shortcut-kappa': '0.001'}, draw, () => { seedSet = 1; });
+  });
+  }
 })();

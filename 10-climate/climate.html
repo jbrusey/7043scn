@@ -132,7 +132,7 @@
 <tr><td>Action \(A_t\)</td><td>heater power, 6 levels</td><td>vent flow × vent temperature × recirculation: 60</td></tr>
 <tr><td>Transition</td><td>exact 1-minute update</td><td>validated 1D cabin model, deterministic</td></tr>
 <tr><td>Reward \(R_{t+1}\)</td><td>comfort and energy</td><td>comfort and energy</td></tr>
-<tr><td>Episode</td><td>30-minute trip from a cold soak</td><td>500 steps from a random start state</td></tr>
+<tr><td>Episode</td><td>30-minute trip from a cold or cool start</td><td>500 steps from a random start state</td></tr>
 <tr><td>Discount \(\gamma\)</td><td>0.95</td><td>0.99</td></tr>
 </tbody>
 </table>
@@ -301,7 +301,7 @@
 </div>
 <p class="sources">Sources: <a href="https://arxiv.org/abs/1704.07899">Brusey et al. (2018), Table 3</a></p>
 <aside class="notes">
-<p>Answer: report comfort and energy separately, with the weight. In the trade-off demo the planner improves its return at −15 °C and w = 5 by not heating at all; that may or may not meet the design requirement. Ask what units each column has (dimensionless reward per step, percentage of time, kW) and which of them a passenger, a range engineer and a learning algorithm each care about.</p>
+<p>Answer: report comfort and energy separately, with the weight. In the trade-off demo the planner improves its return at −15 °C and w = 5 by not heating at all, and in the comparison demo at −15 °C its return (−30.0) beats both baselines (−35.0) with 0 comfortable minutes; that may or may not meet the design requirement. Ask what units each column has (dimensionless reward per step, percentage of time, kW) and which of them a passenger, a range engineer and a learning algorithm each care about.</p>
 </aside>
 </section>
 </section>
@@ -317,11 +317,12 @@
 <li>\(s\): cabin temperature on a 0.1 °C grid, interpolated</li>
 <li>30 steps × 701 temperatures × 6 actions</li>
 <li>act greedily: \(A_t=\arg\max_a\big[r(S_t,a)+V_{t+1}(f(S_t,a))\big]\)</li>
+<li>check each trip's plan by exact simulation against leaving the heater off</li>
 </ul>
 <div class="callout">Here the planner is an oracle: exact model, known ambient, known trip length.</div>
 <p class="sources">Sources: <a href="http://incompleteideas.net/book/RLbook2020.pdf">Sutton &amp; Barto (2018), Chapter 4 and §8.1</a>; <a href="https://davidstarsilver.wordpress.com/wp-content/uploads/2025/04/lecture-8-integrating-learning-and-planning.pdf">David Silver, Lecture 8: Integrating Learning and Planning</a></p>
 <aside class="notes">
-<p>This is dynamic programming (Lecture 3) on a deterministic model with a finite horizon, so no discount is needed. The grid runs from −20 to 50 °C; values between grid points are interpolated linearly, and the policy looks one step ahead from the exact temperature. It takes milliseconds in the browser. The paper uses its model differently: as a fast simulator that generates experience for Sarsa(λ) (“learning in simulation first”, §3), so that the learned policy can run without the model or a forecast. Lecture 8's Dyna combines both uses. Any real planner inherits the model's errors and needs forecasts of ambient conditions and trip length.</p>
+<p>This is dynamic programming (Lecture 3) on a deterministic model with a finite horizon, so no discount is needed. The grid runs from −20 to 50 °C; values between grid points are interpolated linearly, and the policy looks one step ahead from the exact temperature. Interpolation smooths the value function where it jumps (whether the band can still be reached in time), so near a break-even the grid values can be slightly off: without the final check the greedy plan heated in a few settings where that was marginally worse than doing nothing, for example from −12 °C at −15 °C outside with w = 5 (return −30.4 against −30.0). The planner therefore simulates its plan exactly from the first state of each trip and leaves the heater off if that is at least as good; ties go to the lower power throughout. It takes milliseconds in the browser. The paper uses its model differently: as a fast simulator that generates experience for Sarsa(λ) (“learning in simulation first”, §3), so that the learned policy can run without the model or a forecast. Lecture 8's Dyna combines both uses. Any real planner inherits the model's errors and needs forecasts of ambient conditions and trip length.</p>
 </aside>
 </section>
 <section id="cc-precondition">
@@ -494,14 +495,14 @@
 <div data-plot></div>
 </div>
 <div>
-<p class="small">200 test trips (seed 2018). Learned: Sarsa(λ), seeds 1–5. Line: the oracle planner for \(w\) from 2 to 5 kW.</p>
+<p class="small">200 test trips (seed 2018). Learned: Sarsa(λ&nbsp;=&nbsp;0.9), seeds 1–5. Line: the oracle planner for \(w\) from 2 to 5 kW.</p>
 <div data-controls class="demo-controls"></div>
 <div data-readout class="readout" aria-live="polite"></div>
 </div>
 </div>
 <p class="caption">Which controllers are dominated: worse on comfort and on energy? Is a lower-energy point automatically better?</p>
 <aside class="notes">
-<p>At w = 5: bang-bang 76.1% comfort at 1.95 kW (return −18.9); proportional with K_p = 1, 82.6% at 1.81 kW (−16.1); planner 83.5% at 1.75 kW (−15.5). The learned controller (mean ± standard deviation over seeds 1–5) after 4000 trips per seed: 78.2 ± 1.5% at 1.80 kW (−17.3); after 1000 trips 59.5 ± 9.8% at 1.54 kW (−21.4); after 16 000 trips 80.6 ± 0.4% at 1.84 kW (−16.8). Answer to the prompt: bang-bang is dominated by the proportional controller and by the planner; the learned controller is dominated by the planner and is within 0.01 kW of being dominated by the proportional controller. A lower-energy point is not automatically better: the under-trained learner uses less energy only because it is less comfortable, and the planner line shows that any amount of energy can be saved by giving up comfort (w = 2: 42% at 0.58 kW); even the oracle cannot exceed about 84% because warming from a cold soak takes time. K_p = 0.75 gives 69.1% at 1.78 kW, far above the planner line at the same comfort (about 1.24 kW at w = 3); gains above 1 reach 83.5% for slightly more power (1.83–1.88 kW). In the paper, by contrast, the learned controller improved both comfort and energy over every hand-coded controller; the toy is not expected to reproduce that ranking.</p>
+<p>At w = 5: bang-bang 76.1% comfort at 1.95 kW (return −18.9); proportional with K_p = 1, 82.6% at 1.81 kW (−16.1); planner 83.5% at 1.75 kW (−15.5). The learned controller (Sarsa with λ = 0.9 as on the training slide; mean ± standard deviation over seeds 1–5) after 4000 trips per seed: 78.2 ± 1.5% at 1.80 kW (−17.3); after 1000 trips 59.5 ± 9.8% at 1.54 kW (−21.4); after 16 000 trips 80.6 ± 0.4% at 1.84 kW (−16.8). Answer to the prompt: bang-bang is dominated by the proportional controller and by the planner; the learned controller is dominated by the planner and is within 0.01 kW of being dominated by the proportional controller. A lower-energy point is not automatically better: the under-trained learner uses less energy only because it is less comfortable, and the planner line shows that any amount of energy can be saved by giving up comfort (w = 2: 40% at 0.54 kW); even the oracle cannot exceed about 84% because warming from a cold soak takes time. K_p = 0.75 gives 69.1% at 1.78 kW, far above the planner line at the same comfort (about 1.26 kW, between w = 3 and w = 3.5); gains above 1 reach 83.5% for slightly more power (1.83–1.88 kW). In the paper, by contrast, the learned controller improved both comfort and energy over every hand-coded controller; the toy is not expected to reproduce that ranking.</p>
 </aside>
 </section>
 <section id="cc-study">
